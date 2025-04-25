@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server-express';
+import { gql } from 'graphql-tag'; 
 
 const typeDefs = gql`
   type User {
@@ -8,7 +8,8 @@ const typeDefs = gql`
   }
 
   type Query {
-    getUsers: [User]
+    getUsers: [User!]!
+    getUser(id: ID!): User
   }
 
   type Mutation {
