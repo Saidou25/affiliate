@@ -1,33 +1,45 @@
 // import { IResolvers } from "@graphql-tools/utils";
 // import { resolvers } from ""
-import User from "../models/User";
+import Affiliate from "../models/Affiliate";
 
 // interface MyContext {
 //   user?: { id: string; name: string }; // Customize this according to your needs
 // }
 const resolvers = {
   Query: {
-    getUsers: async () => {
-      return await User.find(); // Return all users from MongoDB
+    getAffiliates: async () => {
+      return await Affiliate.find(); // Return all users from MongoDB
     },
-    getUser: async (_: any, { id }: { id: string }) => {
-      return await User.findById(id);
+    getAffiliate: async (_: any, { id }: { id: string }) => {
+      return await Affiliate.findById(id);
     },
   },
-  
+
   Mutation: {
-    createUser: async (
+    registerAffiliate: async (
       _: unknown,
-      { name, email }: { name: string; email: string }
+      {
+        name,
+        email,
+        refId,
+        totalClicks,
+        totalCommissions,
+      }: {
+        name: string;
+        email: string;
+        refId: string;
+        totalClicks: number;
+        totalCommissions: number;
+      }
     ) => {
       try {
-        const user = new User({ name, email });
-        await user.save();
-        console.log("User created:", user); // Logging the created user
-        return user; // Ensure the user is returned
+        const affiliate = new Affiliate({ name, email, refId, totalClicks, totalCommissions });
+        await affiliate.save();
+        console.log("Affiliate created:", affiliate); // Logging the created user
+        return affiliate; // Ensure the user is returned
       } catch (error) {
-        console.error("Error creating user:", error); // Log any errors that occur during user creation
-        throw new Error("Failed to create user");
+        console.error("Error creating affiliate:", error); // Log any errors that occur during user creation
+        throw new Error("Failed to create affiliate");
       }
     },
   },

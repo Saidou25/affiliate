@@ -1,3 +1,12 @@
 export interface MyContext {
-  user?: { id: string; name: string } | undefined;
+  affiliate?:
+    | {
+        id: string;
+        name: string;
+        email: string;
+        refId: string;
+        totalClicks: number;
+        totalCommissions: number;
+      }
+    | undefined;
 }

@@ -1,13 +1,31 @@
 // src/context.ts
-import { Request } from 'express';
+import { Request } from "express";
 
 export interface MyContext {
-  user: { id: string; name: string } | undefined;
+  affiliate:
+    | {
+        id: string;
+        name: string;
+        email: string;
+        refId: string;
+        totalClicks: number;
+        totalCommissions: number;
+      }
+    | undefined;
 }
 
 export const createContext = ({ req }: { req: Request }): MyContext => {
-  const userHeader = req.headers['user']; // Adjust this logic as per your needs
-  const user = userHeader ? { id: '123', name: 'Example User' } : undefined;
+  const userHeader = req.headers["affiliate"];
+  const affiliate = userHeader
+    ? {
+        id: "123",
+        name: "Example User",
+        email: "Example email",
+        refId: "3",
+        totalClicks: 5,
+        totalCommissions: 6.6,
+      }
+    : undefined;
 
-  return { user };
+  return { affiliate };
 };

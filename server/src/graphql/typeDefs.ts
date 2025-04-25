@@ -1,20 +1,30 @@
 import { gql } from "graphql-tag";
 
-const typeDefs = gql`
-  type User {
+
+ const typeDefs = gql`
+  type Affiliate {
     id: ID!
-    name: String!
     email: String!
+    name: String
+    refId: String!
+    totalClicks: Int!
+    totalCommissions: Int!
   }
 
   type Query {
-    getUsers: [User!]!
-    getUser(id: ID!): User
+    getAffiliate(id: ID!): Affiliate
+    getAffiliates: [Affiliate!]!
   }
 
   type Mutation {
-    createUser(name: String!, email: String!): User!
+    registerAffiliate(
+      email: String!
+      name: String!
+      refId: String!
+      totalClicks: Int!
+      totalCommissions: Int!
+    ): Affiliate
+    logClick(refId: String!): Boolean
   }
 `;
-
 export default typeDefs;

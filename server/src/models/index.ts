@@ -1,3 +1,3 @@
-const User = require("./User");
+const Affiliate = require("./Affiliate");
 
-module.exports = { User };
+module.exports = { Affiliate };
