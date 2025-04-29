@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { gql, useMutation, useQuery } from "@apollo/client";
+import "./index.css";
 
 const REGISTER_AFFILIATE = gql`
   mutation RegisterAffiliate(
