@@ -23,4 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+# Ignore environment variable files
+client/.env
+client/.env.production
+server/.env
+server/.env.production

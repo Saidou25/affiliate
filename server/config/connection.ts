@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+dotenv.config(); // This will load the environment variables from .env files
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost/meditating-neighbor';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost/affiliate';
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,

@@ -48,7 +48,7 @@ function App() {
   const [totalCommissions, setTotalCommissions] = useState("");
 
   const { data, loading, error } = useQuery(GET_AFFILIATES);
-
+console.log(data);
   const [registerAffiliate] = useMutation(REGISTER_AFFILIATE, {
     onCompleted: (data) => {
       console.log("User created:", data.registerAffiliate);

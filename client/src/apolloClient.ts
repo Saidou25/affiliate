@@ -1,7 +1,11 @@
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloClient, InMemoryCache } from "@apollo/client";
+
+// Get the base URL from the environment variable
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
 
 const client = new ApolloClient({
-  uri: import.meta.env.VITE_API_BASE_URL,
+  uri: API_BASE_URL,
   cache: new InMemoryCache(),
 });
 
