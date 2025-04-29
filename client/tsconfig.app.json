@@ -7,10 +7,9 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
+    "noEmit": true,  // Keep this true
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
