@@ -54,9 +54,9 @@ interface Affiliate {
 function App() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [refId, setRefId] = useState("");
   const [totalClicks, setTotalClicks] = useState("");
   const [totalCommissions, setTotalCommissions] = useState("");
+  const [refLink, setRefLink] = useState("");
 
   const referralCode = useReferralCode();
   console.log("reference code: ", referralCode);
@@ -75,7 +75,7 @@ function App() {
   });
 
   const dynamicReferralCode = nanoid(8);
-  // const linkStructure = `https://princetongreen.org/?ref=${refId}`;
+  // const link = `https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`;
 
   const deleteAffiliate = (refId: string) => {
     // console.log(data);
@@ -87,10 +87,13 @@ function App() {
       // );
       // console.log(affiliate[0].name);
       console.log("yes: ", refId);
+    setRefLink(`https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`)
     } else {
       console.log("not the one");
     }
   };
+
+  // console.log(link);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +111,7 @@ function App() {
   return (
     <div>
       <h1> Register Affiliate</h1>
+      hello
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -115,33 +119,32 @@ function App() {
           onChange={(e) => setName(e.target.value)}
           placeholder="Name"
         />
+        <br />
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-        />
-        <input
-          type="text"
-          value={refId}
-          onChange={(e) => setRefId(e.target.value)}
-          placeholder="ref id"
-        />
+        /><br />
         <input
           type="number"
           value={totalClicks}
           onChange={(e) => setTotalClicks(e.target.value)}
           placeholder="total clicks"
-        />
+        /><br />
         <input
           type="number"
           value={totalCommissions}
           onChange={(e) => setTotalCommissions(e.target.value)}
           placeholder="total comission"
         />
-        <button type="submit">Create User</button>
+        <br /><br />
+        <button type="submit">Create User</button><br />
       </form>
       <h2>All Users</h2>
+      <strong style={{ color: "white" }}>
+      
+      </strong>
       {loading && <p>Loading users...</p>}
       {error && <p>Error fetching users: {error.message}</p>}
       {data &&
@@ -150,7 +153,11 @@ function App() {
             <strong>{affiliate.name}</strong> - {affiliate.email} -{" "}
             {affiliate.refId} - {affiliate.totalClicks} -{" "}
             {affiliate.totalCommissions}
-            <button onClick={() => deleteAffiliate(affiliate.refId)}>delete</button>
+            <button onClick={() => deleteAffiliate(affiliate.refId)}>
+             remove
+            </button>
+            <br />
+            {affiliate.refId === referralCode && <>{refLink}</>}
           </div>
         ))}
     </div>
