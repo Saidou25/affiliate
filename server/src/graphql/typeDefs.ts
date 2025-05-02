@@ -1,7 +1,6 @@
 import { gql } from "graphql-tag";
 
-
- const typeDefs = gql`
+const typeDefs = gql`
   type Affiliate {
     id: ID!
     email: String!
@@ -11,9 +10,16 @@ import { gql } from "graphql-tag";
     totalCommissions: Int!
   }
 
+  type Referral {
+    email: String
+    refId: String
+    event: String
+  }
+
   type Query {
     getAffiliate(id: ID!): Affiliate
     getAffiliates: [Affiliate!]!
+    getReferrals: [Referral!]!
   }
 
   type Mutation {
@@ -25,6 +31,11 @@ import { gql } from "graphql-tag";
       totalCommissions: Int!
     ): Affiliate
     logClick(refId: String!): Boolean
+    trackReferral(
+      email: String
+      refId: String 
+      event: String
+    ): Referral
   }
 `;
 export default typeDefs;

@@ -42,6 +42,16 @@ const GET_AFFILIATES = gql`
     }
   }
 `;
+const GET_REFERRALS = gql`
+  query GetReferrals {
+    getReferrals {
+      # id
+      event
+      email
+      refId
+    }
+  }
+`;
 
 interface Affiliate {
   name: string;
@@ -49,6 +59,12 @@ interface Affiliate {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
+}
+
+interface Referral {
+  refId: String;
+  email: String;
+  event: String;
 }
 
 function App() {
@@ -59,10 +75,13 @@ function App() {
   const [refLink, setRefLink] = useState("");
 
   const referralCode = useReferralCode();
-  console.log("reference code: ", referralCode);
+  // console.log("reference code: ", referralCode);
 
   const { data, loading, error } = useQuery<{ getAffiliates: Affiliate[] }>(
     GET_AFFILIATES
+  );
+  const { data: referralsData, loading: loadingReferrals, error: errorReferrals } = useQuery<{ getReferrals: Referral[] }>(
+    GET_REFERRALS
   );
 
   const [registerAffiliate] = useMutation(REGISTER_AFFILIATE, {
@@ -79,8 +98,8 @@ function App() {
 
   const deleteAffiliate = (refId: string) => {
     // console.log(data);
-    // console.log(referralCode);
-    // console.log(refId);
+    console.log(referralCode);
+    console.log(refId);
     if (refId === referralCode) {
       // const affiliate = data.getAffiliates.filter(
       //   (d: Affiliate) => d.refId === referralCode
@@ -89,7 +108,7 @@ function App() {
       console.log("yes: ", refId);
     setRefLink(`https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`)
     } else {
-      console.log("not the one");
+      console.log("not the one: ", referralCode);
     }
   };
 
@@ -111,7 +130,6 @@ function App() {
   return (
     <div>
       <h1> Register Affiliate</h1>
-      hello
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -120,18 +138,22 @@ function App() {
           placeholder="Name"
         />
         <br />
+        <br />
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email"
-        /><br />
+        />
+        <br />
+        <br />
         <input
           type="number"
           value={totalClicks}
           onChange={(e) => setTotalClicks(e.target.value)}
           placeholder="total clicks"
         /><br />
+          <br />
         <input
           type="number"
           value={totalCommissions}
@@ -139,6 +161,7 @@ function App() {
           placeholder="total comission"
         />
         <br /><br />
+        <br />
         <button type="submit">Create User</button><br />
       </form>
       <h2>All Users</h2>
@@ -158,6 +181,24 @@ function App() {
             </button>
             <br />
             {affiliate.refId === referralCode && <>{refLink}</>}
+          </div>
+        ))}
+         <h2>All tracked Referrals</h2>
+      <strong style={{ color: "white" }}>
+      
+      </strong>
+      {loadingReferrals && <p>Loading referrals...</p>}
+      {errorReferrals && <p>Error fetching referrals: {errorReferrals.message}</p>}
+      {referralsData &&
+        referralsData.getReferrals.map((referral: any) => (
+          <div key={referral.refId}>
+            <strong>{referral.event}</strong> - {referral.email} -{" "}
+            {referral.refId} 
+            <button onClick={() => deleteAffiliate(referral.refId)}>
+             remove
+            </button>
+            <br />
+            {referral.refId === referralCode && <>{refLink}</>}
           </div>
         ))}
     </div>

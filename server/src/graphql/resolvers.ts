@@ -1,6 +1,7 @@
 // import { IResolvers } from "@graphql-tools/utils";
 // import { resolvers } from ""
 import Affiliate from "../models/Affiliate";
+import Referral from "../models/Referral";
 
 // interface MyContext {
 //   user?: { id: string; name: string }; // Customize this according to your needs
@@ -8,10 +9,13 @@ import Affiliate from "../models/Affiliate";
 const resolvers = {
   Query: {
     getAffiliates: async () => {
-      return await Affiliate.find(); // Return all users from MongoDB
+      return await Affiliate.find(); // Return all affiliates from MongoDB
     },
     getAffiliate: async (_: any, { id }: { id: string }) => {
       return await Affiliate.findById(id);
+    },
+    getReferrals: async () => {
+      return await Referral.find(); 
     },
   },
 
@@ -35,12 +39,21 @@ const resolvers = {
       try {
         const affiliate = new Affiliate({ name, email, refId, totalClicks, totalCommissions });
         await affiliate.save();
-        console.log("Affiliate created:", affiliate); // Logging the created user
         return affiliate; // Ensure the user is returned
       } catch (error) {
         console.error("Error creating affiliate:", error); // Log any errors that occur during user creation
         throw new Error("Failed to create affiliate");
       }
+    },
+    trackReferral: async (
+      _: unknown,
+      { refId, event, email }: { refId: string; event: string; email: string }
+    ) => {
+      try {
+        const newReferral = new Referral({ refId, event, email });
+        await newReferral.save();
+        return newReferral;
+      } catch (error) { throw new Error("Failed to create referral");}
     },
   },
 };

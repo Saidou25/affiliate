@@ -1,4 +1,4 @@
-// import { GraphQLFloat } from "graphql";
+
 import mongoose, { Document, Schema } from "mongoose";
 
 interface IAffiliate extends Document {

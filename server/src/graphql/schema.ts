@@ -10,6 +10,14 @@ const typeDefs = gql`
     totalCommissions: Number
   }
 
+  type Referral {
+  id: ID
+  refId: String!
+  email: String!
+  event: String!
+  # timestamp: String
+}
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
@@ -23,6 +31,7 @@ const typeDefs = gql`
       totalClicks: Int!
       totalCommissions: Int!
     ): Affiliate
+    trackReferral(refId: String!, event: String!, email: String!): Referral
   }
 `;
 
