@@ -11,16 +11,17 @@ const typeDefs = gql`
   }
 
   type Referral {
-  id: ID
-  refId: String!
-  email: String!
-  event: String!
-  # timestamp: String
-}
+    id: ID
+    refId: String!
+    email: String!
+    event: String!
+    # timestamp: String
+  }
 
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
+    getReferrals: [Referral!]!
   }
 
   type Mutation {
