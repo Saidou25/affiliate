@@ -30,12 +30,9 @@ const typeDefs = gql`
       totalClicks: Int!
       totalCommissions: Int!
     ): Affiliate
+    deleteAffiliate(id: ID!): Affiliate
     logClick(refId: String!): Boolean
-    trackReferral(
-      email: String
-      refId: String 
-      event: String
-    ): Referral
+    trackReferral(email: String, refId: String, event: String): Referral
   }
 `;
 export default typeDefs;

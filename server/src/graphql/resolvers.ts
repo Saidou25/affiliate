@@ -1,11 +1,6 @@
-// import { IResolvers } from "@graphql-tools/utils";
-// import { resolvers } from ""
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
 
-// interface MyContext {
-//   user?: { id: string; name: string }; // Customize this according to your needs
-// }
 const resolvers = {
   Query: {
     getAffiliates: async () => {
@@ -15,7 +10,7 @@ const resolvers = {
       return await Affiliate.findById(id);
     },
     getReferrals: async () => {
-      return await Referral.find(); 
+      return await Referral.find();
     },
   },
 
@@ -29,15 +24,21 @@ const resolvers = {
         totalClicks,
         totalCommissions,
       }: {
-        name: string;
-        email: string;
-        refId: string;
-        totalClicks: number;
-        totalCommissions: number;
+        name: string
+        email: string
+        refId: string
+        totalClicks: number
+        totalCommissions: number
       }
     ) => {
       try {
-        const affiliate = new Affiliate({ name, email, refId, totalClicks, totalCommissions });
+        const affiliate = new Affiliate({
+          name,
+          email,
+          refId,
+          totalClicks,
+          totalCommissions,
+        });
         await affiliate.save();
         return affiliate; // Ensure the user is returned
       } catch (error) {
@@ -45,6 +46,15 @@ const resolvers = {
         throw new Error("Failed to create affiliate");
       }
     },
+
+    deleteAffiliate: async (_: any, { id }: { id: string }) => {
+      try {
+        return await Affiliate.findOneAndDelete({ _id: id });
+      } catch (error) {
+        throw new Error("Failed to delete affiliate");
+      }
+    },
+
     trackReferral: async (
       _: unknown,
       { refId, event, email }: { refId: string; event: string; email: string }
@@ -53,7 +63,9 @@ const resolvers = {
         const newReferral = new Referral({ refId, event, email });
         await newReferral.save();
         return newReferral;
-      } catch (error) { throw new Error("Failed to create referral");}
+      } catch (error) {
+        throw new Error("Failed to create referral");
+      }
     },
   },
 };

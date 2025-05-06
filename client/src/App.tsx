@@ -1,59 +1,14 @@
-import React, { useState } from "react";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { nanoid } from "nanoid";
-import { useReferralCode } from "./hooks/useReferralCode";
+import { useMutation, useQuery } from "@apollo/client";
+// import { useReferralCode } from "./hooks/useReferralCode";
+import { GET_AFFILIATES, GET_REFERRALS } from "./utils/queries";
+import { DELETE_AFFILIATE } from "./utils/mutations";
+
+import Form from "./components/Form";
 
 import "./index.css";
 
-const REGISTER_AFFILIATE = gql`
-  mutation RegisterAffiliate(
-    $name: String!
-    $email: String!
-    $refId: String!
-    $totalClicks: Int!
-    $totalCommissions: Int!
-  ) {
-    registerAffiliate(
-      name: $name
-      email: $email
-      refId: $refId
-      totalClicks: $totalClicks
-      totalCommissions: $totalCommissions
-    ) {
-      id
-      name
-      email
-      refId
-      totalClicks
-      totalCommissions
-    }
-  }
-`;
-
-const GET_AFFILIATES = gql`
-  query GetAffiliates {
-    getAffiliates {
-      id
-      name
-      email
-      refId
-      totalClicks
-      totalCommissions
-    }
-  }
-`;
-const GET_REFERRALS = gql`
-  query GetReferrals {
-    getReferrals {
-      # id
-      event
-      email
-      refId
-    }
-  }
-`;
-
 interface Affiliate {
+  id: string;
   name: string;
   email: string;
   refId: string;
@@ -68,137 +23,118 @@ interface Referral {
 }
 
 function App() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [totalClicks, setTotalClicks] = useState("");
-  const [totalCommissions, setTotalCommissions] = useState("");
-  const [refLink, setRefLink] = useState("");
+  // const [refLink, setRefLink] = useState("");
 
-  const referralCode = useReferralCode();
-  // console.log("reference code: ", referralCode);
+  // const referralCode = useReferralCode();
 
   const { data, loading, error } = useQuery<{ getAffiliates: Affiliate[] }>(
     GET_AFFILIATES
   );
-  const { data: referralsData, loading: loadingReferrals, error: errorReferrals } = useQuery<{ getReferrals: Referral[] }>(
-    GET_REFERRALS
-  );
 
-  const [registerAffiliate] = useMutation(REGISTER_AFFILIATE, {
-    onCompleted: (data) => {
-      console.log("User created:", data.registerAffiliate);
-    },
-    onError: (error) => {
-      console.error("Error creating user:", error.message);
+  const [deleteAffiliate] = useMutation(DELETE_AFFILIATE, {
+    update(cache, { data: { deleteAffiliate } }) {
+      try {
+        const existingData = cache.readQuery<{ getAffiliates: Affiliate[] }>({
+          query: GET_AFFILIATES,
+        });
+
+        if (existingData && deleteAffiliate) {
+          cache.writeQuery({
+            query: GET_AFFILIATES,
+            data: {
+              getAffiliates: existingData.getAffiliates.filter(
+                (a) => a.id !== deleteAffiliate.id
+              ),
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Cache update error:", (error as Error).message);
+      }
     },
   });
 
-  const dynamicReferralCode = nanoid(8);
-  // const link = `https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`;
-
-  const deleteAffiliate = (refId: string) => {
-    // console.log(data);
-    console.log(referralCode);
-    console.log(refId);
-    if (refId === referralCode) {
-      // const affiliate = data.getAffiliates.filter(
-      //   (d: Affiliate) => d.refId === referralCode
-      // );
-      // console.log(affiliate[0].name);
-      console.log("yes: ", refId);
-    setRefLink(`https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`)
-    } else {
-      console.log("not the one: ", referralCode);
+  const removeAffiliate = async (affiliateId: string) => {
+    console.log(affiliateId)
+    try {
+      const { data } = await deleteAffiliate({
+        variables: {
+          id: affiliateId.toString(),
+        },
+      });
+      if (data) {
+        console.log("success deleting affiliate", data);
+      }
+    } catch (error) {
+      console.error((error as Error).message);
     }
   };
 
-  // console.log(link);
+  const {
+    data: referralsData,
+    loading: loadingReferrals,
+    error: errorReferrals,
+  } = useQuery<{ getReferrals: Referral[] }>(GET_REFERRALS);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    registerAffiliate({
-      variables: {
-        name,
-        email,
-        refId: dynamicReferralCode,
-        totalClicks: +totalClicks,
-        totalCommissions: +totalCommissions,
-      },
-    });
-  };
+  // const dynamicReferralCode = nanoid(8);
+  // const link = `https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`;
+
+  // const deleteAffiliate = (refId: string) => {
+  //   // console.log(data);
+  //   console.log(referralCode);
+  //   console.log(refId);
+  //   if (refId === referralCode) {
+  //     // const affiliate = data.getAffiliates.filter(
+  //     //   (d: Affiliate) => d.refId === referralCode
+  //     // );
+  //     // console.log(affiliate[0].name);
+  //     console.log("yes: ", refId);
+  //     setRefLink(
+  //       `https://princetongreen.org/a-free-55-day-journey-to-unleash-your-power-from-within/?ref=${referralCode}`
+  //     );
+  //   } else {
+  //     console.log("not the one: ", referralCode);
+  //   }
+  // };
 
   return (
     <div>
-      <h1> Register Affiliate</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-        />
-        <br />
-        <br />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
-        <br />
-        <br />
-        <input
-          type="number"
-          value={totalClicks}
-          onChange={(e) => setTotalClicks(e.target.value)}
-          placeholder="total clicks"
-        /><br />
-          <br />
-        <input
-          type="number"
-          value={totalCommissions}
-          onChange={(e) => setTotalCommissions(e.target.value)}
-          placeholder="total comission"
-        />
-        <br /><br />
-        <br />
-        <button type="submit">Create User</button><br />
-      </form>
+      <Form />
       <h2>All Users</h2>
-      <strong style={{ color: "white" }}>
-      
-      </strong>
+      <strong style={{ color: "white" }}></strong>
       {loading && <p>Loading users...</p>}
       {error && <p>Error fetching users: {error.message}</p>}
       {data &&
         data.getAffiliates.map((affiliate: any) => (
           <div key={affiliate.id}>
-            <strong>{affiliate.name}</strong> - {affiliate.email} -{" "}
-            {affiliate.refId} - {affiliate.totalClicks} -{" "}
+            <strong>
+              {affiliate.name}- {affiliate.id}
+            </strong>{" "}
+            - {affiliate.email} - {affiliate.refId} - {affiliate.totalClicks} -{" "}
             {affiliate.totalCommissions}
-            <button onClick={() => deleteAffiliate(affiliate.refId)}>
-             remove
+            <button onClick={() => removeAffiliate(affiliate.id)}>
+              remove
             </button>
             <br />
-            {affiliate.refId === referralCode && <>{refLink}</>}
+            {/* {affiliate.refId === referralCode && <>{refLink}</>} */}
           </div>
         ))}
-         <h2>All tracked Referrals</h2>
-      <strong style={{ color: "white" }}>
-      
-      </strong>
+      <h2>All tracked Referrals</h2>
+      <strong style={{ color: "white" }}></strong>
       {loadingReferrals && <p>Loading referrals...</p>}
-      {errorReferrals && <p>Error fetching referrals: {errorReferrals.message}</p>}
+      {errorReferrals && (
+        <p>Error fetching referrals: {errorReferrals.message}</p>
+      )}
       {referralsData &&
         referralsData.getReferrals.map((referral: any) => (
           <div key={referral.refId}>
             <strong>{referral.event}</strong> - {referral.email} -{" "}
-            {referral.refId} 
-            <button onClick={() => deleteAffiliate(referral.refId)}>
-             remove
-            </button>
+            {referral.refId}
+            {/* <button onClick={() => deleteAffiliate(referral.refId)}>
+              remove
+            </button> */}
             <br />
-            {referral.refId === referralCode && <>{refLink}</>}
+            {/* {referral.refId === referralCode && <>{refLink}</>} */}
           </div>
         ))}
     </div>
