@@ -26,10 +26,7 @@ export default function Form() {
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setFormState((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormState({ ...formState, [name]: value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,6 +63,7 @@ export default function Form() {
           id="name"
           className="input"
           type="text"
+          name="name"
           value={formState.name}
           onChange={handleChange}
           placeholder="Name"
@@ -79,13 +77,16 @@ export default function Form() {
           id="email"
           className="input"
           type="email"
+          name="email"
           value={formState.email}
           onChange={handleChange}
           placeholder="Email"
         />
         <br />
         <br />
-        <button type="submit" disabled={!buttonEnabled}>Submit</button>
+        <button type="submit" disabled={!buttonEnabled}>
+          Submit
+        </button>
         <br />
       </form>
     </div>
