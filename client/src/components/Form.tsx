@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { nanoid } from "nanoid";
 import { useMutation } from "@apollo/client";
 import { REGISTER_AFFILIATE } from "../utils/mutations";
 
+import "./Form.css";
+
 export default function Form() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [totalClicks, setTotalClicks] = useState("");
-  const [totalCommissions, setTotalCommissions] = useState("");
+  const [formState, setFormState] = useState({
+    name: "",
+    email: "",
+  });
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+  // const [totalClicks, setTotalClicks] = useState("");
+  // const [totalCommissions, setTotalCommissions] = useState("");
   const dynamicReferralCode = nanoid(8);
 
   const [registerAffiliate] = useMutation(REGISTER_AFFILIATE, {
@@ -19,57 +24,68 @@ export default function Form() {
     },
   });
 
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormState((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     registerAffiliate({
       variables: {
-        name,
-        email,
+        name: formState.name,
+        email: formState.email,
         refId: dynamicReferralCode,
-        totalClicks: +totalClicks,
-        totalCommissions: +totalCommissions,
+        // totalClicks: +totalClicks,
+        // totalCommissions: +totalCommissions,
       },
     });
   };
 
+  useEffect(() => {
+    if (formState.email && formState.name) {
+      setButtonEnabled(true);
+    } else {
+      setButtonEnabled(false);
+    }
+  }, [formState]);
+
   return (
-    <div>
-      <h1> Register Affiliate</h1>
-      <form onSubmit={handleSubmit}>
+    <div className="">
+      <h2>Creating your Affiliate account</h2>
+      <form className="form-container" onSubmit={handleSubmit}>
+        <h1 className="title">Register Affiliate</h1>
+        <label className="" htmlFor="name">
+          Name
+        </label>
+        <br />
         <input
+          id="name"
+          className="input"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={formState.name}
+          onChange={handleChange}
           placeholder="Name"
         />
         <br />
+        <label className="" htmlFor="email">
+          Email
+        </label>
         <br />
         <input
+          id="email"
+          className="input"
           type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formState.email}
+          onChange={handleChange}
           placeholder="Email"
         />
         <br />
         <br />
-        <input
-          type="number"
-          value={totalClicks}
-          onChange={(e) => setTotalClicks(e.target.value)}
-          placeholder="total clicks"
-        />
-        <br />
-        <br />
-        <input
-          type="number"
-          value={totalCommissions}
-          onChange={(e) => setTotalCommissions(e.target.value)}
-          placeholder="total comission"
-        />
-        <br />
-        <br />
-        <br />
-        <button type="submit">Create User</button>
+        <button type="submit" disabled={!buttonEnabled}>Submit</button>
         <br />
       </form>
     </div>
