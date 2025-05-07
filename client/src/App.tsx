@@ -123,8 +123,8 @@ useEffect(() => {
             <strong>
               {affiliate.name}- {affiliate.id}
             </strong>{" "}
-            - {affiliate.email} - {affiliate.refId} - {affiliate.totalClicks} -{" "}
-            {affiliate.totalCommissions}
+            - {affiliate.email} - {affiliate.refId} - {affiliate.totalClicks ? affiliate.totalClicks : null} -{" "}
+            {affiliate.totalCommissions ? affiliate.totalCommissions : null}
             <button onClick={() => removeAffiliate(affiliate.id)}>
               remove
             </button>
@@ -141,7 +141,7 @@ useEffect(() => {
       {referralsData &&
         referralsData.getReferrals.map((referral: any) => (
           <div key={referral.refId}>
-            <strong>{referral.event}</strong> - {referral.email} -{" "}
+            <strong>{referral.event}</strong> - {referral.name} - {referral.email} -
             {referral.refId}
             {/* <button onClick={() => deleteAffiliate(referral.refId)}>
               remove
