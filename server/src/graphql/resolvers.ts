@@ -24,11 +24,11 @@ const resolvers = {
         totalClicks,
         totalCommissions,
       }: {
-        name: string
-        email: string
-        refId: string
-        totalClicks: number
-        totalCommissions: number
+        name: string;
+        email: string;
+        refId: string;
+        totalClicks: number;
+        totalCommissions: number;
       }
     ) => {
       try {
@@ -65,6 +65,58 @@ const resolvers = {
         return newReferral;
       } catch (error) {
         throw new Error("Failed to create referral");
+      }
+    },
+
+    updateAffiliate: async (
+      _: any,
+      {
+        id,
+        name,
+        email,
+        refId,
+        totalClicks,
+        totalCommissions,
+      }: {
+        id: string;
+        name?: string;
+        email?: string;
+        refId?: string;
+        totalClicks?: number;
+        totalCommissions?: number;
+      }
+    ) => {
+      try {
+        return await Affiliate.findOneAndUpdate(
+          { _id: id },
+          {
+            ...(name && { name }), // Only update name if name is being passed as argument
+            ...(email && { email }),
+            ...(refId && { refId }),
+            ...(totalClicks !== undefined && { totalClicks }),
+            ...(totalCommissions !== undefined && { totalCommissions }),
+          },
+          { new: true }
+        );
+      } catch (error) {
+        throw new Error("Failed to update affiliate");
+      }
+    },
+
+    logClick: async (_: any, { refId }: { refId: string }) => {
+      try {
+        const updatedAffiliate = await Affiliate.findOneAndUpdate(
+          { refId },
+          { $inc: { totalClicks: 1 } },
+          { new: true }
+        );
+        if (!updatedAffiliate) {
+          throw new Error("Affiliate not found");
+        }
+        return true;
+      } catch (error) {
+        console.error("Error logging click:", error);
+        return false;
       }
     },
   },

@@ -1,7 +1,8 @@
 import { useMutation, useQuery } from "@apollo/client";
+import { useEffect } from "react";
 // import { useReferralCode } from "./hooks/useReferralCode";
 import { GET_AFFILIATES, GET_REFERRALS } from "./utils/queries";
-import { DELETE_AFFILIATE } from "./utils/mutations";
+import { DELETE_AFFILIATE, LOG_CLICK } from "./utils/mutations";
 
 import Form from "./components/Form";
 
@@ -97,10 +98,22 @@ function App() {
   //   }
   // };
 
+  const [logClick] = useMutation(LOG_CLICK);
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const refId = params.get("ref");
+
+  if (refId) {
+    logClick({ variables: { refId } });
+  }
+}, []);
+
+
   return (
     <div>
       <Form />
-      <h2>All Users</h2>
+      <h2>All Affiliates</h2>
       <strong style={{ color: "white" }}></strong>
       {loading && <p>Loading users...</p>}
       {error && <p>Error fetching users: {error.message}</p>}

@@ -5,8 +5,8 @@ export const REGISTER_AFFILIATE = gql`
     $name: String!
     $email: String!
     $refId: String!
-    $totalClicks: Int!
-    $totalCommissions: Int!
+    $totalClicks: Int
+    $totalCommissions: Int
   ) {
     registerAffiliate(
       name: $name
@@ -30,6 +30,40 @@ export const DELETE_AFFILIATE = gql`
     deleteAffiliate(id: $id) {
       id
       email
+      name
+      totalClicks
+      totalCommissions
     }
+  }
+`;
+
+export const UPDATE_AFFILIATE = gql`
+  mutation UpdateAffiliate(
+    $id: ID!
+    $name: String
+    $email: String
+    $refId: String
+    $totalClicks: Number
+    $totalCommissions: Number
+  ) {
+    updateAffiliate(
+      id: $id
+      name: $name
+      email: $email
+      totalClicks: $totalClicks
+      totalCommissions: $totalCommissions
+    ) {
+      id
+      email
+      name
+      totalClicks
+      totalCommissions
+    }
+  }
+`;
+
+export const LOG_CLICK = gql`
+  mutation LogClick($refId: String!) {
+    logClick(refid: $refId)
   }
 `;
