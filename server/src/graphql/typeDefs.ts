@@ -6,8 +6,8 @@ const typeDefs = gql`
     email: String!
     name: String
     refId: String!
-    totalClicks: Int!
-    totalCommissions: Int!
+    totalClicks: Int
+    totalCommissions: Int
   }
 
   type Referral {
