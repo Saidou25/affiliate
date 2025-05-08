@@ -25,6 +25,21 @@ export const GET_AFFILIATE = gql`
     }
   }
 `;
+// export const GET_PRODUCTSLIST = gql`
+//   query GetProductsList {
+//     getProductsList {
+//       id
+//       title
+//       subtitle
+//       description
+//       price
+//       quantity
+//       category
+//       imageUrl
+//       url
+//     }
+//   }
+// `;
 
 export const GET_REFERRALS = gql`
   query GetReferrals {

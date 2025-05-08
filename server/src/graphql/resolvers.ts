@@ -1,5 +1,17 @@
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
+// import Product from "../models/Product";
+
+// interface ProductInput {
+//   title: string;
+//   subtitle: string;
+//   description?: string;
+//   price?: number;
+//   quantity?: number;
+//   category: string;
+//   imageUrl?: string;
+//   url?: string;
+// }
 
 const resolvers = {
   Query: {
@@ -12,6 +24,9 @@ const resolvers = {
     getReferrals: async () => {
       return await Referral.find();
     },
+    // getProductsList: async () => {
+    //   return await Product.find();
+    // },
   },
 
   Mutation: {
@@ -55,19 +70,6 @@ const resolvers = {
       }
     },
 
-    trackReferral: async (
-      _: unknown,
-      { refId, event, email }: { refId: string; event: string; email: string }
-    ) => {
-      try {
-        const newReferral = new Referral({ refId, event, email });
-        await newReferral.save();
-        return newReferral;
-      } catch (error) {
-        throw new Error("Failed to create referral");
-      }
-    },
-
     updateAffiliate: async (
       _: any,
       {
@@ -103,6 +105,19 @@ const resolvers = {
       }
     },
 
+    trackReferral: async (
+      _: unknown,
+      { refId, event, email }: { refId: string; event: string; email: string }
+    ) => {
+      try {
+        const newReferral = new Referral({ refId, event, email });
+        await newReferral.save();
+        return newReferral;
+      } catch (error) {
+        throw new Error("Failed to create referral");
+      }
+    },
+
     logClick: async (_: any, { refId }: { refId: string }) => {
       try {
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
@@ -119,6 +134,21 @@ const resolvers = {
         return false;
       }
     },
+
+    // createProductsList: async (
+    //   _: any,
+    //   { products }: { products: ProductInput[] }
+    // ) => {
+    //   try {
+    //     const inserted = await Product.insertMany(products, { ordered: false });
+    //     if (inserted) {
+    //       console.log("products inserted successfully", inserted);
+    //     }
+    //     return inserted;
+    //   } catch (error) {
+    //     throw new Error("Product sync failed");
+    //   }
+    // },
   },
 };
 

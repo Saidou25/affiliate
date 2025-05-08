@@ -1,0 +1,21 @@
+.products-container {
+   padding: 2% 5% 2% 5%;
+   margin: auto;
+}
+.product-li {
+    display: flex;
+    height: auto;
+    /* width: 200px; */
+    padding: 0 0 2% 0;
+}
+.image-fluid {
+    width: 100px;
+    height: 100px;
+}
+.ps {
+    display: flex;
+    flex-direction: column;
+    padding-left: 5%;
+    padding-right: 5%;
+    width: 60%;
+}

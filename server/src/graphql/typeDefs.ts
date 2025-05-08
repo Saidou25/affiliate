@@ -10,6 +10,30 @@ const typeDefs = gql`
     totalCommissions: Int
   }
 
+  # input ProductInput {
+  #   id: ID
+  #   title: string
+  #   subtitle: string
+  #   description: string
+  #   price: Int
+  #   quantity: Int
+  #   category: string
+  #   imageUrl: string
+  #   url: string
+  # }
+
+  # type Product {
+  #   id: ID
+  #   title: string
+  #   subtitle: string
+  #   description: string
+  #   price: Int
+  #   quantity: Int
+  #   category: string
+  #   imageUrl: string
+  #   url: string
+  # }
+
   type Referral {
     email: String
     refId: String
@@ -20,6 +44,7 @@ const typeDefs = gql`
     getAffiliate(id: ID!): Affiliate
     getAffiliates: [Affiliate!]!
     getReferrals: [Referral!]!
+    # getProductsList: [Product!]!
   }
 
   type Mutation {
@@ -30,10 +55,22 @@ const typeDefs = gql`
       totalClicks: Int
       totalCommissions: Int
     ): Affiliate
-    updateAffiliate(id: ID!, name: String, email: String, totalClicks: Int, totalCommissions: Int): Affiliate
+
+    updateAffiliate(
+      id: ID!
+      name: String
+      email: String
+      totalClicks: Int
+      totalCommissions: Int
+    ): Affiliate
+
     deleteAffiliate(id: ID!): Affiliate
+
     logClick(refId: String!): Boolean
+
     trackReferral(email: String, refId: String, event: String): Referral
+
+    # createProductsList(input: ProductInput!): Product
   }
 `;
 export default typeDefs;

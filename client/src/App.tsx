@@ -7,6 +7,7 @@ import { DELETE_AFFILIATE, LOG_CLICK } from "./utils/mutations";
 import Form from "./components/Form";
 
 import "./index.css";
+import Products from "./components/Products";
 
 interface Affiliate {
   id: string;
@@ -150,6 +151,7 @@ useEffect(() => {
             {/* {referral.refId === referralCode && <>{refLink}</>} */}
           </div>
         ))}
+        <Products />
     </div>
   );
 }
