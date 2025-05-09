@@ -1,9 +1,13 @@
-
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { LOGIN } from "../utils/mutations";
+import { AiOutlineClose } from "react-icons/ai";
 
-export default function AffiliateLogin() {
+interface Props {
+  closeForm: (item: boolean) => void;
+  dashboardReady: (item: boolean) => void;
+}
+export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
   const [form, setForm] = useState({ email: "", password: "" });
 
   const [login, { loading, error }] = useMutation(LOGIN, {
@@ -11,8 +15,9 @@ export default function AffiliateLogin() {
       // 1) Store the JWT so ApolloClient will pick it up
       localStorage.setItem("token", login.token);
       // 2) Redirect to the affiliate dashboard (or wherever)
-    console.log("you are logged in: ", login.token)
-     window.location.reload();
+      console.log("you are logged in: ", login.token);
+      closeForm(false);
+      dashboardReady(true);
     },
   });
 
@@ -27,9 +32,15 @@ export default function AffiliateLogin() {
 
   return (
     <div className="login-container">
-      <h2>Affiliate Login</h2>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="email1">Email</label><br/>
+      <h2>Log in to your account</h2>
+      <form className="form-container" onSubmit={handleSubmit}>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <AiOutlineClose onClick={() => closeForm(false)} 
+            style={{ width: "5%", height: "auto" }}/>
+        </div>
+        <h1 className="title">Login</h1>
+        <label htmlFor="email1">Email</label>
+        <br />
         <input
           id="email1"
           name="email"
@@ -37,9 +48,13 @@ export default function AffiliateLogin() {
           value={form.email}
           onChange={handleChange}
           required
+            placeholder="email@example.com"
+           style={{ padding: "1%", fontStyle: "italic" }}
         />
-        <br/><br/>
-        <label htmlFor="password1">Password</label><br/>
+        <br />
+        <br />
+        <label htmlFor="password1">Password</label>
+        <br />
         <input
           id="password1"
           name="password"
@@ -47,8 +62,11 @@ export default function AffiliateLogin() {
           value={form.password}
           onChange={handleChange}
           required
+            placeholder="password"
+           style={{ padding: "1%", fontStyle: "italic" }}
         />
-        <br/><br/>
+        <br />
+        <br />
         <button type="submit" disabled={loading}>
           {loading ? "Logging in…" : "Log In"}
         </button>
