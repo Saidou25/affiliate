@@ -36,3 +36,13 @@ export const GET_REFERRALS = gql`
     }
   }
 `;
+
+export const QUERY_ME = gql`
+  query me {
+    me {
+      id
+      email
+      refId
+    }
+  }
+`;

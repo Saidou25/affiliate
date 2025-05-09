@@ -12,7 +12,6 @@ interface Props {
 
 export default function RegisterForm({ closeForm }: Props) {
   const [formState, setFormState] = useState({
-    name: "",
     email: "",
     password: ""
   });
@@ -39,7 +38,6 @@ export default function RegisterForm({ closeForm }: Props) {
     e.preventDefault();
    registerAffiliate({
       variables: {
-        name: formState.name,
         email: formState.email,
         refId: nanoid(8),
         password: formState.password,

@@ -1,3 +1,5 @@
+import { useQuery } from "@apollo/client";
+import { QUERY_ME } from "../utils/queries";
 import CopyToClipboard from "./CopyToClipboard";
 
 interface Props {
@@ -5,12 +7,15 @@ interface Props {
 }
 
 export default function RefferalLink({ productUrl }: Props) {
-const refId = "LYwsXhFH"
+    const { data: meData } = useQuery(QUERY_ME);
+    const me = meData?.me || [];
+const refId = me.refId;
   return (
     <div><br />
       <strong>Product link</strong><br />
       {productUrl}/?ref={refId}
-      <CopyToClipboard productUrl={productUrl} />
+      <CopyToClipboard productUrl={productUrl} 
+      refId={refId} />
     </div>
   );
 }

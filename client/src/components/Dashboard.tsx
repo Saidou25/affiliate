@@ -3,6 +3,7 @@ import { GET_AFFILIATES, GET_REFERRALS } from "../utils/queries";
 import { DELETE_AFFILIATE, LOG_CLICK } from "../utils/mutations";
 import { useEffect } from "react";
 import Products from "./Products";
+import AffiliateInfo from "./AffiliateInfo";
 
 interface Affiliate {
   id: string;
@@ -88,7 +89,7 @@ export default function Dashboard() {
     }
   }, [data]);
   return (
-    <div>
+    <div style={{ padding: "5%" }}>
       <h2>All Affiliates</h2>
       <strong style={{ color: "white" }}></strong>
       {loading && <p>Loading users...</p>}
@@ -122,6 +123,7 @@ export default function Dashboard() {
             <br />
           </div>
         ))}
+      <AffiliateInfo />
       <Products />
     </div>
   );

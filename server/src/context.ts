@@ -20,8 +20,12 @@ export interface MyContext {
 const SECRET = process.env.JWT_SECRET;
 if (!SECRET) throw new Error("Missing JWT_SECRET in environment");
 
-export const createContext = async ({ req }: { req: Request }): Promise<MyContext> => {
-  const authHeader = req.headers.authorization || '';
+export const createContext = async ({
+  req,
+}: {
+  req: Request;
+}): Promise<MyContext> => {
+  const authHeader = req.headers.authorization || "";
   console.log("🧾 Auth header:", authHeader);
 
   // Handle missing or invalid authorization header
@@ -31,6 +35,7 @@ export const createContext = async ({ req }: { req: Request }): Promise<MyContex
   }
 
   const token = authHeader.slice(7); // Remove "Bearer "
+  console.log("🔑 Token received:", token); // 👈 ADD THIS
   try {
     // Decode and verify the token
     const payload = jwt.verify(token, SECRET) as { affiliateId: string };
@@ -54,6 +59,7 @@ export const createContext = async ({ req }: { req: Request }): Promise<MyContex
     };
 
     console.log("👤 Context affiliate:", affiliate);
+
     return { affiliate }; // This is the context being passed
   } catch (error) {
     console.warn("❌ Token verification failed:", error);

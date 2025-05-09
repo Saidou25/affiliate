@@ -17,10 +17,10 @@ export const LOGIN = gql`
 `;
 export const REGISTER_AFFILIATE = gql`
   mutation RegisterAffiliate(
-    $name: String
     $email: String!
-    $refId: String!
     $password: String!
+    $refId: String!
+    $name: String
     $totalClicks: Int
     $totalCommissions: Int
   ) {

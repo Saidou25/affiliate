@@ -9,27 +9,20 @@ import Referral from "../models/Referral";
 const resolvers = {
   Query: {
     // Only logged-in users can list affiliates:
-    getAffiliates: async (
-      _parent: any,
-      _args: any,
-      { affiliate }: MyContext
-    ) => {
-      if (!affiliate) {
-        throw new Error("Not authenticated");
-      }
+    getAffiliates: async () => {
       return Affiliate.find();
     },
 
-    // Only logged-in users can fetch a single affiliate by ID:
-    getAffiliate: async (
-      _parent: any,
-      { id }: { id: string },
-      { affiliate }: MyContext
-    ) => {
-      if (!affiliate) {
+    getAffiliate: async (_: any, { id }: { id: string }) => {
+      return Affiliate.findOne({ _id: id });
+    },
+
+    me: async (_parent: any, _: any, context: MyContext) => {
+      if (!context.affiliate) {
         throw new Error("Not authenticated");
       }
-      return Affiliate.findById(id);
+
+     return Affiliate.findOne({ _id: context.affiliate.id });
     },
 
     // Only affiliates (via your custom header) can get their own referrals:
@@ -60,7 +53,10 @@ const resolvers = {
         throw new Error("Affiliate not found");
       }
 
-      const valid = await bcrypt.compare(password.trim(), affiliate.password.trim()); // ✅ check password
+      const valid = await bcrypt.compare(
+        password.trim(),
+        affiliate.password.trim()
+      ); // ✅ check password
       // const valid = password.trim() === affiliate.password.trim();
 
       console.log("📥 Incoming password (trimmed):", password.trim());

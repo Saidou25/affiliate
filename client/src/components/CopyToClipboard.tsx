@@ -3,11 +3,12 @@ import { FaRegClipboard, FaClipboardCheck } from "react-icons/fa"; // Example ic
 
 type Props = {
     productUrl: string;
+    refId: string;
 };
 
-const CopyToClipboard = ({ productUrl }: Props) => {
+const CopyToClipboard = ({ productUrl, refId }: Props) => {
   const [copied, setCopied] = useState(false);
-const refId = "LYwsXhFH"
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(`${productUrl}/?ref=${refId}`);
