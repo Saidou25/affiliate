@@ -7,7 +7,8 @@ interface Props {
 export default function RefferalLink({ productUrl }: Props) {
 const refId = "LYwsXhFH"
   return (
-    <div>
+    <div><br />
+      <strong>Product link</strong><br />
       {productUrl}/?ref={refId}
       <CopyToClipboard productUrl={productUrl} />
     </div>

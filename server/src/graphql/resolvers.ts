@@ -1,35 +1,84 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+
+import { MyContext } from "../context";
+import { SECRET } from "../../config/env";
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
-// import Product from "../models/Product";
-
-// interface ProductInput {
-//   title: string;
-//   subtitle: string;
-//   description?: string;
-//   price?: number;
-//   quantity?: number;
-//   category: string;
-//   imageUrl?: string;
-//   url?: string;
-// }
 
 const resolvers = {
   Query: {
-    getAffiliates: async () => {
-      return await Affiliate.find(); // Return all affiliates from MongoDB
+    // Only logged-in users can list affiliates:
+    getAffiliates: async (
+      _parent: any,
+      _args: any,
+      { affiliate }: MyContext
+    ) => {
+      if (!affiliate) {
+        throw new Error("Not authenticated");
+      }
+      return Affiliate.find();
     },
-    getAffiliate: async (_: any, { id }: { id: string }) => {
-      return await Affiliate.findById(id);
+
+    // Only logged-in users can fetch a single affiliate by ID:
+    getAffiliate: async (
+      _parent: any,
+      { id }: { id: string },
+      { affiliate }: MyContext
+    ) => {
+      if (!affiliate) {
+        throw new Error("Not authenticated");
+      }
+      return Affiliate.findById(id);
     },
-    getReferrals: async () => {
-      return await Referral.find();
+
+    // Only affiliates (via your custom header) can get their own referrals:
+    getReferrals: async (
+      _parent: any,
+      _args: any,
+      { affiliate }: MyContext
+    ) => {
+      if (!affiliate) {
+        throw new Error("No affiliate credentials provided");
+      }
+      // filter referrals by the affiliate’s refId:
+      return Referral.find({ affiliateRefId: affiliate.refId });
     },
-    // getProductsList: async () => {
-    //   return await Product.find();
-    // },
   },
 
   Mutation: {
+    login: async (
+      _: unknown,
+      { email, password }: { email: string; password: string }
+    ) => {
+      console.log("🔐 Login attempt:", email);
+      console.log("📥 Incoming password:", password);
+      const affiliate = await Affiliate.findOne({ email });
+      console.log("🔐 Hashed password in DB:", affiliate?.password);
+      if (!affiliate) {
+        console.warn("❌ No affiliate found for email:", email);
+        throw new Error("Affiliate not found");
+      }
+
+      const valid = await bcrypt.compare(password.trim(), affiliate.password.trim()); // ✅ check password
+      // const valid = password.trim() === affiliate.password.trim();
+
+      console.log("📥 Incoming password (trimmed):", password.trim());
+      console.log("🔐 Hashed password (trimmed):", affiliate.password.trim());
+
+      console.log("🔍 Password valid?", valid);
+      if (!valid) {
+        console.warn("❌ Invalid password for email:", email);
+        throw new Error("Invalid credentials");
+      }
+
+      const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
+        expiresIn: "1h",
+      });
+      console.log("✅ Login success. Token:", token);
+      return { token, affiliate };
+    },
+
     registerAffiliate: async (
       _: unknown,
       {
@@ -37,8 +86,10 @@ const resolvers = {
         email,
         refId,
         totalClicks,
+        password,
         totalCommissions,
       }: {
+        password: string;
         name: string;
         email: string;
         refId: string;
@@ -47,15 +98,37 @@ const resolvers = {
       }
     ) => {
       try {
+        console.log(
+          "🔐 Register input:",
+          name,
+          email,
+          refId,
+          totalClicks,
+          password,
+          totalCommissions
+        );
+        console.log("📥 Raw password at registration:", password);
+
+        // const hashedPassword = await bcrypt.hash(password, 10); // 🔒 hash password
+        // console.log("🔐 Hashed password to store:", hashedPassword);
+
         const affiliate = new Affiliate({
           name,
           email,
+          password,
           refId,
           totalClicks,
           totalCommissions,
         });
         await affiliate.save();
-        return affiliate; // Ensure the user is returned
+        // ✅ Sign a JWT with affiliateId
+        const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
+          expiresIn: "1h",
+        });
+        console.log("✅ Registered affiliate:", affiliate);
+        console.log("📦 Token:", token);
+        // ✅ Return both the token and the affiliate
+        return { token, affiliate };
       } catch (error) {
         console.error("Error creating affiliate:", error); // Log any errors that occur during user creation
         throw new Error("Failed to create affiliate");
@@ -134,21 +207,6 @@ const resolvers = {
         return false;
       }
     },
-
-    // createProductsList: async (
-    //   _: any,
-    //   { products }: { products: ProductInput[] }
-    // ) => {
-    //   try {
-    //     const inserted = await Product.insertMany(products, { ordered: false });
-    //     if (inserted) {
-    //       console.log("products inserted successfully", inserted);
-    //     }
-    //     return inserted;
-    //   } catch (error) {
-    //     throw new Error("Product sync failed");
-    //   }
-    // },
   },
 };
 

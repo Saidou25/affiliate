@@ -5,34 +5,15 @@ const typeDefs = gql`
     id: ID!
     email: String!
     name: String
-    refId: String!
+    refId: String
     totalClicks: Int
     totalCommissions: Int
   }
-
-  # input ProductInput {
-  #   id: ID
-  #   title: string
-  #   subtitle: string
-  #   description: string
-  #   price: Int
-  #   quantity: Int
-  #   category: string
-  #   imageUrl: string
-  #   url: string
-  # }
-
-  # type Product {
-  #   id: ID
-  #   title: string
-  #   subtitle: string
-  #   description: string
-  #   price: Int
-  #   quantity: Int
-  #   category: string
-  #   imageUrl: string
-  #   url: string
-  # }
+  
+  type AuthPayload {
+    token: String!
+    affiliate: Affiliate!
+  }
 
   type Referral {
     email: String
@@ -41,20 +22,23 @@ const typeDefs = gql`
   }
 
   type Query {
-    getAffiliate(id: ID!): Affiliate
     getAffiliates: [Affiliate!]!
+    getAffiliate(id: ID!): Affiliate
+    me: Affiliate
     getReferrals: [Referral!]!
     # getProductsList: [Product!]!
   }
 
   type Mutation {
+    login(email: String!, password: String!): AuthPayload!
     registerAffiliate(
       email: String!
-      name: String!
+      name: String
       refId: String!
       totalClicks: Int
       totalCommissions: Int
-    ): Affiliate
+      password: String
+    ): AuthPayload!
 
     updateAffiliate(
       id: ID!
@@ -70,7 +54,6 @@ const typeDefs = gql`
 
     trackReferral(email: String, refId: String, event: String): Referral
 
-    # createProductsList(input: ProductInput!): Product
   }
 `;
 export default typeDefs;

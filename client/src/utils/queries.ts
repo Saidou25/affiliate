@@ -14,7 +14,7 @@ export const GET_AFFILIATES = gql`
 `;
 
 export const GET_AFFILIATE = gql`
-  query GetAffiliate($id: string) {
+  query GetAffiliate($id: Id!) {
     getAffiliate(id: $id) {
       id
       name
@@ -25,21 +25,6 @@ export const GET_AFFILIATE = gql`
     }
   }
 `;
-// export const GET_PRODUCTSLIST = gql`
-//   query GetProductsList {
-//     getProductsList {
-//       id
-//       title
-//       subtitle
-//       description
-//       price
-//       quantity
-//       category
-//       imageUrl
-//       url
-//     }
-//   }
-// `;
 
 export const GET_REFERRALS = gql`
   query GetReferrals {

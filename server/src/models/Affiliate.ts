@@ -1,4 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { CallbackError, Document, Schema } from "mongoose";
+import bcrypt from "bcrypt"; // Or use bcrypt if you prefer
 
 interface IAffiliate extends Document {
   name: string;
@@ -6,14 +7,28 @@ interface IAffiliate extends Document {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
+  password: string;
 }
 
 const AffiliateSchema = new Schema<IAffiliate>({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
+  name: { type: String, required: false, trim: true },
+  email: { type: String, required: true, unique: true, trim: true },
   refId: { type: String, required: true },
-  totalClicks: { type: Number, required: false },
-  totalCommissions: { type: Number, required: false },
+  password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
+  totalClicks: { type: Number, default: 0 },
+  totalCommissions: { type: Number, default: 0 },
+});
+
+AffiliateSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error as CallbackError); // Pass the error to the next middleware or catch block
+  }
 });
 
 const Affiliate = mongoose.model<IAffiliate>("Affiliate", AffiliateSchema);
