@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "homepage": "https://Saidou25.github.io/affiliate",
