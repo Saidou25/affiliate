@@ -2,30 +2,25 @@ import { useEffect, useState } from "react";
 import { nanoid } from "nanoid";
 import { useMutation } from "@apollo/client";
 import { REGISTER_AFFILIATE } from "../utils/mutations";
-import { AiOutlineClose } from "react-icons/ai";
 
-import "./RegisterForm.css";
+import "./Form.css";
 
-interface Props {
-  closeForm: (item: boolean) => void;
-}
-
-export default function RegisterForm({ closeForm }: Props) {
+export default function Form() {
   const [formState, setFormState] = useState({
+    name: "",
     email: "",
-    password: ""
   });
   const [buttonEnabled, setButtonEnabled] = useState(false);
   // const [totalClicks, setTotalClicks] = useState("");
   // const [totalCommissions, setTotalCommissions] = useState("");
- 
+  const dynamicReferralCode = nanoid(8);
 
-  const [registerAffiliate, { loading, error, data }] = useMutation(REGISTER_AFFILIATE, {
+  const [registerAffiliate] = useMutation(REGISTER_AFFILIATE, {
     onCompleted: (data) => {
       console.log("User created:", data.registerAffiliate);
     },
     onError: (error) => {
-      console.error("Error creating user:", error.message, data);
+      console.error("Error creating user:", error.message);
     },
   });
 
@@ -36,11 +31,11 @@ export default function RegisterForm({ closeForm }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-   registerAffiliate({
+    registerAffiliate({
       variables: {
+        name: formState.name,
         email: formState.email,
-        refId: nanoid(8),
-        password: formState.password,
+        refId: dynamicReferralCode,
         // totalClicks: +totalClicks,
         // totalCommissions: +totalCommissions,
       },
@@ -48,7 +43,7 @@ export default function RegisterForm({ closeForm }: Props) {
   };
 
   useEffect(() => {
-    if (formState.email && formState.password) {
+    if (formState.email && formState.name) {
       setButtonEnabled(true);
     } else {
       setButtonEnabled(false);
@@ -59,45 +54,39 @@ export default function RegisterForm({ closeForm }: Props) {
     <div className="">
       <h2>Creating your Affiliate account</h2>
       <form className="form-container" onSubmit={handleSubmit}>
-         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <AiOutlineClose onClick={() => closeForm(false)} 
-            style={{ width: "5%", height: "auto" }}/>
-        </div>
         <h1 className="title">Register Affiliate</h1>
+        <label className="" htmlFor="name">
+          Name
+        </label>
+        <br />
+        <input
+          id="name"
+          className="input"
+          type="text"
+          name="name"
+          value={formState.name}
+          onChange={handleChange}
+          placeholder="Name"
+        />
+        <br />
         <label className="" htmlFor="email">
           Email
         </label>
         <br />
         <input
           id="email"
+          className="input"
           type="email"
           name="email"
           value={formState.email}
           onChange={handleChange}
-          placeholder="email@example.com"
-            style={{ padding: "1%", fontStyle: "italic" }}
-        />
-        <br />
-        <label className="" htmlFor="password">
-          Password
-        </label>
-        <br />
-        <input
-          id="password"
-          type="password"
-          name="password"
-          value={formState.password}
-          onChange={handleChange}
-          placeholder="password"
-            style={{ padding: "1%", fontStyle: "italic" }}
+          placeholder="Email"
         />
         <br />
         <br />
-        <button type="submit" disabled={!buttonEnabled || loading}>
+        <button type="submit" disabled={!buttonEnabled}>
           Submit
         </button>
-        <br />
-        {error && <p style={{ color: "red" }}>{error.message}</p>}
         <br />
       </form>
     </div>
