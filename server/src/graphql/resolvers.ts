@@ -2,9 +2,17 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import { MyContext } from "../context";
-import { SECRET } from "../../config/env";
+
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
+import dotenv from "dotenv";
+
+dotenv.config();
+const SECRET = process.env.SECRET;
+
+if (!SECRET) {
+  throw new Error("JWT SECRET is not defined in environment variables");
+}
 
 const resolvers = {
   Query: {
