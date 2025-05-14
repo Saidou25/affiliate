@@ -1,4 +1,5 @@
-import jwt from "jsonwebtoken";
+
+import * as jwt from 'jsonwebtoken';
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { connectToDatabase } from "./database"; // Import your DB connection function

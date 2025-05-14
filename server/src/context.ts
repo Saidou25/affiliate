@@ -1,5 +1,6 @@
 import { Request } from "express";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
+import * as jwt from 'jsonwebtoken';
 import Affiliate from "./models/Affiliate";
 
 // Define the Affiliate interface

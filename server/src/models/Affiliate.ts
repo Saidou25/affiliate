@@ -1,5 +1,6 @@
 import mongoose, { CallbackError, Document, Schema } from "mongoose";
-import bcrypt from "bcrypt"; // Or use bcrypt if you prefer
+// import bcrypt from "bcrypt"; // Or use bcrypt if you prefer
+import * as bcrypt from 'bcrypt';
 
 interface IAffiliate extends Document {
   name: string;
