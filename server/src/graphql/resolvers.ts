@@ -5,9 +5,9 @@ import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
-dotenv.config();
+// dotenv.config();
 const SECRET = "dev-secret-123456";
 
 if (!SECRET) {

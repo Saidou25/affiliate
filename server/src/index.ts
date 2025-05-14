@@ -7,14 +7,14 @@ import { IncomingMessage } from "http";
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import Affiliate from "./models/Affiliate";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
 // Define your custom context type
 interface MyContext {
   affiliate?: { id: string; name: string }; // Example: You can define user data in context
 }
 
-dotenv.config();
+// dotenv.config();
 // const SECRET = process.env.SECRET;
 const SECRET = "dev-secret-123456";
 
