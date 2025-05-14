@@ -1,10 +1,26 @@
 import { gql } from "@apollo/client";
 
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      affiliate {
+        id
+        name
+        email
+        refId
+        totalClicks
+        totalCommissions
+      }
+    }
+  }
+`;
 export const REGISTER_AFFILIATE = gql`
   mutation RegisterAffiliate(
-    $name: String!
     $email: String!
+    $password: String!
     $refId: String!
+    $name: String
     $totalClicks: Int
     $totalCommissions: Int
   ) {
@@ -12,18 +28,23 @@ export const REGISTER_AFFILIATE = gql`
       name: $name
       email: $email
       refId: $refId
+      password: $password
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
     ) {
-      id
-      name
-      email
-      refId
-      totalClicks
-      totalCommissions
+      token
+      affiliate {
+        id
+        name
+        email
+        refId
+        totalClicks
+        totalCommissions
+      }
     }
   }
 `;
+
 
 export const DELETE_AFFILIATE = gql`
   mutation DeleteAffiliate($id: ID!) {

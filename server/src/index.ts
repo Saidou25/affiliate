@@ -14,7 +14,8 @@ interface MyContext {
 }
 
 dotenv.config();
-const SECRET = process.env.SECRET;
+// const SECRET = process.env.SECRET;
+const SECRET = "dev-secret-123456";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
