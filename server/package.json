@@ -7,10 +7,10 @@
   },
   "scripts": {
     "preinstall": "npx npm-force-resolutions",
+    "build": "npm install && tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node src/index.ts",
-    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
-    "build": "tsc"
+    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,12 +20,12 @@
     "@apollo/server": "^4.12.0",
     "@graphql-tools/utils": "^10.8.6",
     "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
     "graphql-tools": "^9.0.18",
-    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.13.3",
     "path-to-regexp": "^8.2.0"
