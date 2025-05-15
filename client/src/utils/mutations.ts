@@ -32,10 +32,10 @@ export const REGISTER_AFFILIATE = gql`
     $selectedProducts: [ID!]
   ) {
     registerAffiliate(
-      name: $name
       email: $email
-      refId: $refId
       password: $password
+      refId: $refId
+      name: $name
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
       selectedProducts: $selectedProducts

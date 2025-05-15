@@ -8,7 +8,7 @@ const typeDefs = gql`
     refId: String
     totalClicks: Int
     totalCommissions: Int
-    selectedProducts: [Product]
+    selectedProducts: [ID!]
   }
   input RegisterAffiliateInput {
     name: String
@@ -37,6 +37,18 @@ const typeDefs = gql`
     url: String
   }
 
+  input ProductInput {
+    id: ID!
+    title: String!
+    subtitle: String!
+    description: String
+    price: Float
+    quantity: Int
+    category: String!
+    imageUrl: String
+    url: String
+  }
+
   type Referral {
     email: String
     refId: String
@@ -52,7 +64,7 @@ const typeDefs = gql`
 
   type Mutation {
     login(email: String!, password: String!): AuthPayload!
-    
+
     registerAffiliate(input: RegisterAffiliateInput!): AuthPayload!
 
     updateAffiliate(
@@ -61,7 +73,7 @@ const typeDefs = gql`
       email: String
       totalClicks: Int
       totalCommissions: Int
-      selectedProducts: [Product]
+      selectedProducts: [ID!]
     ): Affiliate
 
     deleteAffiliate(id: ID!): Affiliate

@@ -10,16 +10,16 @@ export const GET_AFFILIATES = gql`
       totalClicks
       totalCommissions
       selectedProducts {
-      _id
-      name
-      price
-    }
+        _id
+        name
+        price
+      }
     }
   }
 `;
 
 export const GET_AFFILIATE = gql`
-  query GetAffiliate($id: Id!) {
+  query GetAffiliate($id: ID!) {
     getAffiliate(id: $id) {
       id
       name
@@ -28,10 +28,10 @@ export const GET_AFFILIATE = gql`
       totalClicks
       totalCommissions
       selectedProducts {
-      _id
-      name
-      price
-    }
+        _id
+        name
+        price
+      }
     }
   }
 `;
@@ -54,10 +54,10 @@ export const QUERY_ME = gql`
       refId
       name
       selectedProducts {
-      _id
-      name
-      price
-    }
+        _id
+        name
+        price
+      }
     }
   }
 `;

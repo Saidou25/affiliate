@@ -1,14 +1,13 @@
+import dotenv from "dotenv";
+dotenv.config();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { SECRET } from "../../config/env";
+import { SECRET } from "../config/env";
 
 import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
-// import dotenv from "dotenv";
-
-// dotenv.config();
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -18,13 +17,11 @@ const resolvers = {
   Query: {
     // Only logged-in users can list affiliates:
     getAffiliates: async () => {
-      return Affiliate.find();
+      return Affiliate.find().populate("selectedProducts");
     },
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
-      return Affiliate.findOne({ _id: id }).populate(
-        "selectedProducts"
-      );
+      return Affiliate.findOne({ _id: id });
     },
 
     me: async (_parent: any, _: any, context: MyContext) => {
@@ -90,143 +87,120 @@ const resolvers = {
       console.log("✅ Login success. Token:", token);
       return { token, affiliate };
     },
-
-    registerAffiliate: async (
-      _: unknown,
-      {
-        name,
-        email,
-        refId,
-        totalClicks,
-        password,
-        totalCommissions,
-        selectedProducts,
-      }: {
-        password: string;
-        name: string;
-        email: string;
-        refId: string;
-        totalClicks: number;
-        totalCommissions: number;
-        selectedProducts: string[]; // Array of product IDs
-      }
-    ) => {
-      try {
-        console.log(
-          "🔐 Register input:",
+    Mutation: {
+      registerAffiliate: async (
+        _: unknown,
+        {
           email,
-          refId,
           password,
+          refId,
           name,
-          totalClicks,
-          totalCommissions,
-          selectedProducts
-        );
-
-        // const hashedPassword = await bcrypt.hash(password, 10); // 🔒 hash password
-        // console.log("🔐 Hashed password to store:", hashedPassword);
-
-        //  const productIds = selectedProducts.map((p) => p._id); // 🔁 extract ObjectIds
-
+          totalClicks = 0,
+          totalCommissions = 0,
+          selectedProducts = [],
+        }: {
+          email: string;
+          password: string;
+          refId: string;
+          name?: string;
+          totalClicks?: number;
+          totalCommissions?: number;
+          selectedProducts?: string[]; // Array of product IDs only!
+        }
+      ) => {
         const affiliate = new Affiliate({
           email,
           password,
           refId,
-          name: name ?? "", // Fall back since not required
-          totalClicks: totalClicks ?? 0,
-          totalCommissions: totalCommissions ?? 0,
-          selectedProducts: selectedProducts ?? [],  //  stored as array of ObjectIds
+          name: name ?? "",
+          totalClicks,
+          totalCommissions,
+          selectedProducts, // store only IDs here
         });
         await affiliate.save();
-          // await affiliate.populate("selectedProducts");
-        // ✅ Sign a JWT with affiliateId
+
         const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
           expiresIn: "1h",
         });
-        console.log("✅ Registered affiliate:", affiliate);
-        console.log("📦 Token:", token);
-        // ✅ Return both the token and the affiliate
+
         return { token, affiliate };
-      } catch (error) {
-        console.error("Error creating affiliate:", error); // Log any errors that occur during user creation
-        throw new Error("Failed to create affiliate");
-      }
-    },
+      },
 
-    deleteAffiliate: async (_: any, { id }: { id: string }) => {
-      try {
-        return await Affiliate.findOneAndDelete({ _id: id });
-      } catch (error) {
-        throw new Error("Failed to delete affiliate");
-      }
-    },
-
-    updateAffiliate: async (
-      _: any,
-      {
-        id,
-        name,
-        email,
-        refId,
-        totalClicks,
-        totalCommissions,
-        selectedProducts,
-      }: {
-        id: string;
-        name?: string;
-        email?: string;
-        refId?: string;
-        totalClicks?: number;
-        totalCommissions?: number;
-        selectedProducts?: [string];
-      }
-    ) => {
-      try {
-        return await Affiliate.findOneAndUpdate(
-          { _id: id },
-          {
-            ...(name && { name }), // Only update name if name is being passed as argument
-            ...(email && { email }),
-            ...(refId && { refId }),
-            ...(totalClicks !== undefined && { totalClicks }),
-            ...(totalCommissions !== undefined && { totalCommissions }),
-            ...(selectedProducts !== undefined && { selectedProducts }),
-          },
-          { new: true }
-        );
-      } catch (error) {
-        throw new Error("Failed to update affiliate");
-      }
-    },
-
-    trackReferral: async (
-      _: unknown,
-      { refId, event, email }: { refId: string; event: string; email: string }
-    ) => {
-      try {
-        const newReferral = new Referral({ refId, event, email });
-        await newReferral.save();
-        return newReferral;
-      } catch (error) {
-        throw new Error("Failed to create referral");
-      }
-    },
-
-    logClick: async (_: any, { refId }: { refId: string }) => {
-      try {
-        const updatedAffiliate = await Affiliate.findOneAndUpdate(
-          { refId },
-          { $inc: { totalClicks: 1 } },
-          { new: true }
-        );
-        if (!updatedAffiliate) {
-          throw new Error("Affiliate not found");
+      deleteAffiliate: async (_: any, { id }: { id: string }) => {
+        try {
+          return await Affiliate.findOneAndDelete({ _id: id });
+        } catch (error) {
+          throw new Error("Failed to delete affiliate");
         }
-        return true;
-      } catch (error) {
-        console.error("Error logging click:", error);
-        return false;
-      }
+      },
+
+      updateAffiliate: async (
+        _: any,
+        {
+          id,
+          name,
+          email,
+          refId,
+          totalClicks,
+          totalCommissions,
+          selectedProducts,
+        }: {
+          id: string;
+          name?: string;
+          email?: string;
+          refId?: string;
+          totalClicks?: number;
+          totalCommissions?: number;
+          selectedProducts?: string[]; // Again, only IDs
+        }
+      ) => {
+        try {
+          return await Affiliate.findOneAndUpdate(
+            { _id: id },
+            {
+              ...(name && { name }), // Only update name if name is being passed as argument
+              ...(email && { email }),
+              ...(refId && { refId }),
+              ...(totalClicks !== undefined && { totalClicks }),
+              ...(totalCommissions !== undefined && { totalCommissions }),
+              ...(selectedProducts !== undefined && { selectedProducts }),
+            },
+            { new: true }
+          );
+        } catch (error) {
+          throw new Error("Failed to update affiliate");
+        }
+      },
+
+      trackReferral: async (
+        _: unknown,
+        { refId, event, email }: { refId: string; event: string; email: string }
+      ) => {
+        try {
+          const newReferral = new Referral({ refId, event, email });
+          await newReferral.save();
+          return newReferral;
+        } catch (error) {
+          throw new Error("Failed to create referral");
+        }
+      },
+
+      logClick: async (_: any, { refId }: { refId: string }) => {
+        try {
+          const updatedAffiliate = await Affiliate.findOneAndUpdate(
+            { refId },
+            { $inc: { totalClicks: 1 } },
+            { new: true }
+          );
+          if (!updatedAffiliate) {
+            throw new Error("Affiliate not found");
+          }
+          return true;
+        } catch (error) {
+          console.error("Error logging click:", error);
+          return false;
+        }
+      },
     },
   },
 };
