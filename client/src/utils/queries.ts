@@ -42,6 +42,7 @@ export const QUERY_ME = gql`
       id
       email
       refId
+      name
     }
   }
 `;

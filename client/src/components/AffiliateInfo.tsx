@@ -4,9 +4,10 @@ import { QUERY_ME } from "../utils/queries";
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || [];
+  // console.log(me)
   return (
     <div>
-      <h2>My info</h2>
+      <h2>My Profile</h2>
       {me.name && (
         <>
           <strong>name:</strong>

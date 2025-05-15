@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { SECRET } from "../../config/env"
 
 import { MyContext } from "../context";
 
@@ -8,7 +9,6 @@ import Referral from "../models/Referral";
 // import dotenv from "dotenv";
 
 // dotenv.config();
-const SECRET = "dev-secret-123456";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");

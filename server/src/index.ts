@@ -2,8 +2,9 @@
 import * as jwt from 'jsonwebtoken';
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { connectToDatabase } from "./database"; // Import your DB connection function
+import { connectToDatabase } from "./database"; // Import  DB connection function
 import { IncomingMessage } from "http";
+import { SECRET } from "../config/env"
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import Affiliate from "./models/Affiliate";
@@ -16,7 +17,6 @@ interface MyContext {
 
 // dotenv.config();
 // const SECRET = process.env.SECRET;
-const SECRET = "dev-secret-123456";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");

@@ -26,7 +26,6 @@ const typeDefs = gql`
     getAffiliate(id: ID!): Affiliate
     me: Affiliate
     getReferrals: [Referral!]!
-    # getProductsList: [Product!]!
   }
 
   type Mutation {

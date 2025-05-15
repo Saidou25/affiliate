@@ -1,0 +1,8 @@
+.log-out {
+  display: flex;
+  justify-content: flex-end;
+}
+.iomdlogout {
+  height: 40px;
+  width: 40px;
+}
