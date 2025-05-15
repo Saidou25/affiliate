@@ -8,6 +8,7 @@ const typeDefs = gql`
     refId: String
     totalClicks: Int
     totalCommissions: Int
+    selectedProducts: [Product]
   }
   
   type AuthPayload {
@@ -37,6 +38,7 @@ const typeDefs = gql`
       totalClicks: Int
       totalCommissions: Int
       password: String
+       selectedProducts: [Product]
     ): AuthPayload!
 
     updateAffiliate(
@@ -45,6 +47,7 @@ const typeDefs = gql`
       email: String
       totalClicks: Int
       totalCommissions: Int
+      selectedProducts: [Product]
     ): Affiliate
 
     deleteAffiliate(id: ID!): Affiliate

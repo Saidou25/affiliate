@@ -1,11 +1,12 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { SECRET } from "../../config/env"
+import { SECRET } from "../../config/env";
 
 import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
+import Product from "../models/Product";
 // import dotenv from "dotenv";
 
 // dotenv.config();
@@ -22,7 +23,9 @@ const resolvers = {
     },
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
-      return Affiliate.findOne({ _id: id });
+      return Affiliate.findOne({ _id: id }).populate(
+        "selectedProducts"
+      );
     },
 
     me: async (_parent: any, _: any, context: MyContext) => {
@@ -30,7 +33,9 @@ const resolvers = {
         throw new Error("Not authenticated");
       }
 
-      return Affiliate.findOne({ _id: context.affiliate.id });
+      return Affiliate.findOne({ _id: context.affiliate.id }).populate(
+        "selectedProducts"
+      ); // This populates full product info
     },
     getReferrals: async () => {
       return Referral.find();
@@ -56,7 +61,9 @@ const resolvers = {
     ) => {
       console.log("🔐 Login attempt:", email);
       console.log("📥 Incoming password:", password);
-      const affiliate = await Affiliate.findOne({ email });
+      const affiliate = await Affiliate.findOne({
+        email: email.toLowerCase().trim(),
+      });
       console.log("🔐 Hashed password in DB:", affiliate?.password);
       if (!affiliate) {
         console.warn("❌ No affiliate found for email:", email);
@@ -94,6 +101,7 @@ const resolvers = {
         totalClicks,
         password,
         totalCommissions,
+        selectedProducts,
       }: {
         password: string;
         name: string;
@@ -101,30 +109,35 @@ const resolvers = {
         refId: string;
         totalClicks: number;
         totalCommissions: number;
+        selectedProducts: Product[];
       }
     ) => {
       try {
         console.log(
           "🔐 Register input:",
-          name,
           email,
           refId,
-          totalClicks,
           password,
-          totalCommissions
+          name,
+          totalClicks,
+          totalCommissions,
+          selectedProducts
         );
         console.log("📥 Raw password at registration:", password);
 
         // const hashedPassword = await bcrypt.hash(password, 10); // 🔒 hash password
         // console.log("🔐 Hashed password to store:", hashedPassword);
 
+         const productIds = selectedProducts.map((p) => p._id); // 🔁 extract ObjectIds
+
         const affiliate = new Affiliate({
-          name,
           email,
           password,
           refId,
-          totalClicks,
-          totalCommissions,
+          name: name ?? "", // Fall back since not required
+          totalClicks: totalClicks ?? 0,
+          totalCommissions: totalCommissions ?? 0,
+          selectedProducts: productIds ?? [],
         });
         await affiliate.save();
         // ✅ Sign a JWT with affiliateId
@@ -158,6 +171,7 @@ const resolvers = {
         refId,
         totalClicks,
         totalCommissions,
+        selectedProducts,
       }: {
         id: string;
         name?: string;
@@ -165,6 +179,7 @@ const resolvers = {
         refId?: string;
         totalClicks?: number;
         totalCommissions?: number;
+        selectedProducts?: [string];
       }
     ) => {
       try {
@@ -176,6 +191,7 @@ const resolvers = {
             ...(refId && { refId }),
             ...(totalClicks !== undefined && { totalClicks }),
             ...(totalCommissions !== undefined && { totalCommissions }),
+            ...(selectedProducts !== undefined && { selectedProducts }),
           },
           { new: true }
         );
