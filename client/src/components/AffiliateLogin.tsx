@@ -15,7 +15,7 @@ export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
       // 1) Store the JWT so ApolloClient will pick it up
       localStorage.setItem("token", login.token);
       // 2) Redirect to the affiliate dashboard (or wherever)
-      console.log("you are logged in: ", login.token);
+      // console.log("you are logged in: ", login.token);
       closeForm(false);
       dashboardReady(true);
     },

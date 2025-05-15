@@ -29,7 +29,6 @@ export const GET_AFFILIATE = gql`
 export const GET_REFERRALS = gql`
   query GetReferrals {
     getReferrals {
-      # id
       event
       email
       refId

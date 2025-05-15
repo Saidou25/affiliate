@@ -81,13 +81,16 @@ export default function Dashboard() {
     }
   }, []);
 
-  useEffect(() => {
-    if (data) {
-      console.log("all affiliates: ", data);
-    } else {
-      console.log("no affiliates yet...");
-    }
-  }, [data]);
+  // useEffect(() => {
+  //   if (data) {
+  //     console.log("all affiliates: ", data);
+  //   } else {
+  //     console.log("no affiliates yet...");
+  //   }
+  // }, [data]);
+
+  console.log("referrals data: ", referralsData);
+  
   return (
     <div style={{ padding: "5%" }}>
       <h2>All Affiliates</h2>

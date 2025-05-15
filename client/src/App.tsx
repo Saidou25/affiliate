@@ -1,16 +1,15 @@
 import { useState } from "react";
 import RegisterForm from "./components/RegisterForm";
 import AffiliateLogin from "./components/AffiliateLogin";
+import Dashboard from "./components/Dashboard";
 
 import "./index.css";
-import Dashboard from "./components/Dashboard";
 
 
 function App() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-console.log(showDashboard);
 
   if (showRegistration) {
     return <RegisterForm closeForm={setShowRegistration} />;
