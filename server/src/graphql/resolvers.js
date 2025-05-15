@@ -18,7 +18,7 @@ const resolvers = {
       return Affiliate.findOne({ _id: id });
     },
     getReferrals: async () => {
-      return Affiliate.find();
+      return Referral.find();
     },
     me: async (_parent, _, context) => {
       if (!context.affiliate) {

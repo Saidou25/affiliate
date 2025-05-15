@@ -30,21 +30,23 @@ const resolvers = {
         throw new Error("Not authenticated");
       }
 
-     return Affiliate.findOne({ _id: context.affiliate.id });
+      return Affiliate.findOne({ _id: context.affiliate.id });
     },
-
-    // Only affiliates (via your custom header) can get their own referrals:
-    getReferrals: async (
-      _parent: any,
-      _args: any,
-      { affiliate }: MyContext
-    ) => {
-      if (!affiliate) {
-        throw new Error("No affiliate credentials provided");
-      }
-      // filter referrals by the affiliate’s refId:
-      return Referral.find({ affiliateRefId: affiliate.refId });
+    getReferrals: async () => {
+      return Referral.find();
     },
+    // // Only affiliates (via your custom header) can get their own referrals:
+    // getReferrals: async (
+    //   _parent: any,
+    //   _args: any,
+    //   { affiliate }: MyContext
+    // ) => {
+    //   if (!affiliate) {
+    //     throw new Error("No affiliate credentials provided");
+    //   }
+    //   // filter referrals by the affiliate’s refId:
+    //   return Referral.find({ affiliateRefId: affiliate.refId });
+    // },
   },
 
   Mutation: {
