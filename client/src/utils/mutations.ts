@@ -11,10 +11,16 @@ export const LOGIN = gql`
         refId
         totalClicks
         totalCommissions
+        selectedProducts {
+          _id
+          name
+          price
+        }
       }
     }
   }
 `;
+
 export const REGISTER_AFFILIATE = gql`
   mutation RegisterAffiliate(
     $email: String!
@@ -23,6 +29,7 @@ export const REGISTER_AFFILIATE = gql`
     $name: String
     $totalClicks: Int
     $totalCommissions: Int
+    $selectedProducts: [ID!]
   ) {
     registerAffiliate(
       name: $name
@@ -31,6 +38,7 @@ export const REGISTER_AFFILIATE = gql`
       password: $password
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
+      selectedProducts: $selectedProducts
     ) {
       token
       affiliate {
@@ -40,11 +48,15 @@ export const REGISTER_AFFILIATE = gql`
         refId
         totalClicks
         totalCommissions
+        selectedProducts {
+          _id
+          name
+          price
+        }
       }
     }
   }
 `;
-
 
 export const DELETE_AFFILIATE = gql`
   mutation DeleteAffiliate($id: ID!) {
@@ -64,13 +76,14 @@ export const UPDATE_AFFILIATE = gql`
     $name: String
     $email: String
     $refId: String
-    $totalClicks: Number
-    $totalCommissions: Number
+    $totalClicks: Int
+    $totalCommissions: Int
   ) {
     updateAffiliate(
       id: $id
       name: $name
       email: $email
+      refId: $refId
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
     ) {

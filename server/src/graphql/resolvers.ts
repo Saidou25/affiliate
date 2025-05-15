@@ -6,7 +6,6 @@ import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
 import Referral from "../models/Referral";
-import Product from "../models/Product";
 // import dotenv from "dotenv";
 
 // dotenv.config();
@@ -109,7 +108,7 @@ const resolvers = {
         refId: string;
         totalClicks: number;
         totalCommissions: number;
-        selectedProducts: Product[];
+        selectedProducts: string[]; // Array of product IDs
       }
     ) => {
       try {
@@ -123,12 +122,11 @@ const resolvers = {
           totalCommissions,
           selectedProducts
         );
-        console.log("📥 Raw password at registration:", password);
 
         // const hashedPassword = await bcrypt.hash(password, 10); // 🔒 hash password
         // console.log("🔐 Hashed password to store:", hashedPassword);
 
-         const productIds = selectedProducts.map((p) => p._id); // 🔁 extract ObjectIds
+        //  const productIds = selectedProducts.map((p) => p._id); // 🔁 extract ObjectIds
 
         const affiliate = new Affiliate({
           email,
@@ -137,9 +135,10 @@ const resolvers = {
           name: name ?? "", // Fall back since not required
           totalClicks: totalClicks ?? 0,
           totalCommissions: totalCommissions ?? 0,
-          selectedProducts: productIds ?? [],
+          selectedProducts: selectedProducts ?? [],  //  stored as array of ObjectIds
         });
         await affiliate.save();
+          // await affiliate.populate("selectedProducts");
         // ✅ Sign a JWT with affiliateId
         const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
           expiresIn: "1h",
