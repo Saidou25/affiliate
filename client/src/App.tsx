@@ -5,7 +5,6 @@ import Dashboard from "./components/Dashboard";
 
 import "./index.css";
 
-
 function App() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);

@@ -91,28 +91,17 @@ const resolvers = {
         email,
         password,
         refId,
-        name,
-        totalClicks = 0,
-        totalCommissions = 0,
-      }: // selectedProducts = [],
+      }: 
       {
         email: string;
         password: string;
         refId: string;
-        name?: string;
-        totalClicks?: number;
-        totalCommissions?: number;
-        // selectedProducts?: string[]; // Array of product IDs only!
       }
     ) => {
       const affiliate = new Affiliate({
         email,
         password,
         refId,
-        name: name ?? "",
-        totalClicks,
-        totalCommissions,
-        // selectedProducts, // store only IDs here
       });
       await affiliate.save();
 

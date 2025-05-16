@@ -9,9 +9,10 @@ import AffiliateSalesList from "./AffiliateSalesList";
 import AffiliatesList from "./AffiliatesList";
 
 import "./Dashboard.css";
+import Adming from "./Admin";
+import Admin from "./Admin";
 
 export default function Dashboard() {
- 
   const [logClick] = useMutation(LOG_CLICK);
 
   useEffect(() => {
@@ -32,10 +33,8 @@ export default function Dashboard() {
       <div className="log-out">
         <RiLogoutCircleRLine className="iomdlogout" onClick={handleLogout} />
       </div>
-      <AffiliatesList />
-      <AffiliateSalesList />
+      <Admin />
       <AffiliateInfo />
-      <Products />
     </div>
   );
 }

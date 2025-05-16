@@ -1,17 +1,21 @@
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
 
+import "./AffiliateInfo.css";
+import Products from "./Products";
+
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || [];
-console.log(me)
+
   const { data: salesData } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId: me.refId }
+    variables: { refId: me.refId },
   });
   // console.log(me)
-  console.log(salesData);
+  // console.log(salesData);
   return (
-    <div>
+    <div className="my-profile">
+      <h1>Affiliate's Dashboard</h1>
       <h2>My Profile</h2>
       {me.name && (
         <>
@@ -86,6 +90,7 @@ console.log(me)
             </span>
           </div>
         ))}
+      <Products />
     </div>
   );
 }

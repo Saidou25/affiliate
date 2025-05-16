@@ -9,24 +9,24 @@ class AuthService {
   getUser() {
     const token = this.getToken();
     if (!token) return null;
-    return jwtDecode<DecodedToken>(token);
+    try {
+      return jwtDecode<DecodedToken>(token);
+    } catch {
+      return null;
+    }
   }
 
   loggedIn() {
     const token = this.getToken();
-    return !!token && !this.isTokenExpired(token);
+    if (!token) return false;
+    return !this.isTokenExpired(token);
   }
 
   isTokenExpired(token: string): boolean {
     try {
       const decoded = jwtDecode<DecodedToken>(token);
-      if (decoded.exp < Date.now() / 1000) {
-        localStorage.removeItem("id_token");
-        return true;
-      }
-      return false;
-    } catch (error) {
-      localStorage.removeItem("id_token");
+      return decoded.exp < Date.now() / 1000;
+    } catch {
       return true;
     }
   }
@@ -42,7 +42,7 @@ class AuthService {
 
   logout() {
     localStorage.removeItem("id_token");
-    // window.location.replace("/");
+    window.location.replace("/");
   }
 }
 

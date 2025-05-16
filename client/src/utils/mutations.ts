@@ -26,31 +26,17 @@ export const REGISTER_AFFILIATE = gql`
     $email: String!
     $password: String!
     $refId: String!
-    $name: String
-    $totalClicks: Int
-    $totalCommissions: Int # $selectedProducts: [ID!]
   ) {
     registerAffiliate(
       email: $email
       password: $password
       refId: $refId
-      name: $name
-      totalClicks: $totalClicks
-      totalCommissions: $totalCommissions # selectedProducts: $selectedProducts
     ) {
       token
       affiliate {
         id
-        name
         email
         refId
-        totalClicks
-        totalCommissions
-        # selectedProducts {
-        #   _id
-        #   name
-        #   price
-        # }
       }
     }
   }

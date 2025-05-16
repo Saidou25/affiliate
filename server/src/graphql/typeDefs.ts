@@ -13,15 +13,15 @@ const typeDefs = gql`
     # selectedProducts: [ID!]
   }
 
-  input RegisterAffiliateInput {
-    name: String
-    email: String!
-    password: String!
-    refId: String!
-    totalClicks: Int
-    totalCommissions: Int
-    # selectedProducts: [ID!]
-  }
+  # input RegisterAffiliateInput {
+  #   name: String
+  #   email: String!
+  #   password: String!
+  #   refId: String!
+  #   totalClicks: Int
+  #   totalCommissions: Int
+  #   # selectedProducts: [ID!]
+  # }
 
   type AuthPayload {
     token: String!
@@ -30,7 +30,6 @@ const typeDefs = gql`
 
   type AffiliateSale {
     id: ID!
-    # affiliateId: ID!
     productId: String!
     refId: String!
     buyerEmail: String
@@ -50,7 +49,7 @@ const typeDefs = gql`
   type Mutation {
     login(email: String!, password: String!): AuthPayload!
 
-    registerAffiliate(input: RegisterAffiliateInput!): AuthPayload!
+    registerAffiliate(password: String!, email: String!, refId: String): AuthPayload!
 
     updateAffiliate(
       id: ID!
