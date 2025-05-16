@@ -5,7 +5,7 @@ import Products from "./Products";
 import AffiliateInfo from "./AffiliateInfo";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import AuthService from "../utils/auth";
-import ReferralsList from "./ReferralsList";
+import AffiliateSalesList from "./AffiliateSalesList";
 import AffiliatesList from "./AffiliatesList";
 
 import "./Dashboard.css";
@@ -33,7 +33,7 @@ export default function Dashboard() {
         <RiLogoutCircleRLine className="iomdlogout" onClick={handleLogout} />
       </div>
       <AffiliatesList />
-      <ReferralsList />
+      <AffiliateSalesList />
       <AffiliateInfo />
       <Products />
     </div>

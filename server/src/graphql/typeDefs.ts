@@ -1,6 +1,8 @@
 import { gql } from "graphql-tag";
 
 const typeDefs = gql`
+  scalar Date
+
   type Affiliate {
     id: ID!
     email: String!
@@ -10,6 +12,7 @@ const typeDefs = gql`
     totalCommissions: Int
     # selectedProducts: [ID!]
   }
+
   input RegisterAffiliateInput {
     name: String
     email: String!
@@ -17,7 +20,7 @@ const typeDefs = gql`
     refId: String!
     totalClicks: Int
     totalCommissions: Int
-    # selectedProducts: [ID!] # ✅ Expect an array of product IDs
+    # selectedProducts: [ID!]
   }
 
   type AuthPayload {
@@ -25,41 +28,23 @@ const typeDefs = gql`
     affiliate: Affiliate!
   }
 
-  # type Product {
-  #   id: ID!
-  #   title: String!
-  #   subtitle: String!
-  #   description: String
-  #   price: Float
-  #   quantity: Int
-  #   category: String!
-  #   imageUrl: String
-  #   url: String
-  # }
-
-  # input ProductInput {
-  #   id: ID!
-  #   title: String!
-  #   subtitle: String!
-  #   description: String
-  #   price: Float
-  #   quantity: Int
-  #   category: String!
-  #   imageUrl: String
-  #   url: String
-  # }
-
-  type Referral {
-    email: String
-    refId: String
-    event: String
+  type AffiliateSale {
+    id: ID!
+    # affiliateId: ID!
+    productId: ID!
+    refId: String!
+    buyerEmail: String
+    amount: Int!
+    event: String!
+    timestamp: Date!
   }
 
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
     me: Affiliate
-    getReferrals: [Referral!]!
+    getAllAffiliateSales: [AffiliateSale!]!
+    getAffiliateSales(refId: ID!): [AffiliateSale!]!
   }
 
   type Mutation {
@@ -73,14 +58,21 @@ const typeDefs = gql`
       email: String
       totalClicks: Int
       totalCommissions: Int
-      # selectedProducts: [ID!]C
     ): Affiliate
 
     deleteAffiliate(id: ID!): Affiliate
 
     logClick(refId: String!): Boolean
 
-    trackReferral(email: String, refId: String, event: String): Referral
+    trackAffiliateSale(
+      # affiliateId: ID!
+      productId: ID!
+      refId: String!
+      buyerEmail: String
+      amount: Int!
+      event: String!
+      timestamp: Date
+    ): AffiliateSale!
   }
 `;
 export default typeDefs;

@@ -7,13 +7,16 @@ import { SECRET } from "../config/env";
 import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
-import Referral from "../models/Referral";
+import AffiliateSale from "../models/AffiliateSale";
+import { dateScalar } from "../dateScalar";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
 }
 
 const resolvers = {
+  Date: dateScalar,
+
   Query: {
     // Only logged-in users can list affiliates:
     getAffiliates: async () => {
@@ -31,21 +34,17 @@ const resolvers = {
 
       return Affiliate.findOne({ _id: context.affiliate.id }); // This populates full product info
     },
-    getReferrals: async () => {
-      return Referral.find();
+
+    getAllAffiliateSales: async () => {
+      return AffiliateSale.find();
     },
-    // // Only affiliates (via your custom header) can get their own referrals:
-    // getReferrals: async (
-    //   _parent: any,
-    //   _args: any,
-    //   { affiliate }: MyContext
-    // ) => {
-    //   if (!affiliate) {
-    //     throw new Error("No affiliate credentials provided");
-    //   }
-    //   // filter referrals by the affiliate’s refId:
-    //   return Referral.find({ affiliateRefId: affiliate.refId });
-    // },
+
+    getAffiliateSales: async (
+      _: any,
+      { refId }: { refId: string }
+    ) => {
+      return AffiliateSale.find({ refId }); // likely multiple sales per affiliate
+    },
   },
 
   Mutation: {
@@ -95,8 +94,8 @@ const resolvers = {
         name,
         totalClicks = 0,
         totalCommissions = 0,
-        // selectedProducts = [],
-      }: {
+      }: // selectedProducts = [],
+      {
         email: string;
         password: string;
         refId: string;
@@ -141,8 +140,8 @@ const resolvers = {
         refId,
         totalClicks,
         totalCommissions,
-        // selectedProducts,
-      }: {
+      }: // selectedProducts,
+      {
         id: string;
         name?: string;
         email?: string;
@@ -170,16 +169,41 @@ const resolvers = {
       }
     },
 
-    trackReferral: async (
+    trackAffiliateSale: async (
       _: unknown,
-      { refId, event, email }: { refId: string; event: string; email: string }
+      {
+        // affiliateId,
+        productId,
+        refId,
+        buyerEmail,
+        amount,
+        event,
+        timestamp,
+      }: {
+        // affiliateId: string;
+        productId: string;
+        refId: string;
+        buyerEmail: string;
+        amount: number;
+        event: string;
+        timestamp?: Date;
+      }
     ) => {
       try {
-        const newReferral = new Referral({ refId, event, email });
-        await newReferral.save();
-        return newReferral;
+        const newAffiliateSale = new AffiliateSale({
+          // affiliateId,
+          productId,
+          refId,
+          buyerEmail,
+          amount,
+          event,
+          timestamp: timestamp || new Date(),
+        });
+        await newAffiliateSale.save();
+        return newAffiliateSale;
       } catch (error) {
-        throw new Error("Failed to create referral");
+        console.error("❌ Error creating AffiliateSale:", error);
+        throw new Error("Failed to create AffiliateSale");
       }
     },
 

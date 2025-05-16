@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import Affiliate from "../models/Affiliate";
-import Referral from "../models/Referral";
+import AffiliateSale from "../models/AffiliateSale";
 // import dotenv from "dotenv";
 // dotenv.config();
 const SECRET = "dev-secret-123456";
@@ -17,8 +17,8 @@ const resolvers = {
     getAffiliate: async (_, { id }) => {
       return Affiliate.findOne({ _id: id });
     },
-    getReferrals: async () => {
-      return Referral.find();
+    getAllAffiliateSales: async () => {
+      return AffiliateSale.find();
     },
     me: async (_parent, _, context) => {
       if (!context.affiliate) {
@@ -26,13 +26,13 @@ const resolvers = {
       }
       return Affiliate.findOne({ _id: context.affiliate.id });
     },
-    // Only affiliates (via your custom header) can get their own referrals:
-    // getReferrals: async (_parent, _args, { affiliate }) => {
+    // Only affiliates (via your custom header) can get their own AffiliateSales:
+    // getAllAffiliateSales: async (_parent, _args, { affiliate }) => {
     //     if (!affiliate) {
     //         throw new Error("No affiliate credentials provided");
     //     }
-    //     // filter referrals by the affiliate’s refId:
-    //     return Referral.find({ affiliateRefId: affiliate.refId });
+    //     // filter AffiliateSales by the affiliate’s refId:
+    //     return AffiliateSale.find({ affiliateRefId: affiliate.refId });
     // },
   },
   Mutation: {
@@ -129,13 +129,13 @@ const resolvers = {
         throw new Error("Failed to update affiliate");
       }
     },
-    trackReferral: async (_, { refId, event, email }) => {
+    trackAffiliateSale: async (_, { refId, event, email }) => {
       try {
-        const newReferral = new Referral({ refId, event, email });
-        await newReferral.save();
-        return newReferral;
+        const newAffiliateSale = new AffiliateSale({ refId, event, email });
+        await newAffiliateSale.save();
+        return newAffiliateSale;
       } catch (error) {
-        throw new Error("Failed to create referral");
+        throw new Error("Failed to create AffiliateSale");
       }
     },
     logClick: async (_, { refId }) => {

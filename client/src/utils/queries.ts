@@ -36,12 +36,30 @@ export const GET_AFFILIATE = gql`
   }
 `;
 
-export const GET_REFERRALS = gql`
-  query GetReferrals {
-    getReferrals {
-      event
-      email
+export const GET_ALLAFFILIATESALES = gql`
+  query getAllAffiliateSales {
+    getAllAffiliateSales {
+      # affiliateId
+      productId
       refId
+      buyerEmail
+      amount
+      event
+      timestamp
+    }
+  }
+`;
+
+export const GET_AFFILIATESALES = gql`
+  query GetAffiliateSales($refId: ID!) {
+    getAffiliateSales(refId: $refId) {
+      # affiliateId
+      productId
+      refId
+      buyerEmail
+      amount
+      event
+      timestamp
     }
   }
 `;

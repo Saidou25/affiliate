@@ -1,4 +1,4 @@
 const Affiliate = require("./Affiliate");
-const Referral = require("./Referral");
+const AffiliateSale = require("./AffiliateSale");
 const Product = require("./Product");
-module.exports = { Affiliate, Product, Referral };
+module.exports = { Affiliate, Product, AffiliateSale };

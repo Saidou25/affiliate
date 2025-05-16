@@ -14,7 +14,7 @@ const typeDefs = gql `
     affiliate: Affiliate!
   }
 
-  type Referral {
+  type AffiliateSale {
     email: String
     refId: String
     event: String
@@ -24,7 +24,7 @@ const typeDefs = gql `
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
     me: Affiliate
-    getReferrals: [Referral!]!
+    getAllAffiliateSales: [AffiliateSale!]!
     # getProductsList: [Product!]!
   }
 
@@ -51,7 +51,7 @@ const typeDefs = gql `
 
     logClick(refId: String!): Boolean
 
-    trackReferral(email: String, refId: String, event: String): Referral
+    trackAffiliateSale(email: String, refId: String, event: String): AffiliateSale
 
   }
 `;

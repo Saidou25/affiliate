@@ -28,8 +28,7 @@ export const REGISTER_AFFILIATE = gql`
     $refId: String!
     $name: String
     $totalClicks: Int
-    $totalCommissions: Int
-    # $selectedProducts: [ID!]
+    $totalCommissions: Int # $selectedProducts: [ID!]
   ) {
     registerAffiliate(
       email: $email
@@ -37,8 +36,7 @@ export const REGISTER_AFFILIATE = gql`
       refId: $refId
       name: $name
       totalClicks: $totalClicks
-      totalCommissions: $totalCommissions
-      # selectedProducts: $selectedProducts
+      totalCommissions: $totalCommissions # selectedProducts: $selectedProducts
     ) {
       token
       affiliate {
@@ -96,8 +94,38 @@ export const UPDATE_AFFILIATE = gql`
   }
 `;
 
+export const TRACK_AFFILIATESALES = gql`
+  mutation TrackAffiliateSale(
+    # $affiliateId: String
+    $productId: String
+    $refId: String
+    $buyerEmail: String
+    $amount: Float
+    $event: String
+    $timestamp: Date
+  ) {
+    trackAffiliateSale(
+      # affiliateId: $affiliateId
+      productId: $productId
+      refId: $refId
+      buyerEmail: $buyerEmail
+      amount: $amount
+      event: $event
+      timestamp: $timestamp
+    ) {
+      # affiliateId
+      productId
+      refId
+      buyerEmail
+      amount
+      event
+      timestamp
+    }
+  }
+`;
+
 export const LOG_CLICK = gql`
   mutation LogClick($refId: String!) {
-    logClick(refid: $refId)
+    logClick(refId: $refId)
   }
 `;
