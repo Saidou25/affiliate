@@ -113,11 +113,11 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
         refId
         totalClicks
         totalCommissions
-        selectedProducts {
-          _id
-          name
-          price
-        }
+        # selectedProducts {
+        #   _id
+        #   name
+        #   price
+        # }
       }
     }
   }
@@ -129,7 +129,7 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
     $name: String
     $totalClicks: Int
     $totalCommissions: Int
-    $selectedProducts: [ID!]
+    # $selectedProducts: [ID!]
   ) {
     registerAffiliate(
       email: $email
@@ -138,7 +138,7 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
       name: $name
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
-      selectedProducts: $selectedProducts
+      # selectedProducts: $selectedProducts
     ) {
       token
       affiliate {
@@ -148,11 +148,11 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
         refId
         totalClicks
         totalCommissions
-        selectedProducts {
-          _id
-          name
-          price
-        }
+        # selectedProducts {
+        #   _id
+        #   name
+        #   price
+        # }
       }
     }
   }
@@ -203,11 +203,11 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
       refId
       totalClicks
       totalCommissions
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;St`
@@ -219,11 +219,11 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
       refId
       totalClicks
       totalCommissions
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;const lO=St`
@@ -241,11 +241,11 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
       email
       refId
       name
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;function uO(a){return Xu({attr:{viewBox:"0 0 384 512"},child:[{tag:"path",attr:{d:"M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm121.2 231.8l-143 141.8c-4.7 4.7-12.3 4.6-17-.1l-82.6-83.3c-4.7-4.7-4.6-12.3.1-17L99.1 285c4.7-4.7 12.3-4.6 17 .1l46 46.4 106-105.2c4.7-4.7 12.3-4.6 17 .1l28.2 28.4c4.7 4.8 4.6 12.3-.1 17z"},child:[]}]})(a)}function sO(a){return Xu({attr:{viewBox:"0 0 384 512"},child:[{tag:"path",attr:{d:"M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm144 418c0 3.3-2.7 6-6 6H54c-3.3 0-6-2.7-6-6V118c0-3.3 2.7-6 6-6h42v36c0 6.6 5.4 12 12 12h168c6.6 0 12-5.4 12-12v-36h42c3.3 0 6 2.7 6 6z"},child:[]}]})(a)}const oO=({productUrl:a,refId:n})=>{const[r,l]=Xt.useState(!1),s=async()=>{try{await navigator.clipboard.writeText(`${a}/?ref=${n}`),l(!0),setTimeout(()=>l(!1),1500)}catch(c){console.error("Failed to copy:",c)}};return B.jsx("button",{onClick:s,title:"Copy to clipboard",style:{cursor:"pointer",background:"none",border:"none"},children:r?B.jsx(uO,{color:"green"}):B.jsx(sO,{})})};function cO({productUrl:a}){const{data:n}=Iu(g0),l=((n==null?void 0:n.me)||[]).refId;return B.jsxs("div",{children:[B.jsx("br",{}),B.jsx("strong",{children:"Product link"}),B.jsx("br",{}),a,"/?ref=",l,B.jsx(oO,{productUrl:a,refId:l})]})}function fO(){const[a,n]=Xt.useState([]),r=(s,c)=>{n(h=>[...h,{productTitle:c,productUrl:s}])},l=s=>{n(c=>c.filter(h=>h.productTitle!==s))};return B.jsxs("div",{className:"products-container",children:[B.jsx("h2",{children:"Products' List"}),B.jsx("br",{}),B.jsx("ul",{children:Fy&&Fy.map(s=>B.jsxs("li",{className:"product-li",children:[B.jsx("img",{className:"image-fluid",alt:"product image",src:s.imageUrl?s.imageUrl:void 0}),B.jsxs("div",{className:"ps",children:[B.jsx("span",{children:s.subtitle}),B.jsx("span",{children:s.description}),B.jsx("span",{children:s.price}),(a==null?void 0:a.some(c=>c.productTitle===s.title))&&B.jsx(cO,{productUrl:s.url})]}),a.some(c=>c.productTitle===s.title)?B.jsx("button",{className:"",onClick:()=>l(s.title),children:"Remove"}):B.jsx("button",{className:"",onClick:()=>r(s.url,s.title),children:"Select"})]},s.title))})]})}function hO(){const{data:a}=Iu(g0),n=(a==null?void 0:a.me)||[];return B.jsxs("div",{children:[B.jsx("h2",{children:"My Profile"}),n.name&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"name:"}),n.name,B.jsx("br",{})]}),n.email&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"email - "}),n.email,B.jsx("br",{})]}),n.id&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"id - "}),n.id,B.jsx("br",{})]}),n.refId&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"your reference id - "}),n.refId," ",B.jsx("br",{})]}),n.totalClicks&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"total clicks - "}),n.totalClicks,B.jsx("br",{})]}),n.totalComissions&&B.jsxs(B.Fragment,{children:[B.jsx("strong",{children:"total comissions - "}),n.totalComissions,B.jsx("br",{})]})]})}function dO(a){return Xu({attr:{viewBox:"0 0 24 24",fill:"currentColor"},child:[{tag:"path",attr:{d:"M12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C15.2713 2 18.1757 3.57078 20.0002 5.99923L17.2909 5.99931C15.8807 4.75499 14.0285 4 12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C14.029 20 15.8816 19.2446 17.2919 17.9998L20.0009 17.9998C18.1765 20.4288 15.2717 22 12 22ZM19 16V13H11V11H19V8L24 12L19 16Z"},child:[]}]})(a)}class Br extends Error{}Br.prototype.name="InvalidTokenError";function vO(a){return decodeURIComponent(atob(a).replace(/(.)/g,(n,r)=>{let l=r.charCodeAt(0).toString(16).toUpperCase();return l.length<2&&(l="0"+l),"%"+l}))}function pO(a){let n=a.replace(/-/g,"+").replace(/_/g,"/");switch(n.length%4){case 0:break;case 2:n+="==";break;case 3:n+="=";break;default:throw new Error("base64 string is not of the correct length")}try{return vO(n)}catch{return atob(n)}}function Hy(a,n){if(typeof a!="string")throw new Br("Invalid token specified: must be a string");n||(n={});const r=n.header===!0?0:1,l=a.split(".")[r];if(typeof l!="string")throw new Br(`Invalid token specified: missing part #${r+1}`);let s;try{s=pO(l)}catch(c){throw new Br(`Invalid token specified: invalid base64 for part #${r+1} (${c.message})`)}try{return JSON.parse(s)}catch(c){throw new Br(`Invalid token specified: invalid json for part #${r+1} (${c.message})`)}}class yO{getUser(){const n=this.getToken();return n?Hy(n):null}loggedIn(){const n=this.getToken();return!!n&&!this.isTokenExpired(n)}isTokenExpired(n){try{return Hy(n).exp<Date.now()/1e3?(localStorage.removeItem("id_token"),!0):!1}catch{return localStorage.removeItem("id_token"),!0}}getToken(){return localStorage.getItem("id_token")}login(n){localStorage.setItem("id_token",n)}logout(){localStorage.removeItem("id_token")}}const mO=new yO;function gO(){const{data:a,loading:n,error:r}=Iu(lO);return B.jsxs("div",{children:[" ",B.jsx("h2",{children:"All tracked Referrals"}),B.jsx("strong",{style:{color:"white"}}),n&&B.jsx("p",{children:"Loading referrals..."}),r&&B.jsxs("p",{children:["Error fetching referrals: ",r.message]}),a&&a.getReferrals.map(l=>B.jsxs("div",{children:[B.jsx("strong",{children:l.event})," - ",l.name," -"," ",l.email," -",l.refId,B.jsx("br",{})]},l.refId))]})}function bO(){var c;const{data:a,loading:n,error:r}=Iu(Cc),[l]=Gu(K_,{update(h,{data:{deleteAffiliate:d}}){try{const p=h.readQuery({query:Cc});p&&d&&h.writeQuery({query:Cc,data:{getAffiliates:p.getAffiliates.filter(v=>v.id!==d.id)}})}catch(p){console.error("Cache update error:",p.message)}}}),s=async h=>{console.log(h);try{const{data:d}=await l({variables:{id:h.toString()}});d&&console.log("success deleting affiliate",d)}catch(d){console.error(d.message)}};return B.jsxs("div",{children:[" ",B.jsx("h2",{children:"All Affiliates"}),B.jsx("strong",{style:{color:"white"}}),n&&B.jsx("p",{children:"Loading users..."}),r&&B.jsxs("p",{children:["Error fetching users: ",r.message]}),a&&((c=a==null?void 0:a.getAffiliates)==null?void 0:c.map(h=>B.jsxs("div",{children:[B.jsxs("strong",{children:[h.name,"- ",h.id]})," ","- ",h.email," - ",h.refId," -"," ",h.totalClicks?h.totalClicks:null," -"," ",h.totalCommissions?h.totalCommissions:null,B.jsx("button",{onClick:()=>s(h.id),children:"remove"}),B.jsx("br",{})]},h.id)))]})}function SO(){const[a]=Gu(J_);Xt.useEffect(()=>{const l=new URLSearchParams(window.location.search).get("ref");l&&a({variables:{refId:l}})},[]);const n=()=>{mO.logout()};return B.jsxs("div",{style:{padding:"5%"},children:[B.jsx("div",{className:"log-out",children:B.jsx(dO,{className:"iomdlogout",onClick:n})}),B.jsx(bO,{}),B.jsx(gO,{}),B.jsx(hO,{}),B.jsx(fO,{})]})}function EO(){const[a,n]=Xt.useState(!1),[r,l]=Xt.useState(!1),[s,c]=Xt.useState(!1);return a?B.jsx(iO,{closeForm:n}):r?B.jsx(rO,{closeForm:l,dashboardReady:c}):s?B.jsx(SO,{}):B.jsxs("div",{className:"but-container",style:{width:"100%",display:"flex",justifyContent:"center",marginTop:"30%"},children:[B.jsx("button",{className:"",onClick:()=>{n(!0)},style:{padding:"1%",borderRadius:"10px",width:"20%",margin:"5px"},children:"Register"}),B.jsx("button",{className:"",onClick:()=>{l(!0)},style:{padding:"1%",borderRadius:"10px",width:"20%",margin:"5px"},children:"Login"})]})}function _O(a){return new ji(function(n,r){var l=Vt(n,[]);return new we(function(s){var c,h=!1;return Promise.resolve(l).then(function(d){return a(d,n.getContext())}).then(n.setContext).then(function(){h||(c=r(n).subscribe({next:s.next.bind(s),error:s.error.bind(s),complete:s.complete.bind(s)}))}).catch(s.error.bind(s)),function(){h=!0,c&&c.unsubscribe()}})})}const OO="https://affiliate-2yj9.onrender.com",TO=Um({uri:OO}),DO=_O((a,{headers:n})=>{const r=localStorage.getItem("token");return{headers:{...n,authorization:r?`Bearer ${r}`:""}}}),AO=new r0({link:DO.concat(TO),cache:new a0});$b.createRoot(document.getElementById("root")).render(B.jsx(Wn.StrictMode,{children:B.jsx(x_,{client:AO,children:B.jsx(EO,{})})}))});export default RO();
