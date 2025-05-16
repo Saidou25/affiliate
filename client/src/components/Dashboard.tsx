@@ -1,16 +1,12 @@
 import { useMutation } from "@apollo/client";
 import { LOG_CLICK } from "../utils/mutations";
 import { useEffect } from "react";
-import Products from "./Products";
 import AffiliateInfo from "./AffiliateInfo";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import AuthService from "../utils/auth";
-import AffiliateSalesList from "./AffiliateSalesList";
-import AffiliatesList from "./AffiliatesList";
+import Admin from "./Admin";
 
 import "./Dashboard.css";
-import Adming from "./Admin";
-import Admin from "./Admin";
 
 export default function Dashboard() {
   const [logClick] = useMutation(LOG_CLICK);
