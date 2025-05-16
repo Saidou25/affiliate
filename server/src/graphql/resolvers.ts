@@ -17,7 +17,7 @@ const resolvers = {
   Query: {
     // Only logged-in users can list affiliates:
     getAffiliates: async () => {
-      return Affiliate.find().populate("selectedProducts");
+      return Affiliate.find();
     },
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
@@ -29,9 +29,7 @@ const resolvers = {
         throw new Error("Not authenticated");
       }
 
-      return Affiliate.findOne({ _id: context.affiliate.id }).populate(
-        "selectedProducts"
-      ); // This populates full product info
+      return Affiliate.findOne({ _id: context.affiliate.id }); // This populates full product info
     },
     getReferrals: async () => {
       return Referral.find();
@@ -87,120 +85,119 @@ const resolvers = {
       console.log("✅ Login success. Token:", token);
       return { token, affiliate };
     },
-    Mutation: {
-      registerAffiliate: async (
-        _: unknown,
-        {
-          email,
-          password,
-          refId,
-          name,
-          totalClicks = 0,
-          totalCommissions = 0,
-          selectedProducts = [],
-        }: {
-          email: string;
-          password: string;
-          refId: string;
-          name?: string;
-          totalClicks?: number;
-          totalCommissions?: number;
-          selectedProducts?: string[]; // Array of product IDs only!
-        }
-      ) => {
-        const affiliate = new Affiliate({
-          email,
-          password,
-          refId,
-          name: name ?? "",
-          totalClicks,
-          totalCommissions,
-          selectedProducts, // store only IDs here
-        });
-        await affiliate.save();
 
-        const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
-          expiresIn: "1h",
-        });
+    registerAffiliate: async (
+      _: unknown,
+      {
+        email,
+        password,
+        refId,
+        name,
+        totalClicks = 0,
+        totalCommissions = 0,
+        // selectedProducts = [],
+      }: {
+        email: string;
+        password: string;
+        refId: string;
+        name?: string;
+        totalClicks?: number;
+        totalCommissions?: number;
+        // selectedProducts?: string[]; // Array of product IDs only!
+      }
+    ) => {
+      const affiliate = new Affiliate({
+        email,
+        password,
+        refId,
+        name: name ?? "",
+        totalClicks,
+        totalCommissions,
+        // selectedProducts, // store only IDs here
+      });
+      await affiliate.save();
 
-        return { token, affiliate };
-      },
+      const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
+        expiresIn: "1h",
+      });
 
-      deleteAffiliate: async (_: any, { id }: { id: string }) => {
-        try {
-          return await Affiliate.findOneAndDelete({ _id: id });
-        } catch (error) {
-          throw new Error("Failed to delete affiliate");
-        }
-      },
+      return { token, affiliate };
+    },
 
-      updateAffiliate: async (
-        _: any,
-        {
-          id,
-          name,
-          email,
-          refId,
-          totalClicks,
-          totalCommissions,
-          selectedProducts,
-        }: {
-          id: string;
-          name?: string;
-          email?: string;
-          refId?: string;
-          totalClicks?: number;
-          totalCommissions?: number;
-          selectedProducts?: string[]; // Again, only IDs
-        }
-      ) => {
-        try {
-          return await Affiliate.findOneAndUpdate(
-            { _id: id },
-            {
-              ...(name && { name }), // Only update name if name is being passed as argument
-              ...(email && { email }),
-              ...(refId && { refId }),
-              ...(totalClicks !== undefined && { totalClicks }),
-              ...(totalCommissions !== undefined && { totalCommissions }),
-              ...(selectedProducts !== undefined && { selectedProducts }),
-            },
-            { new: true }
-          );
-        } catch (error) {
-          throw new Error("Failed to update affiliate");
-        }
-      },
+    deleteAffiliate: async (_: any, { id }: { id: string }) => {
+      try {
+        return await Affiliate.findOneAndDelete({ _id: id });
+      } catch (error) {
+        throw new Error("Failed to delete affiliate");
+      }
+    },
 
-      trackReferral: async (
-        _: unknown,
-        { refId, event, email }: { refId: string; event: string; email: string }
-      ) => {
-        try {
-          const newReferral = new Referral({ refId, event, email });
-          await newReferral.save();
-          return newReferral;
-        } catch (error) {
-          throw new Error("Failed to create referral");
-        }
-      },
+    updateAffiliate: async (
+      _: any,
+      {
+        id,
+        name,
+        email,
+        refId,
+        totalClicks,
+        totalCommissions,
+        // selectedProducts,
+      }: {
+        id: string;
+        name?: string;
+        email?: string;
+        refId?: string;
+        totalClicks?: number;
+        totalCommissions?: number;
+        // selectedProducts?: string[]; // Again, only IDs
+      }
+    ) => {
+      try {
+        return await Affiliate.findOneAndUpdate(
+          { _id: id },
+          {
+            ...(name && { name }), // Only update name if name is being passed as argument
+            ...(email && { email }),
+            ...(refId && { refId }),
+            ...(totalClicks !== undefined && { totalClicks }),
+            ...(totalCommissions !== undefined && { totalCommissions }),
+            // ...(selectedProducts !== undefined && { selectedProducts }),
+          },
+          { new: true }
+        );
+      } catch (error) {
+        throw new Error("Failed to update affiliate");
+      }
+    },
 
-      logClick: async (_: any, { refId }: { refId: string }) => {
-        try {
-          const updatedAffiliate = await Affiliate.findOneAndUpdate(
-            { refId },
-            { $inc: { totalClicks: 1 } },
-            { new: true }
-          );
-          if (!updatedAffiliate) {
-            throw new Error("Affiliate not found");
-          }
-          return true;
-        } catch (error) {
-          console.error("Error logging click:", error);
-          return false;
+    trackReferral: async (
+      _: unknown,
+      { refId, event, email }: { refId: string; event: string; email: string }
+    ) => {
+      try {
+        const newReferral = new Referral({ refId, event, email });
+        await newReferral.save();
+        return newReferral;
+      } catch (error) {
+        throw new Error("Failed to create referral");
+      }
+    },
+
+    logClick: async (_: any, { refId }: { refId: string }) => {
+      try {
+        const updatedAffiliate = await Affiliate.findOneAndUpdate(
+          { refId },
+          { $inc: { totalClicks: 1 } },
+          { new: true }
+        );
+        if (!updatedAffiliate) {
+          throw new Error("Affiliate not found");
         }
-      },
+        return true;
+      } catch (error) {
+        console.error("Error logging click:", error);
+        return false;
+      }
     },
   },
 };

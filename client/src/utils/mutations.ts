@@ -11,11 +11,11 @@ export const LOGIN = gql`
         refId
         totalClicks
         totalCommissions
-        selectedProducts {
-          _id
-          name
-          price
-        }
+        # selectedProducts {
+        #   _id
+        #   name
+        #   price
+        # }
       }
     }
   }
@@ -29,7 +29,7 @@ export const REGISTER_AFFILIATE = gql`
     $name: String
     $totalClicks: Int
     $totalCommissions: Int
-    $selectedProducts: [ID!]
+    # $selectedProducts: [ID!]
   ) {
     registerAffiliate(
       email: $email
@@ -38,7 +38,7 @@ export const REGISTER_AFFILIATE = gql`
       name: $name
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
-      selectedProducts: $selectedProducts
+      # selectedProducts: $selectedProducts
     ) {
       token
       affiliate {
@@ -48,11 +48,11 @@ export const REGISTER_AFFILIATE = gql`
         refId
         totalClicks
         totalCommissions
-        selectedProducts {
-          _id
-          name
-          price
-        }
+        # selectedProducts {
+        #   _id
+        #   name
+        #   price
+        # }
       }
     }
   }

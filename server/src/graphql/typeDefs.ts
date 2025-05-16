@@ -8,7 +8,7 @@ const typeDefs = gql`
     refId: String
     totalClicks: Int
     totalCommissions: Int
-    selectedProducts: [ID!]
+    # selectedProducts: [ID!]
   }
   input RegisterAffiliateInput {
     name: String
@@ -17,7 +17,7 @@ const typeDefs = gql`
     refId: String!
     totalClicks: Int
     totalCommissions: Int
-    selectedProducts: [ID!] # ✅ Expect an array of product IDs
+    # selectedProducts: [ID!] # ✅ Expect an array of product IDs
   }
 
   type AuthPayload {
@@ -25,29 +25,29 @@ const typeDefs = gql`
     affiliate: Affiliate!
   }
 
-  type Product {
-    id: ID!
-    title: String!
-    subtitle: String!
-    description: String
-    price: Float
-    quantity: Int
-    category: String!
-    imageUrl: String
-    url: String
-  }
+  # type Product {
+  #   id: ID!
+  #   title: String!
+  #   subtitle: String!
+  #   description: String
+  #   price: Float
+  #   quantity: Int
+  #   category: String!
+  #   imageUrl: String
+  #   url: String
+  # }
 
-  input ProductInput {
-    id: ID!
-    title: String!
-    subtitle: String!
-    description: String
-    price: Float
-    quantity: Int
-    category: String!
-    imageUrl: String
-    url: String
-  }
+  # input ProductInput {
+  #   id: ID!
+  #   title: String!
+  #   subtitle: String!
+  #   description: String
+  #   price: Float
+  #   quantity: Int
+  #   category: String!
+  #   imageUrl: String
+  #   url: String
+  # }
 
   type Referral {
     email: String
@@ -73,7 +73,7 @@ const typeDefs = gql`
       email: String
       totalClicks: Int
       totalCommissions: Int
-      selectedProducts: [ID!]
+      # selectedProducts: [ID!]C
     ): Affiliate
 
     deleteAffiliate(id: ID!): Affiliate

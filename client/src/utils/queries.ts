@@ -9,11 +9,11 @@ export const GET_AFFILIATES = gql`
       refId
       totalClicks
       totalCommissions
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;
@@ -27,11 +27,11 @@ export const GET_AFFILIATE = gql`
       refId
       totalClicks
       totalCommissions
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;
@@ -53,11 +53,11 @@ export const QUERY_ME = gql`
       email
       refId
       name
-      selectedProducts {
-        _id
-        name
-        price
-      }
+      # selectedProducts {
+      #   _id
+      #   name
+      #   price
+      # }
     }
   }
 `;
