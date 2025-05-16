@@ -31,7 +31,7 @@ const typeDefs = gql`
   type AffiliateSale {
     id: ID!
     # affiliateId: ID!
-    productId: ID!
+    productId: String!
     refId: String!
     buyerEmail: String
     amount: Int!
@@ -66,7 +66,7 @@ const typeDefs = gql`
 
     trackAffiliateSale(
       # affiliateId: ID!
-      productId: ID!
+      productId: String!
       refId: String!
       buyerEmail: String
       amount: Int!

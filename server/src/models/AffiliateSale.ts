@@ -2,7 +2,7 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 
 interface IAffiliateSale extends Document {
   // affiliateId: Types.ObjectId;
-  productId: Types.ObjectId;
+  productId: string;
   refId: string;
   buyerEmail: string;
   amount: number;
@@ -17,7 +17,7 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>({
   //   required: true,
   // },
   refId: { type: String, required: true },
-  productId: { type: Schema.Types.ObjectId, ref: "Product" },
+  productId: { type: String },
   event: { type: String, required: true },
   amount: { type: Number },
   timestamp: { type: Date, default: Date.now },
