@@ -127,11 +127,7 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
     $password: String!
     $refId: String!
   ) {
-    registerAffiliate(
-      email: $email
-      password: $password
-      refId: $refId
-    ) {
+    registerAffiliate(email: $email, password: $password, refId: $refId) {
       token
       affiliate {
         id
@@ -203,8 +199,12 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
     }
   }
 `;st`
-  mutation ClickLog($refId: String!) {
-    clickLog(refId: $refId)
+  mutation ClickLog($refId: String) {
+    clickLog(refId: $refId) {
+      refId
+      createdAt
+      updatedAt
+    }
   }
 `;var p0={color:void 0,size:void 0,className:void 0,style:void 0,attr:void 0},Vy=Wn.createContext&&Wn.createContext(p0),J_=["attr","size","title"];function P_(a,n){if(a==null)return{};var r=W_(a,n),l,s;if(Object.getOwnPropertySymbols){var c=Object.getOwnPropertySymbols(a);for(s=0;s<c.length;s++)l=c[s],!(n.indexOf(l)>=0)&&Object.prototype.propertyIsEnumerable.call(a,l)&&(r[l]=a[l])}return r}function W_(a,n){if(a==null)return{};var r={};for(var l in a)if(Object.prototype.hasOwnProperty.call(a,l)){if(n.indexOf(l)>=0)continue;r[l]=a[l]}return r}function ku(){return ku=Object.assign?Object.assign.bind():function(a){for(var n=1;n<arguments.length;n++){var r=arguments[n];for(var l in r)Object.prototype.hasOwnProperty.call(r,l)&&(a[l]=r[l])}return a},ku.apply(this,arguments)}function By(a,n){var r=Object.keys(a);if(Object.getOwnPropertySymbols){var l=Object.getOwnPropertySymbols(a);n&&(l=l.filter(function(s){return Object.getOwnPropertyDescriptor(a,s).enumerable})),r.push.apply(r,l)}return r}function zu(a){for(var n=1;n<arguments.length;n++){var r=arguments[n]!=null?arguments[n]:{};n%2?By(Object(r),!0).forEach(function(l){$_(a,l,r[l])}):Object.getOwnPropertyDescriptors?Object.defineProperties(a,Object.getOwnPropertyDescriptors(r)):By(Object(r)).forEach(function(l){Object.defineProperty(a,l,Object.getOwnPropertyDescriptor(r,l))})}return a}function $_(a,n,r){return n=eO(n),n in a?Object.defineProperty(a,n,{value:r,enumerable:!0,configurable:!0,writable:!0}):a[n]=r,a}function eO(a){var n=tO(a,"string");return typeof n=="symbol"?n:n+""}function tO(a,n){if(typeof a!="object"||!a)return a;var r=a[Symbol.toPrimitive];if(r!==void 0){var l=r.call(a,n);if(typeof l!="object")return l;throw new TypeError("@@toPrimitive must return a primitive value.")}return(n==="string"?String:Number)(a)}function y0(a){return a&&a.map((n,r)=>Wn.createElement(n.tag,zu({key:r},n.attr),y0(n.child)))}function Gu(a){return n=>Wn.createElement(nO,ku({attr:zu({},a.attr)},n),y0(a.child))}function nO(a){var n=r=>{var{attr:l,size:s,title:c}=a,h=P_(a,J_),d=s||r.size||"1em",p;return r.className&&(p=r.className),a.className&&(p=(p?p+" ":"")+a.className),Wn.createElement("svg",ku({stroke:"currentColor",fill:"currentColor",strokeWidth:"0"},r.attr,l,h,{className:p,style:zu(zu({color:a.color||r.color},r.style),a.style),height:d,width:d,xmlns:"http://www.w3.org/2000/svg"}),c&&Wn.createElement("title",null,c),a.children)};return Vy!==void 0?Wn.createElement(Vy.Consumer,null,r=>n(r)):n(p0)}function m0(a){return Gu({attr:{viewBox:"0 0 1024 1024",fill:"currentColor",fillRule:"evenodd"},child:[{tag:"path",attr:{d:"M799.855 166.312c.023.007.043.018.084.059l57.69 57.69c.041.041.052.06.059.084a.118.118 0 0 1 0 .069c-.007.023-.018.042-.059.083L569.926 512l287.703 287.703c.041.04.052.06.059.083a.118.118 0 0 1 0 .07c-.007.022-.018.042-.059.083l-57.69 57.69c-.041.041-.06.052-.084.059a.118.118 0 0 1-.069 0c-.023-.007-.042-.018-.083-.059L512 569.926 224.297 857.629c-.04.041-.06.052-.083.059a.118.118 0 0 1-.07 0c-.022-.007-.042-.018-.083-.059l-57.69-57.69c-.041-.041-.052-.06-.059-.084a.118.118 0 0 1 0-.069c.007-.023.018-.042.059-.083L454.073 512 166.371 224.297c-.041-.04-.052-.06-.059-.083a.118.118 0 0 1 0-.07c.007-.022.018-.042.059-.083l57.69-57.69c.041-.041.06-.052.084-.059a.118.118 0 0 1 .069 0c.023.007.042.018.083.059L512 454.073l287.703-287.702c.04-.041.06-.052.083-.059a.118.118 0 0 1 .07 0Z"},child:[]}]})(a)}function aO({closeForm:a}){const[n,r]=tn.useState({email:"",password:""}),[l,s]=tn.useState(!1),[c,{loading:h,error:d,data:p}]=Cf(Z_,{onCompleted:b=>{console.log("User created:",b.registerAffiliate)},onError:b=>{console.error("Error creating user:",b.message,p)}}),v=b=>{const{name:S,value:E}=b.target;r({...n,[S]:E})},g=b=>{b.preventDefault(),c({variables:{email:n.email,refId:tS(8),password:n.password}})};return tn.useEffect(()=>{n.email&&n.password?s(!0):s(!1)},[n]),z.jsxs("div",{className:"",children:[z.jsx("h2",{children:"Creating your Affiliate account"}),z.jsxs("form",{className:"form-container",onSubmit:g,children:[z.jsx("div",{style:{display:"flex",justifyContent:"flex-end"},children:z.jsx(m0,{onClick:()=>a(!1),style:{width:"5%",height:"auto"}})}),z.jsx("h1",{className:"title",children:"Register Affiliate"}),z.jsx("label",{className:"",htmlFor:"email",children:"Email"}),z.jsx("br",{}),z.jsx("input",{id:"email",type:"email",name:"email",value:n.email,onChange:v,placeholder:"email@example.com",style:{padding:"1%",fontStyle:"italic"}}),z.jsx("br",{}),z.jsx("label",{className:"",htmlFor:"password",children:"Password"}),z.jsx("br",{}),z.jsx("input",{id:"password",type:"password",name:"password",value:n.password,onChange:v,placeholder:"password",style:{padding:"1%",fontStyle:"italic"}}),z.jsx("br",{}),z.jsx("br",{}),z.jsx("button",{type:"submit",disabled:!l||h,children:"Submit"}),z.jsx("br",{}),d&&z.jsx("p",{style:{color:"red"},children:d.message}),z.jsx("br",{})]})]})}function iO({closeForm:a,dashboardReady:n}){const[r,l]=tn.useState({email:"",password:""}),[s,{loading:c,error:h}]=Cf(X_,{onCompleted:({login:v})=>{localStorage.setItem("token",v.token),a(!1),n(!0)}}),d=v=>{l({...r,[v.target.name]:v.target.value})},p=async v=>{v.preventDefault(),await s({variables:{email:r.email,password:r.password}})};return z.jsxs("div",{className:"login-container",children:[z.jsx("h2",{children:"Log in to your account"}),z.jsxs("form",{className:"form-container",onSubmit:p,children:[z.jsx("div",{style:{display:"flex",justifyContent:"flex-end"},children:z.jsx(m0,{onClick:()=>a(!1),style:{width:"5%",height:"auto"}})}),z.jsx("h1",{className:"title",children:"Login"}),z.jsx("label",{htmlFor:"email1",children:"Email"}),z.jsx("br",{}),z.jsx("input",{id:"email1",name:"email",type:"email1",value:r.email,onChange:d,required:!0,placeholder:"email@example.com",style:{padding:"1%",fontStyle:"italic"}}),z.jsx("br",{}),z.jsx("br",{}),z.jsx("label",{htmlFor:"password1",children:"Password"}),z.jsx("br",{}),z.jsx("input",{id:"password1",name:"password",type:"password1",value:r.password,onChange:d,required:!0,placeholder:"password",style:{padding:"1%",fontStyle:"italic"}}),z.jsx("br",{}),z.jsx("br",{}),z.jsx("button",{type:"submit",disabled:c,children:c?"Logging in…":"Log In"}),h&&z.jsx("p",{style:{color:"red"},children:h.message})]})]})}const wc=st`
   query GetAffiliates {
@@ -262,7 +262,7 @@ this in the docs: http://dev.apollodata.com/core/fragments.html#unique-names`):h
     }
   }
 `,uO=st`
-  query getAffiliateClickLogs($refId: ID!) {
+  query getAffiliateClickLogs($refId: ID) {
     getAffiliateClickLogs(refId: $refId) {
       id
       refId
