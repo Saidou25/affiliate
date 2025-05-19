@@ -11,11 +11,6 @@ export const LOGIN = gql`
         refId
         totalClicks
         totalCommissions
-        # selectedProducts {
-        #   _id
-        #   name
-        #   price
-        # }
       }
     }
   }
@@ -58,6 +53,7 @@ export const UPDATE_AFFILIATE = gql`
     $refId: String
     $totalClicks: Int
     $totalCommissions: Int
+    $commissionRate: Int
   ) {
     updateAffiliate(
       id: $id
@@ -66,19 +62,20 @@ export const UPDATE_AFFILIATE = gql`
       refId: $refId
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
+      commissionRate: $commissionRate
     ) {
       id
       email
       name
       totalClicks
       totalCommissions
+      commissionRate
     }
   }
 `;
 
 export const TRACK_AFFILIATESALES = gql`
   mutation TrackAffiliateSale(
-    # $affiliateId: String
     $productId: String
     $refId: String
     $buyerEmail: String
@@ -87,7 +84,6 @@ export const TRACK_AFFILIATESALES = gql`
     $timestamp: Date
   ) {
     trackAffiliateSale(
-      # affiliateId: $affiliateId
       productId: $productId
       refId: $refId
       buyerEmail: $buyerEmail
@@ -95,7 +91,6 @@ export const TRACK_AFFILIATESALES = gql`
       event: $event
       timestamp: $timestamp
     ) {
-      # affiliateId
       productId
       refId
       buyerEmail

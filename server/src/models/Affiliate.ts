@@ -1,5 +1,5 @@
-import mongoose, { CallbackError, Document, Schema, Types } from "mongoose";
-import * as bcrypt from 'bcrypt';
+import mongoose, { CallbackError, Document, Schema } from "mongoose";
+import * as bcrypt from "bcrypt";
 
 interface IAffiliate extends Document {
   name: string;
@@ -8,17 +8,17 @@ interface IAffiliate extends Document {
   totalClicks: number;
   totalCommissions: number;
   password: string;
-  // selectedProducts: Types.ObjectId[]; // Or if populated: Product[] // array of productIds the affiliate promotes
+  commissionRate: number;
 }
 
 const AffiliateSchema = new Schema<IAffiliate>({
-  name: { type: String, required: false, trim: true },
+  name: { type: String, trim: true },
   email: { type: String, required: true, unique: true, trim: true },
   refId: { type: String, required: true },
   password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
   totalClicks: { type: Number, default: 0 },
   totalCommissions: { type: Number, default: 0 },
-  //  selectedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }], // The products affiliate choosed to promote on his/her website
+  commissionRate: { type: Number, default: 0.1 }, // 10 %
 });
 
 AffiliateSchema.pre("save", async function (next) {

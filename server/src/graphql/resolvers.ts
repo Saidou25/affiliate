@@ -128,6 +128,7 @@ const resolvers = {
         refId,
         totalClicks,
         totalCommissions,
+        commissionRate,
       }: // selectedProducts,
       {
         id: string;
@@ -136,7 +137,7 @@ const resolvers = {
         refId?: string;
         totalClicks?: number;
         totalCommissions?: number;
-        // selectedProducts?: string[]; // Again, only IDs
+        commissionRate?: number;
       }
     ) => {
       try {
@@ -148,7 +149,7 @@ const resolvers = {
             ...(refId && { refId }),
             ...(totalClicks !== undefined && { totalClicks }),
             ...(totalCommissions !== undefined && { totalCommissions }),
-            // ...(selectedProducts !== undefined && { selectedProducts }),
+            ...(commissionRate !== undefined && { commissionRate }),
           },
           { new: true }
         );
@@ -160,7 +161,6 @@ const resolvers = {
     trackAffiliateSale: async (
       _: unknown,
       {
-        // affiliateId,
         productId,
         refId,
         buyerEmail,
@@ -168,7 +168,6 @@ const resolvers = {
         event,
         timestamp,
       }: {
-        // affiliateId: string;
         productId: string;
         refId: string;
         buyerEmail: string;
@@ -178,8 +177,16 @@ const resolvers = {
       }
     ) => {
       try {
-        const newAffiliateSale = new AffiliateSale({
-          // affiliateId,
+        // 🔍 1. Find the affiliate by refId
+        const affiliate = await Affiliate.findOne({ refId });
+        if (!affiliate) throw new Error("Affiliate not found");
+
+        // 💰 2. Calculate the commission (default 10% if none set)
+        const commissionRate = affiliate.commissionRate ?? 0.1;
+        const commission = amount * commissionRate;
+
+        // 📝 3. Save the sale
+        const sale = new AffiliateSale({
           productId,
           refId,
           buyerEmail,
@@ -187,11 +194,17 @@ const resolvers = {
           event,
           timestamp: timestamp || new Date(),
         });
-        await newAffiliateSale.save();
-        return newAffiliateSale;
+        await sale.save();
+
+        // 📈 4. Update the affiliate's total commissions
+        affiliate.totalCommissions =
+          (affiliate.totalCommissions || 0) + commission;
+        await affiliate.save();
+
+        return sale;
       } catch (error) {
-        console.error("❌ Error creating AffiliateSale:", error);
-        throw new Error("Failed to create AffiliateSale");
+        console.error("❌ Error tracking affiliate sale:", error);
+        throw new Error("Failed to track affiliate sale");
       }
     },
 

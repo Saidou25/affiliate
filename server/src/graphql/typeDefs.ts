@@ -9,7 +9,8 @@ const typeDefs = gql`
     name: String
     refId: String
     totalClicks: Int
-    totalCommissions: Int
+    totalCommissions: Float
+    commissionRate: Float
   }
 
   type AuthPayload {
@@ -61,7 +62,9 @@ const typeDefs = gql`
       name: String
       email: String
       totalClicks: Int
-      totalCommissions: Int
+      refId: String
+      totalCommissions: Float
+      commissionRate: Float
     ): Affiliate!
 
     deleteAffiliate(id: ID!): Affiliate
@@ -81,7 +84,7 @@ const typeDefs = gql`
       buyerEmail: String
       amount: Int!
       event: String!
-      timestamps: Date
+      timestamp: Date
     ): AffiliateSale!
   }
 `;
