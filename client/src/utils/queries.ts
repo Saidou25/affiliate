@@ -9,11 +9,6 @@ export const GET_AFFILIATES = gql`
       refId
       totalClicks
       totalCommissions
-      # selectedProducts {
-      #   _id
-      #   name
-      #   price
-      # }
     }
   }
 `;
@@ -27,11 +22,6 @@ export const GET_AFFILIATE = gql`
       refId
       totalClicks
       totalCommissions
-      # selectedProducts {
-      #   _id
-      #   name
-      #   price
-      # }
     }
   }
 `;
@@ -39,7 +29,6 @@ export const GET_AFFILIATE = gql`
 export const GET_ALLAFFILIATESALES = gql`
   query getAllAffiliateSales {
     getAllAffiliateSales {
-      # affiliateId
       productId
       refId
       buyerEmail
@@ -53,7 +42,6 @@ export const GET_ALLAFFILIATESALES = gql`
 export const GET_AFFILIATESALES = gql`
   query GetAffiliateSales($refId: ID!) {
     getAffiliateSales(refId: $refId) {
-      # affiliateId
       productId
       refId
       buyerEmail
@@ -71,11 +59,18 @@ export const QUERY_ME = gql`
       email
       refId
       name
-      # selectedProducts {
-      #   _id
-      #   name
-      #   price
-      # }
+      totalClicks
+      totalCommissions
+    }
+  }
+`;
+export const GET_AFFILIATECLICKLOGS = gql`
+  query getAffiliateClickLogs($refId: ID!) {
+    getAffiliateClickLogs(refId: $refId) {
+      id
+      refId
+      createdAt
+      updatedAt
     }
   }
 `;

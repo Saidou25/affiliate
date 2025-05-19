@@ -1,6 +1,3 @@
-import { useMutation } from "@apollo/client";
-import { LOG_CLICK } from "../utils/mutations";
-import { useEffect } from "react";
 import AffiliateInfo from "./AffiliateInfo";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import AuthService from "../utils/auth";
@@ -9,17 +6,7 @@ import Admin from "./Admin";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  const [logClick] = useMutation(LOG_CLICK);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const refId = params.get("ref");
-
-    if (refId) {
-      logClick({ variables: { refId } });
-    }
-  }, []);
-
+ 
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
   };

@@ -1,6 +1,6 @@
 import { Request } from "express";
 // import jwt from "jsonwebtoken";
-import * as jwt from 'jsonwebtoken';
+import * as jwt from "jsonwebtoken";
 import Affiliate from "./models/Affiliate";
 
 // Define the Affiliate interface
@@ -15,6 +15,7 @@ export interface Affiliate {
 
 // Define MyContext with affiliate (from JWT)
 export interface MyContext {
+  req: Request;
   affiliate?: Affiliate | null; // Allow null or undefined if no affiliate is found
 }
 
@@ -32,7 +33,7 @@ export const createContext = async ({
   // Handle missing or invalid authorization header
   if (!authHeader.startsWith("Bearer ")) {
     console.warn("⚠️ No Bearer token found");
-    return {}; // or { affiliate: null }
+    return { req, affiliate: null }; // or { affiliate: null }
   }
 
   const token = authHeader.slice(7); // Remove "Bearer "
@@ -46,7 +47,7 @@ export const createContext = async ({
     const foundAffiliate = await Affiliate.findById(payload.affiliateId);
     if (!foundAffiliate) {
       console.warn("⚠️ No affiliate found with ID:", payload.affiliateId);
-      return {}; // or return { affiliate: null }
+      return { req, affiliate: null }; // or return { affiliate: null }
     }
 
     // Create the affiliate object to return in the context
@@ -61,9 +62,9 @@ export const createContext = async ({
 
     console.log("👤 Context affiliate:", affiliate);
 
-    return { affiliate }; // This is the context being passed
+    return { req, affiliate }; // This is the context being passed
   } catch (error) {
     console.warn("❌ Token verification failed:", error);
-    return {}; // or return { affiliate: null }
+    return { req, affiliate: null }; // or return { affiliate: null }
   }
 };

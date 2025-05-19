@@ -3,12 +3,12 @@ dotenv.config();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { SECRET } from "../config/env";
-
+import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
 
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
-import { dateScalar } from "../dateScalar";
+import ClickLog from "../models/ClickLog";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -39,11 +39,11 @@ const resolvers = {
       return AffiliateSale.find();
     },
 
-    getAffiliateSales: async (
-      _: any,
-      { refId }: { refId: string }
-    ) => {
+    getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
       return AffiliateSale.find({ refId }); // likely multiple sales per affiliate
+    },
+    getAffiliateClickLogs: async (_: any, { refId }: { refId: string }) => {
+      return ClickLog.find({ refId }); // likely multiple sales per affiliate
     },
   },
 
@@ -91,8 +91,7 @@ const resolvers = {
         email,
         password,
         refId,
-      }: 
-      {
+      }: {
         email: string;
         password: string;
         refId: string;
@@ -196,17 +195,33 @@ const resolvers = {
       }
     },
 
-    logClick: async (_: any, { refId }: { refId: string }) => {
+    clickLog: async (
+      _: any,
+      { refId }: { refId: string },
+      context: MyContext
+    ) => {
       try {
+        console.log("✅ clickLog called with:", refId);
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
           { refId },
-          { $inc: { totalClicks: 1 } },
+          { $inc: { totalClicks: 1 } }, // increment totalClicks
           { new: true }
         );
         if (!updatedAffiliate) {
           throw new Error("Affiliate not found");
         }
-        return true;
+        // create a new click log entry
+        const newClick = new ClickLog({
+          refId,
+          // ipAddress:
+            // context.req.headers["x-forwarded-for"] ||
+            // context.req.socket.remoteAddress,
+          // userAgent: context.req.headers["user-agent"], // if available
+          // pageUrl: context.req.headers.referer, // optional
+        });
+
+        await newClick.save();
+        return newClick;
       } catch (error) {
         console.error("Error logging click:", error);
         return false;

@@ -110,8 +110,8 @@ export const TRACK_AFFILIATESALES = gql`
   }
 `;
 
-export const LOG_CLICK = gql`
-  mutation LogClick($refId: String!) {
-    logClick(refId: $refId)
+export const CLICK_LOG = gql`
+  mutation ClickLog($refId: String!) {
+    clickLog(refId: $refId)
   }
 `;

@@ -10,18 +10,7 @@ const typeDefs = gql`
     refId: String
     totalClicks: Int
     totalCommissions: Int
-    # selectedProducts: [ID!]
   }
-
-  # input RegisterAffiliateInput {
-  #   name: String
-  #   email: String!
-  #   password: String!
-  #   refId: String!
-  #   totalClicks: Int
-  #   totalCommissions: Int
-  #   # selectedProducts: [ID!]
-  # }
 
   type AuthPayload {
     token: String!
@@ -38,18 +27,34 @@ const typeDefs = gql`
     timestamp: Date!
   }
 
+  type ClickLog {
+    id: ID!
+    refId: String!
+    # pageUrl: String
+    # userAgent: String
+    # createdAt: String
+    # ipAddress: String
+    createdAt: Date
+    updatedAt: Date
+  }
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
+    getAffiliateClickLogs(refId: ID!): [ClickLog!]!
   }
 
   type Mutation {
     login(email: String!, password: String!): AuthPayload!
 
-    registerAffiliate(password: String!, email: String!, refId: String): AuthPayload!
+    registerAffiliate(
+      password: String!
+      email: String!
+      refId: String
+    ): AuthPayload!
 
     updateAffiliate(
       id: ID!
@@ -57,20 +62,26 @@ const typeDefs = gql`
       email: String
       totalClicks: Int
       totalCommissions: Int
-    ): Affiliate
+    ): Affiliate!
 
     deleteAffiliate(id: ID!): Affiliate
 
-    logClick(refId: String!): Boolean
+    clickLog(refId: String!): ClickLog
+    # clickLog(
+    #   refId: String!
+    #   pageUrl: String
+    #   userAgent: String
+    #   ipAddress: String
+    #   timestamps: Date
+    # ): ClickLog!
 
     trackAffiliateSale(
-      # affiliateId: ID!
       productId: String!
       refId: String!
       buyerEmail: String
       amount: Int!
       event: String!
-      timestamp: Date
+      timestamps: Date
     ): AffiliateSale!
   }
 `;
