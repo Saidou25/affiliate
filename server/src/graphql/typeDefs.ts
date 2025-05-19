@@ -28,8 +28,8 @@ const typeDefs = gql`
   }
 
   type ClickLog {
-    id: ID!
-    refId: String!
+    id: ID
+    refId: String
     # pageUrl: String
     # userAgent: String
     # createdAt: String
@@ -44,7 +44,7 @@ const typeDefs = gql`
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
-    getAffiliateClickLogs(refId: ID!): [ClickLog!]!
+    getAffiliateClickLogs(refId: ID): [ClickLog]
   }
 
   type Mutation {
@@ -66,7 +66,7 @@ const typeDefs = gql`
 
     deleteAffiliate(id: ID!): Affiliate
 
-    clickLog(refId: String!): ClickLog
+    clickLog(refId: String): ClickLog
     # clickLog(
     #   refId: String!
     #   pageUrl: String

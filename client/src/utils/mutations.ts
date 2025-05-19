@@ -27,11 +27,7 @@ export const REGISTER_AFFILIATE = gql`
     $password: String!
     $refId: String!
   ) {
-    registerAffiliate(
-      email: $email
-      password: $password
-      refId: $refId
-    ) {
+    registerAffiliate(email: $email, password: $password, refId: $refId) {
       token
       affiliate {
         id
@@ -111,7 +107,11 @@ export const TRACK_AFFILIATESALES = gql`
 `;
 
 export const CLICK_LOG = gql`
-  mutation ClickLog($refId: String!) {
-    clickLog(refId: $refId)
+  mutation ClickLog($refId: String) {
+    clickLog(refId: $refId) {
+      refId
+      createdAt
+      updatedAt
+    }
   }
 `;

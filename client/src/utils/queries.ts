@@ -64,8 +64,9 @@ export const QUERY_ME = gql`
     }
   }
 `;
+
 export const GET_AFFILIATECLICKLOGS = gql`
-  query getAffiliateClickLogs($refId: ID!) {
+  query getAffiliateClickLogs($refId: ID) {
     getAffiliateClickLogs(refId: $refId) {
       id
       refId

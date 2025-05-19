@@ -195,36 +195,32 @@ const resolvers = {
       }
     },
 
-    clickLog: async (
-      _: any,
-      { refId }: { refId: string },
-      context: MyContext
-    ) => {
+    clickLog: async (_: unknown, { refId }: { refId: string }) => {
       try {
+        if (!refId) {
+          throw new Error("refId is required");
+        }
+
         console.log("✅ clickLog called with:", refId);
+
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
           { refId },
-          { $inc: { totalClicks: 1 } }, // increment totalClicks
+          { $inc: { totalClicks: 1 } },
           { new: true }
         );
+
         if (!updatedAffiliate) {
           throw new Error("Affiliate not found");
         }
-        // create a new click log entry
-        const newClick = new ClickLog({
-          refId,
-          // ipAddress:
-            // context.req.headers["x-forwarded-for"] ||
-            // context.req.socket.remoteAddress,
-          // userAgent: context.req.headers["user-agent"], // if available
-          // pageUrl: context.req.headers.referer, // optional
-        });
 
+        const newClick = new ClickLog({ refId });
         await newClick.save();
+        console.log("✅ newClick saved:", newClick);
+
         return newClick;
       } catch (error) {
         console.error("Error logging click:", error);
-        return false;
+        throw new Error("Failed to log click");
       }
     },
   },

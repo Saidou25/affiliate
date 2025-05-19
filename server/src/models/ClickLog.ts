@@ -12,7 +12,7 @@ const ClickLogSchema = new Schema<IClickLog>(
   {
     refId: {
       type: String,
-      required: true,
+      // required: true,
     },
     // ipAddress: String, // optional
     // userAgent: String, // optional
