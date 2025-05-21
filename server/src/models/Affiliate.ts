@@ -9,17 +9,24 @@ interface IAffiliate extends Document {
   totalCommissions: number;
   password: string;
   commissionRate: number;
+  totalSales: number;
+  createdAt?: Date; // ✅ Automatically added by Mongoose
+  updatedAt?: Date; // ✅ Automatically added by Mongoose
 }
 
-const AffiliateSchema = new Schema<IAffiliate>({
-  name: { type: String, trim: true },
-  email: { type: String, required: true, unique: true, trim: true },
-  refId: { type: String, required: true },
-  password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
-  totalClicks: { type: Number, default: 0 },
-  totalCommissions: { type: Number, default: 0 },
-  commissionRate: { type: Number, default: 0.1 }, // 10 %
-});
+const AffiliateSchema = new Schema<IAffiliate>(
+  {
+    name: { type: String, trim: true },
+    email: { type: String, required: true, unique: true, trim: true },
+    refId: { type: String, required: true },
+    password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
+    totalClicks: { type: Number, default: 0 },
+    totalCommissions: { type: Number, default: 0 },
+    commissionRate: { type: Number, default: 0.1 }, // 10 %
+    totalSales: { type: Number, default: 0 },
+  },
+  { timestamps: true } // 👈 automatically adds createdAt and updatedAt
+);
 
 AffiliateSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

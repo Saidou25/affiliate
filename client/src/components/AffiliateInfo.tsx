@@ -1,8 +1,5 @@
 import { useQuery } from "@apollo/client";
-import {
-  GET_AFFILIATESALES,
-  QUERY_ME,
-} from "../utils/queries";
+import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
 import Products from "./Products";
 import TotalClick from "./TotalClick";
 
@@ -19,7 +16,7 @@ export default function AffiliateInfo() {
     skip: !refId,
   });
 
-  console.log(me);
+  // console.log(me);
 
   if (!refId) return <p>Loading affiliate info...</p>;
 
@@ -69,6 +66,11 @@ export default function AffiliateInfo() {
         </>
       )}
       <h2>My Sales:</h2>
+      <strong className="">
+        Your total of sales so far is - {me.totalSales}
+      </strong>
+      <br />
+      <br />
       {salesData &&
         salesData.getAffiliateSales.map((sale: any, index: number) => (
           <div key={index} className="">

@@ -91,16 +91,19 @@ const resolvers = {
         email,
         password,
         refId,
+        createdAt
       }: {
         email: string;
         password: string;
         refId: string;
+        createdAt: Date
       }
     ) => {
       const affiliate = new Affiliate({
         email,
         password,
         refId,
+        createdAt
       });
       await affiliate.save();
 
@@ -129,7 +132,10 @@ const resolvers = {
         totalClicks,
         totalCommissions,
         commissionRate,
-      }: // selectedProducts,
+        totalSales,
+        updatedAt,
+        createdAt
+      }: 
       {
         id: string;
         name?: string;
@@ -138,6 +144,9 @@ const resolvers = {
         totalClicks?: number;
         totalCommissions?: number;
         commissionRate?: number;
+        totalSales?: number;
+        updatedAt: Date
+        createdAt: Date // just to add to already created affiliates
       }
     ) => {
       try {
@@ -150,6 +159,9 @@ const resolvers = {
             ...(totalClicks !== undefined && { totalClicks }),
             ...(totalCommissions !== undefined && { totalCommissions }),
             ...(commissionRate !== undefined && { commissionRate }),
+            ...(totalSales !== undefined && { totalSales }),
+            ...(updatedAt !== undefined && { updatedAt }),
+            ...(createdAt !== undefined && { createdAt }),
           },
           { new: true }
         );

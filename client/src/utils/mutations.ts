@@ -28,6 +28,7 @@ export const REGISTER_AFFILIATE = gql`
         id
         email
         refId
+        createdAt
       }
     }
   }
@@ -70,6 +71,8 @@ export const UPDATE_AFFILIATE = gql`
       totalClicks
       totalCommissions
       commissionRate
+      updatedAt
+      totalSales
     }
   }
 `;

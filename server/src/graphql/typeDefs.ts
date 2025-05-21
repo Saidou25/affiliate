@@ -11,6 +11,9 @@ const typeDefs = gql`
     totalClicks: Int
     totalCommissions: Float
     commissionRate: Float
+    totalSales: Int
+    createdAt: Date
+    updatedAt: Date
   }
 
   type AuthPayload {
@@ -55,6 +58,8 @@ const typeDefs = gql`
       password: String!
       email: String!
       refId: String
+      createdAt: Date
+      updatedAt: Date
     ): AuthPayload!
 
     updateAffiliate(
@@ -65,18 +70,14 @@ const typeDefs = gql`
       refId: String
       totalCommissions: Float
       commissionRate: Float
+      totalSales: Int
+      updatedAt: Date
+      createdAt: Date
     ): Affiliate!
 
     deleteAffiliate(id: ID!): Affiliate
 
     clickLog(refId: String): ClickLog
-    # clickLog(
-    #   refId: String!
-    #   pageUrl: String
-    #   userAgent: String
-    #   ipAddress: String
-    #   timestamps: Date
-    # ): ClickLog!
 
     trackAffiliateSale(
       productId: String!

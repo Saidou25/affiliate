@@ -7,6 +7,10 @@ export interface MyContext {
         refId: string;
         totalClicks: number;
         totalCommissions: number;
+        commissionRate: number;
+        totalSales: number;
+        createdAt?: Date;
+        updatedAt?: Date;
       }
     | undefined;
 }

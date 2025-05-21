@@ -10,6 +10,8 @@ export const GET_AFFILIATES = gql`
       totalClicks
       totalCommissions
       commissionRate
+      totalSales
+      createdAt
     }
   }
 `;
@@ -24,6 +26,8 @@ export const GET_AFFILIATE = gql`
       totalClicks
       totalCommissions
       commissionRate
+      totalSales
+      createdAt
     }
   }
 `;
@@ -64,6 +68,8 @@ export const QUERY_ME = gql`
       totalClicks
       totalCommissions
       commissionRate
+      totalSales
+      createdAt
     }
   }
 `;
