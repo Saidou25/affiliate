@@ -1,20 +1,19 @@
 import { useQuery } from "@apollo/client";
-import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
+import { QUERY_ME } from "../utils/queries";
 import Products from "./Products";
 import TotalClick from "./TotalClick";
+import Profile from "./Profile";
+import SalesData from "./SalesData";
+import Commissions from "./Commissions";
 
 import "./AffiliateInfo.css";
+import Analytics from "./Analytics";
 
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || {};
 
   const refId = me?.refId;
-
-  const { data: salesData } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId },
-    skip: !refId,
-  });
 
   // console.log(me);
 
@@ -23,85 +22,12 @@ export default function AffiliateInfo() {
   return (
     <div className="my-profile">
       <h1>Affiliate's Dashboard</h1>
-      <h2>My Profile</h2>
-      {me.name && (
-        <>
-          <strong>name:</strong>
-          {me.name}
-          <br />
-        </>
-      )}
-      {me.email && (
-        <>
-          <strong>email - </strong>
-          {me.email}
-          <br />
-        </>
-      )}
-      {me.id && (
-        <>
-          <strong>id - </strong>
-          {me.id}
-          <br />
-        </>
-      )}
-      {me.refId && (
-        <>
-          <strong>your reference id - </strong>
-          {me.refId} <br />
-        </>
-      )}
-      {me.totalClicks && (
-        <>
-          <strong>total clicks - </strong>
-          {me.totalClicks}
-          <br />
-        </>
-      )}
-      {me.totalComissions && (
-        <>
-          <strong>total comissions - </strong>
-          {me.totalComissions}
-          <br />
-        </>
-      )}
-      <h2>My Sales:</h2>
-      <strong className="">
-        Your total of sales so far is - {me.totalSales}
-      </strong>
-      <br />
-      <br />
-      {salesData &&
-        salesData.getAffiliateSales.map((sale: any, index: number) => (
-          <div key={index} className="">
-            <span className="">
-              <strong className="">From - </strong>
-              {sale.buyerEmail}
-            </span>
-            <span className="">
-              <strong className="">Event - </strong>
-              {sale.event}
-            </span>
-            <span className="">
-              <strong className="">Product Id - </strong>
-              {sale.productId}
-            </span>
-            <span className="">
-              <strong className="">Reference Id - </strong>
-              {sale.refId}
-            </span>
-            <span className="">
-              <strong className="">Purchase Time - </strong>
-              {sale.timestamp}
-            </span>
-            <span className="">
-              <strong className="">Price - </strong>
-              {sale.amount}
-            </span>
-          </div>
-        ))}
+      <Profile />
+      <Commissions />
+      <SalesData />
+      <h2>Analytics</h2>
+      <Analytics />
       <TotalClick />
-      <h2>Total Commissions: </h2>$ {me.totalCommissions}
       <Products />
     </div>
   );

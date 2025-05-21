@@ -77,7 +77,7 @@ const typeDefs = gql`
 
     deleteAffiliate(id: ID!): Affiliate
 
-    clickLog(refId: String): ClickLog
+    clickLog(refId: String, createdAt: Date): ClickLog
 
     trackAffiliateSale(
       productId: String!
