@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { SECRET } from "../config/env";
 import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
-
+import { sendConfirmationEmail } from "../utils/sendConfirmationEmail";
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 import ClickLog from "../models/ClickLog";
@@ -91,19 +91,19 @@ const resolvers = {
         email,
         password,
         refId,
-        createdAt
+        createdAt,
       }: {
         email: string;
         password: string;
         refId: string;
-        createdAt: Date
+        createdAt: Date;
       }
     ) => {
       const affiliate = new Affiliate({
         email,
         password,
         refId,
-        createdAt
+        createdAt,
       });
       await affiliate.save();
 
@@ -134,9 +134,8 @@ const resolvers = {
         commissionRate,
         totalSales,
         updatedAt,
-        createdAt
-      }: 
-      {
+        createdAt,
+      }: {
         id: string;
         name?: string;
         email?: string;
@@ -145,8 +144,8 @@ const resolvers = {
         totalCommissions?: number;
         commissionRate?: number;
         totalSales?: number;
-        updatedAt: Date
-        createdAt: Date // just to add to already created affiliates
+        updatedAt: Date;
+        createdAt: Date; // just to add to already created affiliates
       }
     ) => {
       try {
@@ -205,9 +204,15 @@ const resolvers = {
           amount,
           event,
           timestamp: timestamp || new Date(),
-          commissionEarned: commission.toFixed(2)
+          commissionEarned: commission.toFixed(2),
         });
         await sale.save();
+        await sendConfirmationEmail({
+          buyerEmail,
+          event,
+          amount,
+          commission,
+        });
 
         // 📈 4. Update the affiliate's total commissions
         affiliate.totalCommissions =
