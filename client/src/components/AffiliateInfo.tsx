@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import Products from "./Products";
-import TotalClick from "./TotalClick";
 import Profile from "./Profile";
 import SalesData from "./SalesData";
 import Commissions from "./Commissions";
@@ -26,7 +25,6 @@ export default function AffiliateInfo() {
       <Commissions />
       <SalesData />
       <Analytics />
-      <TotalClick />
       <Products />
     </div>
   );

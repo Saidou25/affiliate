@@ -19,8 +19,6 @@ export default function TotalSales() {
     }
   };
 
-  //   setSalesRange(value: React.SetStateAction<SaleObj[]>): void
-
   useEffect(() => {
     if (salesPerDay) {
       setSalesRange(salesPerDay);

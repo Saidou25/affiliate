@@ -1,5 +1,5 @@
 import TotalSales from "./TotalSales";
-import TotalClick from "./TotalClick";
+import TotalClick from "./TotalClicks";
 
 import "./Analytics.css";
 

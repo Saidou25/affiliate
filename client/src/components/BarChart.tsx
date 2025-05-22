@@ -1,17 +1,9 @@
 import { ResponsiveBar } from "@nivo/bar";
 
 interface Props {
-  salesPerDay?: any;
-  salesPerWeek?: any;
-  salesPerMonth?: any;
   propsData?: any;
 }
-export default function BarChart({
-  salesPerDay,
-  salesPerWeek,
-  salesPerMonth,
-  propsData,
-}: Props) {
+export default function BarChart({ propsData }: Props) {
   return (
     <div style={{ height: "400px" }}>
       <ResponsiveBar
