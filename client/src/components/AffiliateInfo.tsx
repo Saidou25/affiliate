@@ -2,11 +2,10 @@ import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import Products from "./Products";
 import Profile from "./Profile";
-import SalesData from "./SalesData";
-import Commissions from "./Commissions";
 import Analytics from "./Analytics";
 
 import "./AffiliateInfo.css";
+import DetailedReport from "./DetailedReport";
 
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -22,8 +21,7 @@ export default function AffiliateInfo() {
     <div className="my-profile">
       <h1>Affiliate's Dashboard</h1>
       <Profile />
-      <Commissions />
-      <SalesData />
+      <DetailedReport />
       <Analytics />
       <Products />
     </div>

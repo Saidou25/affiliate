@@ -35,7 +35,7 @@ export default function TotalClicks() {
       <h2>Total Clicks:</h2>
       {me.totalClicks && (
         <>
-          <strong>total clicks - </strong>
+          <strong>Your total clicks - </strong>
           {me.totalClicks}
           <br />
           <br />

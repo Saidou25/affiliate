@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useSalesTracker } from "../hooks/useSalesTracker";
 import BarChart from "./BarChart";
+import { QUERY_ME } from "../utils/queries";
+import { useQuery } from "@apollo/client";
 
 export default function TotalSales() {
   const { salesPerDay, salesPerWeek, salesPerMonth } = useSalesTracker();
 
   const [salesRange, setSalesRange] = useState(salesPerDay);
+
+  const { data } = useQuery(QUERY_ME);
+  const me = data.me || {};
 
   const selectSalesRange = (range: string) => {
     if (range === "day") {
@@ -27,6 +32,10 @@ export default function TotalSales() {
 
   return (
     <div className="">
+      <h2>Total Sales(Orders):</h2>
+      <strong className="">Your total sales(orders) - {me.totalSales}</strong>
+      <br />
+      <br />
       <div className="res">
         <div
           className="select-range"

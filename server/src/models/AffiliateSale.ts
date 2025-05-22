@@ -7,6 +7,7 @@ interface IAffiliateSale extends Document {
   amount: number,
   event: "purchase",
   timestamp: Date,
+  commissionEarned: number
 }
 
 const AffiliateSaleSchema = new Schema<IAffiliateSale>({
@@ -16,6 +17,7 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>({
   amount: { type: Number },
   timestamp: { type: Date, default: Date.now },
   buyerEmail: { type: String, required: false },
+  commissionEarned: { type: Number }
 });
 
 const AffiliateSale = mongoose.model<IAffiliateSale>(

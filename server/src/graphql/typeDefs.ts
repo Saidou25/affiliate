@@ -29,6 +29,7 @@ const typeDefs = gql`
     amount: Int!
     event: String!
     timestamp: Date!
+    commissionEarned: Float
   }
 
   type ClickLog {
@@ -86,6 +87,7 @@ const typeDefs = gql`
       amount: Int!
       event: String!
       timestamp: Date
+      commissionEarned: Float
     ): AffiliateSale!
   }
 `;

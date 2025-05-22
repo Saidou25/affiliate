@@ -4,7 +4,7 @@ import { QUERY_ME } from "../utils/queries";
 export default function Profile() {
   const { data } = useQuery(QUERY_ME);
   const me = data.me || {};
-
+// console.log(me)
   return (
     <>
       <h2>My Profile</h2>
@@ -18,29 +18,28 @@ export default function Profile() {
       >
         {me.name && (
           <>
-            <strong>name:</strong>
+            <strong>Name - </strong>
             {me.name}
             <br />
           </>
         )}
         {me.email && (
           <>
-            <strong>email - </strong>
+            <strong>Email - </strong>
             {me.email}
-            <br />
-          </>
-        )}
-        {me.id && (
-          <>
-            <strong>id - </strong>
-            {me.id}
             <br />
           </>
         )}
         {me.refId && (
           <>
-            <strong>your reference id - </strong>
+            <strong>My reference id - </strong>
             {me.refId} <br />
+          </>
+        )}
+        {me.commissionRate && (
+          <>
+            <strong>Commission rate - </strong>
+            {me.commissionRate * 100}%<br />
           </>
         )}
       </div>

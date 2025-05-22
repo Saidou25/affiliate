@@ -205,6 +205,7 @@ const resolvers = {
           amount,
           event,
           timestamp: timestamp || new Date(),
+          commissionEarned: commission
         });
         await sale.save();
 

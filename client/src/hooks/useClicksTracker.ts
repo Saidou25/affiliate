@@ -77,9 +77,7 @@ export function useClicksTracker() {
       );
 
       // 1. Per Day
-      const allDates = allDateObjects.map((d: Date) =>
-        d.toLocaleDateString("en-US", { timeZone: "America/New_York" })
-      );
+      const allDates = allDateObjects.map(toEasternDate);
       const minDate = new Date(Math.min(...allDateObjects.map((d: Date) => d.getTime())));
       const maxDate = new Date(Math.max(...allDateObjects.map((d: Date) => d.getTime())));
       const fullDateRange = getDateRange(minDate, maxDate);
