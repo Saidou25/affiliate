@@ -14,8 +14,8 @@ interface Affiliate {
 }
 
 type DataObj = {
-  x: string; // date
-  y: number; // sales count
+  x: string; // label (date, week, or month)
+  y: number; // count
 };
 
 type SaleObj = {
@@ -26,6 +26,8 @@ type SaleObj = {
 export function useSalesTracker() {
   const [me, setMe] = useState<Affiliate | null>(null);
   const [salesPerDay, setSalesPerDay] = useState<SaleObj[]>([]);
+  const [salesPerWeek, setSalesPerWeek] = useState<SaleObj[]>([]);
+  const [salesPerMonth, setSalesPerMonth] = useState<SaleObj[]>([]);
 
   const { data } = useQuery(QUERY_ME);
   const { data: salesData } = useQuery(GET_AFFILIATESALES, {
@@ -33,13 +35,25 @@ export function useSalesTracker() {
     skip: !me?.refId,
   });
 
-  // Convert UTC timestamp to Eastern time (just the date part)
   const toEasternDate = (isoDate: string) =>
     new Date(isoDate).toLocaleDateString("en-US", {
       timeZone: "America/New_York",
     });
 
-  // Generate array of dates between two dates (inclusive)
+  const toWeekLabel = (isoDate: string) => {
+    const date = new Date(isoDate);
+    const onejan = new Date(date.getFullYear(), 0, 1);
+    const week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+    return `Week ${week}, ${date.getFullYear()}`;
+  };
+
+  const toMonthLabel = (isoDate: string) =>
+    new Date(isoDate).toLocaleString("en-US", {
+      timeZone: "America/New_York",
+      month: "long",
+      year: "numeric",
+    });
+
   const getDateRange = (start: Date, end: Date) => {
     const range: string[] = [];
     const current = new Date(start);
@@ -56,29 +70,45 @@ export function useSalesTracker() {
     if (salesData?.getAffiliateSales && me?.refId) {
       const salesArray = salesData.getAffiliateSales;
 
-      // Convert all timestamps to Eastern date strings
-      const allDates = salesArray.map((sale: any) => toEasternDate(sale.timestamp));
+      // === DAILY ===
+      const dayLabels = salesArray.map((sale: any) => toEasternDate(sale.timestamp));
+      const allDateObjs = dayLabels.map((d: string) => new Date(d));
+      const min = new Date(Math.min(...allDateObjs.map((d: Date) => d.getTime())));
+      const max = new Date(Math.max(...allDateObjs.map((d: Date) => d.getTime())));
+      const fullDateRange = getDateRange(min, max);
 
-      // Determine earliest and latest dates
-      const easternDatesAsDates = allDates.map((date: string) => new Date(date));
-      const minDate = new Date(Math.min(...easternDatesAsDates.map((d: Date) => d.getTime())));
-      const maxDate = new Date(Math.max(...easternDatesAsDates.map((d: Date) => d.getTime())));
+      const dailyCount: Record<string, number> = {};
+      const weeklyCount: Record<string, number> = {};
+      const monthlyCount: Record<string, number> = {};
 
-      const fullDateRange = getDateRange(minDate, maxDate);
+      for (const sale of salesArray) {
+        const day = toEasternDate(sale.timestamp);
+        const week = toWeekLabel(sale.timestamp);
+        const month = toMonthLabel(sale.timestamp);
 
-      // Count sales per date
-      const salesCount: Record<string, number> = {};
-      for (const date of allDates) {
-        salesCount[date] = (salesCount[date] || 0) + 1;
+        dailyCount[day] = (dailyCount[day] || 0) + 1;
+        weeklyCount[week] = (weeklyCount[week] || 0) + 1;
+        monthlyCount[month] = (monthlyCount[month] || 0) + 1;
       }
 
-      // Build final array
-      const fullData: DataObj[] = fullDateRange.map(date => ({
+      const dailyData: DataObj[] = fullDateRange.map(date => ({
         x: date,
-        y: salesCount[date] || 0,
+        y: dailyCount[date] || 0,
       }));
 
-      setSalesPerDay([{ id: me.refId, data: fullData }]);
+      const weeklyData: DataObj[] = Object.entries(weeklyCount).map(([week, count]) => ({
+        x: week,
+        y: count,
+      }));
+
+      const monthlyData: DataObj[] = Object.entries(monthlyCount).map(([month, count]) => ({
+        x: month,
+        y: count,
+      }));
+
+      setSalesPerDay([{ id: "Sales per day", data: dailyData }]);
+      setSalesPerWeek([{ id: "Sales per week", data: weeklyData }]);
+      setSalesPerMonth([{ id: "Sales per month", data: monthlyData }]);
     }
   }, [salesData, me]);
 
@@ -88,5 +118,5 @@ export function useSalesTracker() {
     }
   }, [data]);
 
-  return salesPerDay;
+  return { salesPerDay, salesPerWeek, salesPerMonth };
 }

@@ -5,9 +5,9 @@ import TotalClick from "./TotalClick";
 import Profile from "./Profile";
 import SalesData from "./SalesData";
 import Commissions from "./Commissions";
+import Analytics from "./Analytics";
 
 import "./AffiliateInfo.css";
-import Analytics from "./Analytics";
 
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -25,7 +25,6 @@ export default function AffiliateInfo() {
       <Profile />
       <Commissions />
       <SalesData />
-      <h2>Analytics</h2>
       <Analytics />
       <TotalClick />
       <Products />
