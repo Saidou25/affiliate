@@ -5,9 +5,8 @@ import { AiOutlineClose } from "react-icons/ai";
 
 interface Props {
   closeForm: (item: boolean) => void;
-  dashboardReady: (item: boolean) => void;
 }
-export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
+export default function AffiliateLogin({ closeForm }: Props) {
   const [form, setForm] = useState({ email: "", password: "" });
 
   const [login, { loading, error }] = useMutation(LOGIN, {
@@ -17,7 +16,6 @@ export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
       // 2) Redirect to the affiliate dashboard (or wherever)
       // console.log("you are logged in: ", login.token);
       closeForm(false);
-      dashboardReady(true);
     },
   });
 
@@ -35,8 +33,10 @@ export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
       <h2>Log in to your account</h2>
       <form className="form-container" onSubmit={handleSubmit}>
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <AiOutlineClose onClick={() => closeForm(false)} 
-            style={{ width: "5%", height: "auto" }}/>
+          <AiOutlineClose
+            onClick={() => closeForm(false)}
+            style={{ width: "5%", height: "auto" }}
+          />
         </div>
         <h1 className="title">Login</h1>
         <label htmlFor="email1">Email</label>
@@ -48,8 +48,8 @@ export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
           value={form.email}
           onChange={handleChange}
           required
-            placeholder="email@example.com"
-           style={{ padding: "1%", fontStyle: "italic" }}
+          placeholder="email@example.com"
+          style={{ padding: "1%", fontStyle: "italic" }}
         />
         <br />
         <br />
@@ -62,8 +62,8 @@ export default function AffiliateLogin({ closeForm, dashboardReady }: Props) {
           value={form.password}
           onChange={handleChange}
           required
-            placeholder="password"
-           style={{ padding: "1%", fontStyle: "italic" }}
+          placeholder="password"
+          style={{ padding: "1%", fontStyle: "italic" }}
         />
         <br />
         <br />
