@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace client\" \"npm start --workspace server\"",
     "build": "npm run build --workspace client && npm run build --workspace server",
-    "deploy": "npm run deploy --workspace client"
+    "deploy": "npm run build && npm run deploy --workspace client"
   },
   "workspaces": [
     "client",
