@@ -28,3 +28,6 @@ client/.env
 client/.env.production
 server/.env
 server/.env.production
+
+# Ignore client build output
+client/dist/
