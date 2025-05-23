@@ -6,6 +6,7 @@ import { SECRET } from "../config/env";
 import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
 import { sendConfirmationEmail } from "../utils/sendConfirmationEmail";
+import { sendTrackASaleConfEmail } from "../utils/sendTrackASaleConfEmail";
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 import ClickLog from "../models/ClickLog";
@@ -208,6 +209,12 @@ const resolvers = {
         });
         await sale.save();
         await sendConfirmationEmail({
+          buyerEmail,
+          event,
+          amount,
+          commission,
+        });
+        await sendTrackASaleConfEmail({
           buyerEmail,
           event,
           amount,

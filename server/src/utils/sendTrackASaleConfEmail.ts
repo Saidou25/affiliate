@@ -2,13 +2,12 @@ import dotenv from "dotenv";
 import path from "path";
 
 // Decide which env file to load based on NODE_ENV
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 import nodemailer from "nodemailer";
 
-export async function sendConfirmationEmail({
+export async function sendTrackASaleConfEmail({
   buyerEmail,
   event,
   amount,
@@ -31,11 +30,13 @@ export async function sendConfirmationEmail({
     const mailOptions = {
       from: `"Your Company Name" <princetongreen.org>`,
       to: buyerEmail,
-      subject: "Your Purchase Confirmation",
+      subject: "New Commission",
       html: `
-        <h2>Thank you for your purchase!</h2>
-        <p>You've successfully purchased <strong>${event}</strong> for $${amount}.</p>
-        <p>We appreciate your support!</p>
+        <h2>Hello there!</h2>
+        <p>${buyerEmail} successfully purchased <strong>${event}</strong> for $${amount}.</p>
+        <p>Your affiliate commission applied: $${commission.toFixed(2)}</p>
+        <p>Look for a payment in your bank account within the next 30 days!</p>
+        <p>Thank you.</p>
       `,
     };
 
