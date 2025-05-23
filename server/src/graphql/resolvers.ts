@@ -216,6 +216,7 @@ const resolvers = {
         });
         await sendTrackASaleConfEmail({
           buyerEmail,
+           affiliateEmail: affiliate.email,
           event,
           amount,
           commission,

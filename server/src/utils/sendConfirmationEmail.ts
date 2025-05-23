@@ -29,7 +29,7 @@ export async function sendConfirmationEmail({
     });
 
     const mailOptions = {
-      from: `"Your Company Name" <princetongreen.org>`,
+      from: "princetongreen",
       to: buyerEmail,
       subject: "Your Purchase Confirmation",
       html: `
