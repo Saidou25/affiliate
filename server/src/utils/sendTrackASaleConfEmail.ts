@@ -33,7 +33,7 @@ export async function sendTrackASaleConfEmail({
       },
     });
     const mailOptions = {
-      from: `"Your Company Name" <${process.env.EMAIL_USER}>`,
+      from: `<${process.env.EMAIL_USER}>`,
       //   from: "princetongreen.org",
       to: affiliateEmail,
       subject: "New Commission Applied",
