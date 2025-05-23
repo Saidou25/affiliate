@@ -23,16 +23,18 @@ export async function sendTrackASaleConfEmail({
 }) {
   try {
     const transporter = nodemailer.createTransport({
-      service: "Gmail", // or use SMTP or Mailgun, etc.
+      //   service: "Gmail", // or use SMTP or Mailgun, etc.
+      host: "smtp.hostinger.com",
+      port: 465, // or 587
+      secure: true, // true for port 465, false for 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
-
     const mailOptions = {
-      //   from: `"Your Company Name" <${princetongreen.org}>`,
-      from: "princetongreen.org",
+      from: `"Your Company Name" <${process.env.EMAIL_USER}>`,
+      //   from: "princetongreen.org",
       to: affiliateEmail,
       subject: "New Commission Applied",
       html: `
