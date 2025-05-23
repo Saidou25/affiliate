@@ -5,7 +5,8 @@ import { QUERY_ME } from "../utils/queries";
 import { useQuery } from "@apollo/client";
 
 export default function TotalSales() {
-  const { salesPerDay, salesPerWeek, salesPerMonth } = useSalesTracker();
+  const { totalSales, salesPerDay, salesPerWeek, salesPerMonth } =
+    useSalesTracker();
 
   const [salesRange, setSalesRange] = useState(salesPerDay);
 
@@ -33,7 +34,10 @@ export default function TotalSales() {
   return (
     <div className="">
       <h2>Total Sales(Orders):</h2>
-      <strong className="">Your total sales(orders) - {me.totalSales}</strong>
+      <strong className="">
+        Your total sales(orders) -{" "}
+        {totalSales ? totalSales : <p>Loading sales data...</p>}
+      </strong>
       <br />
       <br />
       <div className="res">
@@ -45,13 +49,13 @@ export default function TotalSales() {
             {salesRange[0]?.id || "Sales Overview"}
           </h2>
           <div className="">
-            <button className="" onClick={() => selectSalesRange("day")}>
+            <button className="range-button" onClick={() => selectSalesRange("day")}>
               day
             </button>
-            <button className="" onClick={() => selectSalesRange("week")}>
+            <button className="range-button" onClick={() => selectSalesRange("week")}>
               week
             </button>
-            <button className="" onClick={() => selectSalesRange("month")}>
+            <button className="range-button" onClick={() => selectSalesRange("month")}>
               {" "}
               month
             </button>

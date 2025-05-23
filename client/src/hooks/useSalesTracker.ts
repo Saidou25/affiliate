@@ -25,6 +25,7 @@ type SaleObj = {
 
 export function useSalesTracker() {
   const [me, setMe] = useState<Affiliate | null>(null);
+  const [totalSales, setTotalSales] = useState(0);
   const [salesPerDay, setSalesPerDay] = useState<SaleObj[]>([]);
   const [salesPerWeek, setSalesPerWeek] = useState<SaleObj[]>([]);
   const [salesPerMonth, setSalesPerMonth] = useState<SaleObj[]>([]);
@@ -117,6 +118,12 @@ export function useSalesTracker() {
       setMe(data.me);
     }
   }, [data]);
+  
+  useEffect(() => {
+    if (salesData?.getAffiliateSales) {
+      setTotalSales(salesData.getAffiliateSales?.length);
+    }
+  }, [salesData]);
 
-  return { salesPerDay, salesPerWeek, salesPerMonth };
+  return { totalSales, salesPerDay, salesPerWeek, salesPerMonth };
 }

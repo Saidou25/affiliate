@@ -50,13 +50,13 @@ export default function TotalClicks() {
             {clicksRange[0]?.id || "Clicks Overview"}
           </h2>
           <div className="">
-            <button className="" onClick={() => selectClicksRange("day")}>
+            <button className="range-button" onClick={() => selectClicksRange("day")}>
               day
             </button>
-            <button className="" onClick={() => selectClicksRange("week")}>
+            <button className="range-button" onClick={() => selectClicksRange("week")}>
               week
             </button>
-            <button className="" onClick={() => selectClicksRange("month")}>
+            <button className="range-button" onClick={() => selectClicksRange("month")}>
               {" "}
               month
             </button>
