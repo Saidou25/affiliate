@@ -42,7 +42,7 @@ class AuthService {
 
   logout() {
     localStorage.removeItem("token");
-    window.location.replace("/");
+    window.location.replace("/affiliate");
   }
 }
 
