@@ -1,0 +1,5 @@
+.view-line {
+    cursor: pointer;
+    color: rgb(103, 167, 213);
+    text-decoration: underline;
+}

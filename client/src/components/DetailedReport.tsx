@@ -1,7 +1,29 @@
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
+import { useEffect, useState } from "react";
+import DetailedReportView from "./DetailedReportView";
+import "./DetailedReport.css";
 
+interface AffiliateSale {
+  refId: string;
+  buyerEmail: string;
+  event: string;
+  commissionEarned: number;
+  timestamp: string;
+  amount: number;
+  productId: string;
+  __typename?: string;
+}
+
+interface MonthlySalesGroup {
+  month: string;
+  sales: AffiliateSale[];
+}
 export default function DetailedReport() {
+  const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
+  const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
+  const [showReport, setShowReport] = useState<number | null>(null);
+
   const { data } = useQuery(QUERY_ME);
   const me = data.me || {};
   const refId = me?.refId;
@@ -11,50 +33,72 @@ export default function DetailedReport() {
     skip: !refId,
   });
 
-//   console.log("sales data: ", salesData);
+  useEffect(() => {
+    if (salesData?.getAffiliateSales) {
+      const organizedDates = [...salesData?.getAffiliateSales].sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      console.log(organizedDates);
+      setSortedDates(organizedDates);
+    }
+  }, [salesData]);
 
-  const cellStyle: React.CSSProperties = {
-    border: "1px solid #ccc",
-    padding: "8px",
-    textAlign: "left",
-  };
+  useEffect(() => {
+    const salesMap: { [key: string]: AffiliateSale[] } = {};
+
+    sortedDates.forEach((sale) => {
+      const date = new Date(sale.timestamp);
+      const month = date.toLocaleString("en-US", { month: "long" });
+      const year = date.getFullYear();
+      const key = `${month} ${year}`;
+
+      if (!salesMap[key]) {
+        salesMap[key] = [];
+      }
+      salesMap[key].push(sale);
+    });
+
+    const groupedArray: MonthlySalesGroup[] = Object.entries(salesMap).map(
+      ([month, sales]) => ({
+        month,
+        sales,
+      })
+    );
+
+    // Optional: sort by most recent month
+    groupedArray.sort((a, b) => {
+      const dateA = new Date(a.sales[0].timestamp);
+      const dateB = new Date(b.sales[0].timestamp);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    setMonthlySales(groupedArray);
+  }, [sortedDates]);
 
   return (
     <>
-      <h2>Detailed Report</h2>
-      <div className="res">
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th style={cellStyle}>Purchase date</th>
-              <th style={cellStyle}>Buyer's email</th>
-              <th style={cellStyle}>Product</th>
-              <th style={cellStyle}>Product ID</th>
-              <th style={cellStyle}>Reference ID</th>
-              <th style={cellStyle}>Price</th>
-              <th style={cellStyle}>Commission</th>
-            </tr>
-          </thead>
-          <tbody>
-            {salesData &&
-              salesData.getAffiliateSales.map((sale: any, index: number) => (
-                <tr key={index}>
-                  <td style={cellStyle}>
-                    {new Date(sale.timestamp).toLocaleDateString("en-US", {
-                      timeZone: "America/New_York",
-                    })}
-                  </td>
-                  <td style={cellStyle}>{sale.buyerEmail}</td>
-                  <td style={cellStyle}>{sale.event}</td>
-                  <td style={cellStyle}>{sale.productId}</td>
-                  <td style={cellStyle}>{sale.refId}</td>
-                  <td style={cellStyle}>${sale.amount}</td>
-                  <td style={cellStyle}>${sale.commissionEarned}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+      <h2>Reports</h2>
+      {monthlySales &&
+        monthlySales.map((monthSales, index) => (
+          <div className="" key={monthSales.month}>
+            {showReport === index && (
+              <DetailedReportView
+                monthSales={monthSales.sales}
+                currentMonth={monthSales.month}
+                setShowReport={setShowReport}
+              />
+            )}
+            {showReport === null && (
+              <span
+                className="view-line"
+                onClick={() => setShowReport(index)}
+              >
+                {monthSales.month} detailed report
+              </span>
+            )}
+          </div>
+        ))}
     </>
   );
 }

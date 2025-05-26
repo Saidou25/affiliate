@@ -2,9 +2,14 @@ import { useQuery } from "@apollo/client";
 import { GET_ALLAFFILIATESALES } from "../utils/queries";
 
 interface AffiliateSale {
-  refId: String;
-  email: String;
-  event: String;
+  refId: string;
+  buyerEmail: string;
+  event: string;
+  commissionEarned: number;
+  timestamp: string;
+  amount: number;
+  productId: string;
+  __typename?: string; // Optional if you're not using it
 }
 
 export default function AffiliateSalesList() {

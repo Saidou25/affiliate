@@ -6,6 +6,7 @@ import Analytics from "./Analytics";
 
 import "./AffiliateInfo.css";
 import DetailedReport from "./DetailedReport";
+import SalesTaxPolicy from "./SalesTaxPolicy";
 
 export default function AffiliateInfo() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -24,6 +25,7 @@ export default function AffiliateInfo() {
       <DetailedReport />
       <Analytics />
       <Products />
+      <SalesTaxPolicy />
     </div>
   );
 }
