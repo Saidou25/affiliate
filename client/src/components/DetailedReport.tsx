@@ -2,6 +2,7 @@ import { useQuery } from "@apollo/client";
 import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
 import DetailedReportView from "./DetailedReportView";
+
 import "./DetailedReport.css";
 
 interface AffiliateSale {

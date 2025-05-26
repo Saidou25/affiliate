@@ -1,5 +1,74 @@
+/* html, body {
+  background: white !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color: black;
+} */
+.res {
+  background-color: black;
+  /* height: 500px; */
+  padding: 3%;
+  border-radius: 10px;
+  color: white;
+}
 .view-line {
-    cursor: pointer;
-    color: rgb(103, 167, 213);
-    text-decoration: underline;
+  cursor: pointer;
+  color: rgb(103, 167, 213);
+  text-decoration: underline;
+}
+.pis-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1%;
+}
+.pdf-print-line {
+  width: 95%;
+  display: flex;
+  justify-content: center;
+}
+.pifile,
+.piprint {
+  color: white !important;
+  cursor: pointer;
+  height: 3%;
+  width: 3%;
+  padding: 0 0 0 5%;
+}
+.close {
+  display: flex;
+  justify-content: flex-end;
+  width: 3%;
+}
+.ioclose {
+  color: white !important;
+  cursor: pointer;
+  height: 90%;
+  width: 90%;
+}
+.cell-style {
+  border: 1px solid #cccccc;
+  padding: 8px;
+  text-align: left;
+  color: black; 
+}
+/* #pdf-content {
+  font-family: Arial, sans-serif;
+  color: black;
+  background-color: white; 
+}
+
+#pdf-content td, 
+#pdf-content th {
+  border: 1px solid #ccc;
+  padding: 8px;
+  color: black; 
+} */
+@media print {
+  .print {
+    display: block !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }

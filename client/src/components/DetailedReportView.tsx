@@ -1,4 +1,10 @@
 import { IoMdClose } from "react-icons/io";
+import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
+// import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+
+import "./DetailedReport.css";
+import html2canvas from "html2canvas";
 
 interface AffiliateSale {
   refId: string;
@@ -15,52 +21,95 @@ type Props = {
   monthSales: AffiliateSale[];
   currentMonth: string;
   setShowReport: (item: number | null) => void;
-}
+};
 
-export default function DetailedReportView({ monthSales, currentMonth, setShowReport }: Props) {
-   const cellStyle: React.CSSProperties = {
-    border: "1px solid #ccc",
-    padding: "8px",
-    textAlign: "left",
-  };
+export default function DetailedReportView({
+  monthSales,
+  currentMonth,
+  setShowReport,
+}: Props) {
+  async function saveToPDF() {
+    const element = document.getElementById("pdf-content");
+    if (!element) return;
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const ratio = Math.min(
+      pageWidth / canvas.width,
+      pageHeight / canvas.height
+    );
+    const imgWidth = canvas.width * ratio;
+    const imgHeight = canvas.height * ratio;
+
+    pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+    pdf.save("report.pdf");
+  }
 
   return (
-    <div>
-       <h2>Detailed Report for {currentMonth}</h2>
+    <div className="print">
       <div className="res">
-        <IoMdClose onClick={() => setShowReport(null)} />
-        <table style={{ borderCollapse: "collapse", width: "100%" }}>
-          <thead>
-            <tr>
-              <th style={cellStyle}>Purchase date</th>
-              <th style={cellStyle}>Buyer's email</th>
-              <th style={cellStyle}>Product</th>
-              <th style={cellStyle}>Product ID</th>
-              <th style={cellStyle}>Reference ID</th>
-              <th style={cellStyle}>Price</th>
-              <th style={cellStyle}>Commission</th>
-            </tr>
-          </thead>
-          <tbody>
-            {monthSales &&
-              monthSales?.map((sale, index) => (
-                <tr key={index}>
-                  <td style={cellStyle}>
-                    {new Date(sale.timestamp).toLocaleDateString("en-US", {
-                      timeZone: "America/New_York",
-                    })}
-                  </td>
-                  <td style={cellStyle}>{sale.buyerEmail}</td>
-                  <td style={cellStyle}>{sale.event}</td>
-                  <td style={cellStyle}>{sale.productId}</td>
-                  <td style={cellStyle}>{sale.refId}</td>
-                  <td style={cellStyle}>${sale.amount}</td>
-                  <td style={cellStyle}>${sale.commissionEarned}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+        <div className="pis-container no-print">
+          <div className="pdf-print-line">
+            <PiFilePdfThin className="pifile" onClick={() => saveToPDF()} />
+            <PiPrinterThin className="piprint" onClick={() => window.print()} />
+          </div>
+          <div className="close">
+            <IoMdClose
+              className="ioclose"
+              onClick={() => setShowReport(null)}
+            />
+          </div>
+        </div>
+        <div
+          id="pdf-content"
+          style={{
+            padding: "2%",
+            borderRadius: "10px",
+            backgroundColor: "rgb(243, 238, 220)",
+          }}
+        >
+          <h2 style={{ color: "black" }}>Detailed Report for {currentMonth}</h2>
+          <table style={{ borderCollapse: "collapse", width: "100%" }}>
+            <thead>
+              <tr>
+                <th className="cell-style">Purchase date</th>
+                <th className="cell-style">Buyer's email</th>
+                <th className="cell-style">Product</th>
+                <th className="cell-style">Product ID</th>
+                <th className="cell-style">Reference ID</th>
+                <th className="cell-style">Price</th>
+                <th className="cell-style">Commission</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthSales &&
+                monthSales?.map((sale, index) => (
+                  <tr key={index}>
+                    <td className="cell-style">
+                      {new Date(sale.timestamp).toLocaleDateString("en-US", {
+                        timeZone: "America/New_York",
+                      })}
+                    </td>
+                    <td className="cell-style">{sale.buyerEmail}</td>
+                    <td className="cell-style">{sale.event}</td>
+                    <td className="cell-style">{sale.productId}</td>
+                    <td className="cell-style">{sale.refId}</td>
+                    <td className="cell-style">${sale.amount}</td>
+                    <td className="cell-style">${sale.commissionEarned}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  )
+  );
 }
