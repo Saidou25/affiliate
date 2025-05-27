@@ -12,6 +12,7 @@ export const GET_AFFILIATES = gql`
       commissionRate
       totalSales
       createdAt
+      role
     }
   }
 `;
@@ -28,6 +29,7 @@ export const GET_AFFILIATE = gql`
       commissionRate
       totalSales
       createdAt
+      role
     }
   }
 `;
@@ -72,6 +74,7 @@ export const QUERY_ME = gql`
       commissionRate
       totalSales
       createdAt
+      role
     }
   }
 `;

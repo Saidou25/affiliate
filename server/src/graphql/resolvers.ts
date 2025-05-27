@@ -15,14 +15,21 @@ if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
 }
 
+function requireAdmin(context: MyContext) {
+  if (!context.affiliate || context.affiliate.role !== "admin") {
+    throw new Error("Admin privileges required");
+  }
+}
+
 const resolvers = {
   Date: dateScalar,
 
   Query: {
-    // Only logged-in users can list affiliates:
-    getAffiliates: async () => {
-      return Affiliate.find();
-    },
+   getAffiliates: async (_: any, __: any, context: MyContext) => {
+  requireAdmin(context);
+  return Affiliate.find();
+},
+
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
       return Affiliate.findOne({ _id: id });
@@ -79,9 +86,13 @@ const resolvers = {
         throw new Error("Invalid credentials");
       }
 
-      const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
-        expiresIn: "1h",
-      });
+      const token = jwt.sign(
+        { affiliateId: affiliate.id, role: affiliate.role },
+        SECRET,
+        {
+          expiresIn: "1h",
+        }
+      );
       console.log("✅ Login success. Token:", token);
       return { token, affiliate };
     },
@@ -216,7 +227,7 @@ const resolvers = {
         });
         await sendTrackASaleConfEmail({
           buyerEmail,
-           affiliateEmail: affiliate.email,
+          affiliateEmail: affiliate.email,
           event,
           amount,
           commission,

@@ -1,7 +1,8 @@
 import { Request } from "express";
-// import jwt from "jsonwebtoken";
 import * as jwt from "jsonwebtoken";
 import Affiliate from "./models/Affiliate";
+
+export type Role = "affiliate" | "admin";
 
 // Define the Affiliate interface
 export interface Affiliate {
@@ -11,6 +12,9 @@ export interface Affiliate {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
+  role: Role;
+  commissionRate: number;
+  totalSales: number;
 }
 
 // Define MyContext with affiliate (from JWT)
@@ -58,6 +62,9 @@ export const createContext = async ({
       refId: foundAffiliate.refId,
       totalClicks: foundAffiliate.totalClicks,
       totalCommissions: foundAffiliate.totalCommissions,
+      role: foundAffiliate.role ?? "affiliate", // <-- fallback default
+      commissionRate: foundAffiliate.commissionRate,
+      totalSales: foundAffiliate.totalSales,
     };
 
     console.log("👤 Context affiliate:", affiliate);

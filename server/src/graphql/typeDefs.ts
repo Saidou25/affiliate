@@ -3,6 +3,11 @@ import { gql } from "graphql-tag";
 const typeDefs = gql`
   scalar Date
 
+  enum Role {
+    admin
+    affiliate
+  }
+
   type Affiliate {
     id: ID!
     email: String!
@@ -14,6 +19,7 @@ const typeDefs = gql`
     totalSales: Int
     createdAt: Date
     updatedAt: Date
+    role: Role
   }
 
   type AuthPayload {

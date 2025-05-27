@@ -9,6 +9,7 @@ interface IAffiliate extends Document {
   totalCommissions: number;
   password: string;
   commissionRate: number;
+  role?: "admin" | "affiliate";
   totalSales: number;
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
@@ -24,6 +25,7 @@ const AffiliateSchema = new Schema<IAffiliate>(
     totalCommissions: { type: Number, default: 0 },
     commissionRate: { type: Number, default: 0.1 }, // 10 %
     totalSales: { type: Number, default: 0 },
+    role: { type: String, enum: ["admin", "affiliate"], default: "affiliate" },
   },
   { timestamps: true } // 👈 automatically adds createdAt and updatedAt
 );

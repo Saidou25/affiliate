@@ -5,12 +5,17 @@ import AffiliateLogin from "./components/AffiliateLogin";
 import Dashboard from "./components/Dashboard";
 
 import "./index.css";
+import { useQuery } from "@apollo/client";
+import { QUERY_ME } from "./utils/queries";
 
 function App() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
 
   const isLoggedIn = AuthService.loggedIn();
+
+  const { data } = useQuery(QUERY_ME);
+  const me = data?.me || {};
 
   if (showRegistration) {
     return <RegisterForm closeForm={setShowRegistration} />;
@@ -19,7 +24,7 @@ function App() {
     return <AffiliateLogin closeForm={setShowLogin} />;
   }
   if (isLoggedIn) {
-    return <Dashboard />;
+    return <Dashboard data={me.role} />;
   }
   return (
     <div

@@ -5,8 +5,10 @@ import Admin from "./Admin";
 
 import "./Dashboard.css";
 
-export default function Dashboard() {
- 
+interface Props {
+  data: string;
+}
+export default function Dashboard({ data }: Props) {
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
   };
@@ -16,8 +18,7 @@ export default function Dashboard() {
       <div className="log-out">
         <RiLogoutCircleRLine className="iomdlogout" onClick={handleLogout} />
       </div>
-      <Admin />
-      <AffiliateInfo />
+      {data === "admin" ? <Admin /> : <AffiliateInfo />}
     </div>
   );
 }
