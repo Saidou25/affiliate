@@ -13,6 +13,7 @@ export default function TotalSales() {
       setSalesRange(salesPerDay);
     }
     if (range === "week") {
+      // console.log(salesPerWeek[0].data);
       setSalesRange(salesPerWeek);
     }
     if (range === "month") {
@@ -44,13 +45,22 @@ export default function TotalSales() {
             {salesRange[0]?.id || "Sales Overview"}
           </h2>
           <div className="">
-            <button className="range-button" onClick={() => selectSalesRange("day")}>
+            <button
+              className="range-button"
+              onClick={() => selectSalesRange("day")}
+            >
               day
             </button>
-            <button className="range-button" onClick={() => selectSalesRange("week")}>
+            <button
+              className="range-button"
+              onClick={() => selectSalesRange("week")}
+            >
               week
             </button>
-            <button className="range-button" onClick={() => selectSalesRange("month")}>
+            <button
+              className="range-button"
+              onClick={() => selectSalesRange("month")}
+            >
               {" "}
               month
             </button>

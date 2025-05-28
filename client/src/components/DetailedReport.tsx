@@ -1,9 +1,11 @@
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
+import { useClicksTracker } from "../hooks/useClicksTracker";
 import DetailedReportView from "./DetailedReportView";
 
 import "./DetailedReport.css";
+import { useSalesTracker } from "../hooks/useSalesTracker";
 
 interface AffiliateSale {
   refId: string;
@@ -33,6 +35,14 @@ export default function DetailedReport() {
     variables: { refId },
     skip: !refId,
   });
+
+  const { salesPerMonth } = useSalesTracker();
+  const { clicksPerMonth } = useClicksTracker();
+
+  // console.log("totalSales:", totalSales)
+  // console.log("clicksPerDay:", clicksPerDay)
+  // console.log("clicksPerWeek:", clicksPerWeek)
+  // console.log("clicksPerMonth:", clicksPerMonth);
 
   useEffect(() => {
     if (salesData?.getAffiliateSales) {
@@ -87,13 +97,12 @@ export default function DetailedReport() {
                 monthSales={monthSales.sales}
                 currentMonth={monthSales.month}
                 setShowReport={setShowReport}
+                salesPerMonth={salesPerMonth}
+                clicksPerMonth={clicksPerMonth}
               />
             )}
             {showReport === null && (
-              <span
-                className="view-line"
-                onClick={() => setShowReport(index)}
-              >
+              <span className="view-line" onClick={() => setShowReport(index)}>
                 {monthSales.month} detailed report
               </span>
             )}

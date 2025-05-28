@@ -7,6 +7,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
 import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
+import TotalBar from "./TotalBar";
 
 import "./DetailedReport.css";
 
@@ -25,12 +26,16 @@ type Props = {
   monthSales: AffiliateSale[];
   currentMonth: string;
   setShowReport: (item: number | null) => void;
+  salesPerMonth: any;
+  clicksPerMonth: any;
 };
 
 export default function DetailedReportView({
   monthSales,
   currentMonth,
   setShowReport,
+  salesPerMonth,
+  clicksPerMonth,
 }: Props) {
   const addedSales = useAddMonthSales(monthSales);
   const addedCommissions = useAddMonthCommissions(monthSales);
@@ -135,11 +140,22 @@ export default function DetailedReportView({
                     <td className="cell-style">{currentMonth}</td>
                     <td className="cell-style">${addedSales()}</td>
                     <td className="cell-style">${addedCommissions()}</td>
-                    <td className="cell-style">${addedSales() - addedCommissions()}</td>
+                    <td className="cell-style">
+                      ${addedSales() - addedCommissions()}
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </>
+          )}
+          {me.role === "affiliate" && (
+            <TotalBar
+              addedSales={addedSales()}
+              addedCommissions={addedCommissions()}
+              currentMonth={currentMonth}
+              salesPerMonth={salesPerMonth}
+              clicksPerMonth={clicksPerMonth}
+            />
           )}
         </div>
       </div>

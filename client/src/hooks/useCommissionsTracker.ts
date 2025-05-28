@@ -43,7 +43,9 @@ export function useCommissionsTracker() {
   const toWeekLabel = (isoDate: string) => {
     const date = new Date(isoDate);
     const onejan = new Date(date.getFullYear(), 0, 1);
-    const week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+    const week = Math.ceil(
+      ((date.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7
+    );
     return `Week ${week}, ${date.getFullYear()}`;
   };
 
@@ -68,21 +70,28 @@ export function useCommissionsTracker() {
 
   useEffect(() => {
     if (salesData?.getAffiliateSales) {
-      const salesArray = salesData.getAffiliateSales;
+      const sortedSales = [...salesData.getAffiliateSales].sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
 
-      // Convert timestamps to local dates
-      const dayLabels = salesArray.map((sale: any) => toEasternDate(sale.timestamp));
+      const dayLabels = sortedSales.map((sale: any) =>
+        toEasternDate(sale.timestamp)
+      );
       const allDateObjs = dayLabels.map((d: string) => new Date(d));
-      const min = new Date(Math.min(...allDateObjs.map((d: Date) => d.getTime())));
-      const max = new Date(Math.max(...allDateObjs.map((d: Date) => d.getTime())));
+      const min = new Date(
+        Math.min(...allDateObjs.map((d: Date) => d.getTime()))
+      );
+      const max = new Date(
+        Math.max(...allDateObjs.map((d: Date) => d.getTime()))
+      );
       const fullDateRange = getDateRange(min, max);
 
-      // Aggregation maps
       const dailyTotals: Record<string, number> = {};
       const weeklyTotals: Record<string, number> = {};
       const monthlyTotals: Record<string, number> = {};
 
-      for (const sale of salesArray) {
+      for (const sale of sortedSales) {
         const commission = sale.commissionEarned ?? 0;
         const day = toEasternDate(sale.timestamp);
         const week = toWeekLabel(sale.timestamp);
@@ -93,24 +102,30 @@ export function useCommissionsTracker() {
         monthlyTotals[month] = (monthlyTotals[month] || 0) + commission;
       }
 
-      const dailyData: DataObj[] = fullDateRange.map(date => ({
+      const dailyData: DataObj[] = fullDateRange.map((date) => ({
         x: date,
         y: dailyTotals[date] || 0,
       }));
 
-      const weeklyData: DataObj[] = Object.entries(weeklyTotals).map(([week, total]) => ({
-        x: week,
-        y: total,
-      }));
+      const weeklyData: DataObj[] = Object.entries(weeklyTotals)
+        .map(([week, total]) => ({ x: week, y: total }))
+        .sort((a, b) => {
+          const [_, weekA, yearA] = a.x.match(/Week (\d+), (\d+)/) || [];
+          const [__, weekB, yearB] = b.x.match(/Week (\d+), (\d+)/) || [];
+          return +yearA !== +yearB
+            ? +yearA - +yearB
+            : +weekA - +weekB;
+        });
 
-      const monthlyData: DataObj[] = Object.entries(monthlyTotals).map(([month, total]) => ({
-        x: month,
-        y: total,
-      }));
+      const monthlyData: DataObj[] = Object.entries(monthlyTotals)
+        .map(([month, total]) => ({ x: month, y: total }))
+        .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
 
       setCommissionPerDay([{ id: "Commissions per day", data: dailyData }]);
       setCommissionsPerWeek([{ id: "Commissions per week", data: weeklyData }]);
-      setCommissionsPerMonth([{ id: "Commissions per month", data: monthlyData }]);
+      setCommissionsPerMonth([
+        { id: "Commissions per month", data: monthlyData },
+      ]);
     }
   }, [salesData, me]);
 

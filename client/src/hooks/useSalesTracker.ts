@@ -44,7 +44,9 @@ export function useSalesTracker() {
   const toWeekLabel = (isoDate: string) => {
     const date = new Date(isoDate);
     const onejan = new Date(date.getFullYear(), 0, 1);
-    const week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+    const week = Math.ceil(
+      ((date.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7
+    );
     return `Week ${week}, ${date.getFullYear()}`;
   };
 
@@ -69,20 +71,28 @@ export function useSalesTracker() {
 
   useEffect(() => {
     if (salesData?.getAffiliateSales && me?.refId) {
-      const salesArray = salesData.getAffiliateSales;
+      const sortedSales = [...salesData.getAffiliateSales].sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
 
-      // === DAILY ===
-      const dayLabels = salesArray.map((sale: any) => toEasternDate(sale.timestamp));
+      const dayLabels = sortedSales.map((sale: any) =>
+        toEasternDate(sale.timestamp)
+      );
       const allDateObjs = dayLabels.map((d: string) => new Date(d));
-      const min = new Date(Math.min(...allDateObjs.map((d: Date) => d.getTime())));
-      const max = new Date(Math.max(...allDateObjs.map((d: Date) => d.getTime())));
+      const min = new Date(
+        Math.min(...allDateObjs.map((d: Date) => d.getTime()))
+      );
+      const max = new Date(
+        Math.max(...allDateObjs.map((d: Date) => d.getTime()))
+      );
       const fullDateRange = getDateRange(min, max);
 
       const dailyCount: Record<string, number> = {};
       const weeklyCount: Record<string, number> = {};
       const monthlyCount: Record<string, number> = {};
 
-      for (const sale of salesArray) {
+      for (const sale of sortedSales) {
         const day = toEasternDate(sale.timestamp);
         const week = toWeekLabel(sale.timestamp);
         const month = toMonthLabel(sale.timestamp);
@@ -92,20 +102,28 @@ export function useSalesTracker() {
         monthlyCount[month] = (monthlyCount[month] || 0) + 1;
       }
 
-      const dailyData: DataObj[] = fullDateRange.map(date => ({
+      const dailyData: DataObj[] = fullDateRange.map((date) => ({
         x: date,
         y: dailyCount[date] || 0,
       }));
 
-      const weeklyData: DataObj[] = Object.entries(weeklyCount).map(([week, count]) => ({
-        x: week,
-        y: count,
-      }));
+      const weeklyData: DataObj[] = Object.entries(weeklyCount)
+        .map(([week, count]) => ({
+          x: week,
+          y: count,
+        }))
+        .sort((a, b) => {
+          const [_, weekA, yearA] = a.x.match(/Week (\d+), (\d+)/) || [];
+          const [__, weekB, yearB] = b.x.match(/Week (\d+), (\d+)/) || [];
+          return +yearA !== +yearB ? +yearA - +yearB : +weekA - +weekB;
+        });
 
-      const monthlyData: DataObj[] = Object.entries(monthlyCount).map(([month, count]) => ({
-        x: month,
-        y: count,
-      }));
+      const monthlyData: DataObj[] = Object.entries(monthlyCount)
+        .map(([month, count]) => ({
+          x: month,
+          y: count,
+        }))
+        .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
 
       setSalesPerDay([{ id: "Sales per day", data: dailyData }]);
       setSalesPerWeek([{ id: "Sales per week", data: weeklyData }]);
@@ -118,10 +136,10 @@ export function useSalesTracker() {
       setMe(data.me);
     }
   }, [data]);
-  
+
   useEffect(() => {
     if (salesData?.getAffiliateSales) {
-      setTotalSales(salesData.getAffiliateSales?.length);
+      setTotalSales(salesData.getAffiliateSales.length);
     }
   }, [salesData]);
 

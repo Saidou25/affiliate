@@ -35,8 +35,8 @@ export function useClicksTracker() {
     skip: !me?.refId,
   });
 
-  const toEasternDate = (isoDate: string) =>
-    new Date(isoDate).toLocaleDateString("en-US", {
+  const toEasternDate = (date: Date | string) =>
+    new Date(date).toLocaleDateString("en-US", {
       timeZone: "America/New_York",
     });
 
@@ -66,20 +66,27 @@ export function useClicksTracker() {
 
   useEffect(() => {
     if (clicksData?.getAffiliateClickLogs) {
-      const clicksArray = clicksData.getAffiliateClickLogs;
+      const sortedClicks = [...clicksData.getAffiliateClickLogs].sort(
+        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
 
-      const allDateObjects = clicksArray.map((click: any) =>
-        new Date(
-          new Date(click.createdAt).toLocaleString("en-US", {
-            timeZone: "America/New_York",
-          })
-        )
+      const allDateObjects = sortedClicks.map(
+        (click: any) =>
+          new Date(
+            new Date(click.createdAt).toLocaleString("en-US", {
+              timeZone: "America/New_York",
+            })
+          )
       );
 
       // 1. Per Day
       const allDates = allDateObjects.map(toEasternDate);
-      const minDate = new Date(Math.min(...allDateObjects.map((d: Date) => d.getTime())));
-      const maxDate = new Date(Math.max(...allDateObjects.map((d: Date) => d.getTime())));
+      const minDate = new Date(
+        Math.min(...allDateObjects.map((d) => d.getTime()))
+      );
+      const maxDate = new Date(
+        Math.max(...allDateObjects.map((d) => d.getTime()))
+      );
       const fullDateRange = getDateRange(minDate, maxDate);
 
       const clicksCountPerDay: Record<string, number> = {};
@@ -101,10 +108,13 @@ export function useClicksTracker() {
         return `${d.getFullYear()}-W${week}`;
       };
       const weekCounts = groupBy(allDateObjects, weekFormatter);
-      const weekData: DataObj[] = Object.entries(weekCounts).map(([x, y]) => ({
-        x,
-        y,
-      }));
+      const weekData: DataObj[] = Object.entries(weekCounts)
+        .map(([x, y]) => ({ x, y }))
+        .sort((a, b) => {
+          const [yearA, weekA] = a.x.split("-W").map(Number);
+          const [yearB, weekB] = b.x.split("-W").map(Number);
+          return yearA !== yearB ? yearA - yearB : weekA - weekB;
+        });
       setClicksPerWeek([{ id: "Clicks per Week", data: weekData }]);
 
       // 3. Per Month (e.g. May 2025)
@@ -115,10 +125,9 @@ export function useClicksTracker() {
           month: "long",
         });
       const monthCounts = groupBy(allDateObjects, monthFormatter);
-      const monthData: DataObj[] = Object.entries(monthCounts).map(([x, y]) => ({
-        x,
-        y,
-      }));
+      const monthData: DataObj[] = Object.entries(monthCounts)
+        .map(([x, y]) => ({ x, y }))
+        .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
       setClicksPerMonth([{ id: "Clicks per Month", data: monthData }]);
     }
   }, [clicksData, me]);
