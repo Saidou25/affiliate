@@ -60,7 +60,8 @@ export default function AffiliatesList() {
 
   return (
     <div className="res">
-      <h2>All Affiliates</h2>
+      <h2>Affiliates Team: {data?.getAffiliates?.length ? 
+      (<>Total sale's force has {data?.getAffiliates?.length -1} affiliates </>) : null}</h2>
       <strong style={{ color: "white" }}></strong>
       {loading && <p>Loading users...</p>}
       {error && <p>Error fetching users: {error.message}</p>}
@@ -91,23 +92,26 @@ export default function AffiliatesList() {
             <tbody>
               {data?.getAffiliates?.map((affiliate: any) => (
                 <tr key={affiliate.id}>
-                  {/* <td className="cell-style">
-                    {new Date(affiliate.timestamp).toLocaleDateString("en-US", {
-                      timeZone: "America/New_York",
-                    })}
-                  </td> */}
-                  <td className="cell-style">{affiliate.email}</td>
-                  <td className="cell-style">{affiliate.id}</td>
-                  <td className="cell-style">{affiliate.refId}</td>
-                  <td className="cell-style">
-                    {new Date(affiliate.createdAt).toLocaleDateString("en-US", {
-                      timeZone: "America/New_York",
-                    })}
-                  </td>
-                  <td className="cell-style">{affiliate.totalClicks}</td>
-                  <td className="cell-style">${affiliate.totalSales}</td>
-                  <td className="cell-style">${affiliate.totalCommissions.toFixed(2)}</td>
-                  {/* <td className="cell-style">${affiliate.amount}</td> */}
+                  {affiliate.role === "affiliate" && (
+                    <>
+                      <td className="cell-style">{affiliate.email}</td>
+                      <td className="cell-style">{affiliate.id}</td>
+                      <td className="cell-style">{affiliate.refId}</td>
+                      <td className="cell-style">
+                        {new Date(affiliate.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            timeZone: "America/New_York",
+                          }
+                        )}
+                      </td>
+                      <td className="cell-style">{affiliate.totalClicks}</td>
+                      <td className="cell-style">${affiliate.totalSales}</td>
+                      <td className="cell-style">
+                        ${affiliate.totalCommissions.toFixed(2)}
+                      </td>
+                    </>
+                  )}
                   {/* <td
                     className="cell-style"
                     onClick={() => removeAffiliate(affiliate.id)}
