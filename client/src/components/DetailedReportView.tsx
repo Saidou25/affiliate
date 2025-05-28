@@ -26,8 +26,8 @@ type Props = {
   monthSales: AffiliateSale[];
   currentMonth: string;
   setShowReport: (item: number | null) => void;
-  salesPerMonth: any;
-  clicksPerMonth: any;
+  salesPerMonth?: any;
+  clicksPerMonth?: any;
 };
 
 export default function DetailedReportView({
