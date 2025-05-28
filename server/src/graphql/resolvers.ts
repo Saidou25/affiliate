@@ -43,7 +43,8 @@ const resolvers = {
       return Affiliate.findOne({ _id: context.affiliate.id }); // This populates full product info
     },
 
-    getAllAffiliateSales: async () => {
+    getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
+      requireAdmin(context);
       return AffiliateSale.find();
     },
 

@@ -1,10 +1,14 @@
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
+import { useQuery } from "@apollo/client";
+import { QUERY_ME } from "../utils/queries";
 // import html2pdf from "html2pdf.js";
+import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import useAddMonthSales from "../hooks/useAddMonthSales";
+import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 
 import "./DetailedReport.css";
-import html2canvas from "html2canvas";
 
 interface AffiliateSale {
   refId: string;
@@ -28,6 +32,12 @@ export default function DetailedReportView({
   currentMonth,
   setShowReport,
 }: Props) {
+  const addedSales = useAddMonthSales(monthSales);
+  const addedCommissions = useAddMonthCommissions(monthSales);
+
+  const { data } = useQuery(QUERY_ME);
+  const me = data?.me || {};
+
   async function saveToPDF() {
     const element = document.getElementById("pdf-content");
     if (!element) return;
@@ -108,6 +118,29 @@ export default function DetailedReportView({
                 ))}
             </tbody>
           </table>
+          {me.role === "admin" && (
+            <>
+              <br />
+              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th className="cell-style">Month</th>
+                    <th className="cell-style">Total Sales</th>
+                    <th className="cell-style">Total Commissions</th>
+                    <th className="cell-style">Earnings</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="cell-style">{currentMonth}</td>
+                    <td className="cell-style">${addedSales()}</td>
+                    <td className="cell-style">${addedCommissions()}</td>
+                    <td className="cell-style">${addedSales() - addedCommissions()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </>
+          )}
         </div>
       </div>
     </div>
