@@ -104,11 +104,11 @@ export function useCommissionsTracker() {
 
       const dailyData: DataObj[] = fullDateRange.map((date) => ({
         x: date,
-        y: dailyTotals[date] || 0,
+        y: Number((dailyTotals[date] || 0).toFixed(2)),
       }));
 
       const weeklyData: DataObj[] = Object.entries(weeklyTotals)
-        .map(([week, total]) => ({ x: week, y: total }))
+        .map(([week, total]) => ({ x: week, y: Number(total.toFixed(2)) }))
         .sort((a, b) => {
           const [_, weekA, yearA] = a.x.match(/Week (\d+), (\d+)/) || [];
           const [__, weekB, yearB] = b.x.match(/Week (\d+), (\d+)/) || [];
@@ -118,7 +118,7 @@ export function useCommissionsTracker() {
         });
 
       const monthlyData: DataObj[] = Object.entries(monthlyTotals)
-        .map(([month, total]) => ({ x: month, y: total }))
+        .map(([month, total]) => ({ x: month, y: Number(total.toFixed(2)) }))
         .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
 
       setCommissionPerDay([{ id: "Commissions per day", data: dailyData }]);

@@ -37,6 +37,7 @@ export const GET_AFFILIATE = gql`
 export const GET_ALLAFFILIATESALES = gql`
   query getAllAffiliateSales {
     getAllAffiliateSales {
+      id
       productId
       refId
       buyerEmail
@@ -51,6 +52,7 @@ export const GET_ALLAFFILIATESALES = gql`
 export const GET_AFFILIATESALES = gql`
   query GetAffiliateSales($refId: ID!) {
     getAffiliateSales(refId: $refId) {
+      id
       productId
       refId
       buyerEmail

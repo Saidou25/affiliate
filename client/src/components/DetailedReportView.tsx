@@ -70,7 +70,7 @@ export default function DetailedReportView({
 
   return (
     <div className="print">
-      <div className="res">
+      <div className="">
         <div className="pis-container no-print">
           <div className="pdf-print-line">
             <PiFilePdfThin className="pifile" onClick={() => saveToPDF()} />
@@ -125,6 +125,13 @@ export default function DetailedReportView({
           </table>
           {me.role === "admin" && (
             <>
+              <TotalBar
+                addedSales={addedSales()}
+                addedCommissions={addedCommissions()}
+                currentMonth={currentMonth}
+                salesPerMonth={salesPerMonth}
+                clicksPerMonth={clicksPerMonth}
+              />
               <br />
               <table style={{ borderCollapse: "collapse", width: "100%" }}>
                 <thead>

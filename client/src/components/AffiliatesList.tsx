@@ -1,22 +1,16 @@
-import { useQuery } from "@apollo/client";
-import { GET_AFFILIATES } from "../utils/queries";
 // import { DELETE_AFFILIATE } from "../utils/mutations";
 
 import "./DetailedReport.css";
 
-interface Affiliate {
-  id: string;
-  name: string;
-  email: string;
-  refId: string;
-  totalClicks: number;
-  totalCommissions: number;
-}
+type Props = {
+  data: any;
+  loading: boolean;
+  errorText: string | undefined;
+};
 
-export default function AffiliatesList() {
-  const { data, loading, error } = useQuery<{ getAffiliates: Affiliate[] }>(
-    GET_AFFILIATES
-  );
+export default function AffiliatesList({ data, loading, errorText }: Props) {
+  
+  // const yearlySales = (allSalesData?.getAllAffiliateSales)?.length;
 
   // const [deleteAffiliate] = useMutation(DELETE_AFFILIATE, {
   //   update(cache, { data: { deleteAffiliate } }) {
@@ -56,15 +50,20 @@ export default function AffiliatesList() {
   //     console.error((error as Error).message);
   //   }
   // };
-  console.log(data?.getAffiliates);
 
   return (
     <div className="res">
-      <h2>Affiliates Team: {data?.getAffiliates?.length ? 
-      (<>Total sale's force has {data?.getAffiliates?.length -1} affiliates </>) : null}</h2>
+      <h2>
+        Affiliates Team:{" "}
+        {data?.getAffiliates?.length ? (
+          <>
+            Total sale's force has {data?.getAffiliates?.length - 1} affiliates{" "}
+          </>
+        ) : null}
+      </h2>
       <strong style={{ color: "white" }}></strong>
       {loading && <p>Loading users...</p>}
-      {error && <p>Error fetching users: {error.message}</p>}
+      {errorText && <p>Error fetching users: {errorText}</p>}
       {data && (
         <div
           style={{
@@ -83,9 +82,10 @@ export default function AffiliatesList() {
                 <th className="cell-style">Reference ID</th>
                 <th className="cell-style">Affiliate ID</th>
                 <th className="cell-style">Affiliate since</th>
-                <th className="cell-style">Total Clicks</th>
-                <th className="cell-style">Total Sales</th>
-                <th className="cell-style">Commissions Earned</th>
+                <th className="cell-style">Total Clicks(yearly)</th>
+                <th className="cell-style">Total Sales(yearly)</th>
+                <th className="cell-style">CommissionRate</th>
+                <th className="cell-style">Commissions Earned(yearly)</th>
                 {/* <th className="cell-style">Price</th> */}
               </tr>
             </thead>
@@ -106,7 +106,12 @@ export default function AffiliatesList() {
                         )}
                       </td>
                       <td className="cell-style">{affiliate.totalClicks}</td>
-                      <td className="cell-style">${affiliate.totalSales}</td>
+                      <td className="cell-style">
+                        ${affiliate.totalSales}
+                      </td>
+                      <td className="cell-style">
+                        {affiliate.commissionRate * 100}%
+                      </td>
                       <td className="cell-style">
                         ${affiliate.totalCommissions.toFixed(2)}
                       </td>

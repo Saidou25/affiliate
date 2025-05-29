@@ -3,22 +3,22 @@ import path from "path";
 
 // Decide which env file to load based on NODE_ENV
 const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
-
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
-import * as jwt from "jsonwebtoken";
+// import * as jwt from "jsonwebtoken";
+import { createContext, MyContext } from "./context";
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { connectToDatabase } from "./database"; // Import  DB connection function
-import { IncomingMessage } from "http";
+// import { IncomingMessage } from "http";
 import { SECRET } from "./config/env";
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
-import Affiliate from "./models/Affiliate";
+// import Affiliate from "./models/Affiliate";
 
 // Define your custom context type
-interface MyContext {
-  affiliate?: { id: string; name: string }; // Example: You can define user data in context
-}
+// interface MyContext {
+//   affiliate?: { id: string; name: string }; // Example: You can define user data in context
+// }
 
 // const SECRET = process.env.SECRET;
 
@@ -26,18 +26,18 @@ if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
 }
 
-function verifyToken(token: string) {
-  try {
-    return jwt.verify(token, SECRET);
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") {
-      console.warn("⚠️ Token expired at:", err.expiredAt);
-      return null;
-    }
-    console.warn("⚠️ Invalid token:", err.message);
-    return null;
-  }
-}
+// function verifyToken(token: string) {
+//   try {
+//     return jwt.verify(token, SECRET);
+//   } catch (err: any) {
+//     if (err.name === "TokenExpiredError") {
+//       console.warn("⚠️ Token expired at:", err.expiredAt);
+//       return null;
+//     }
+//     console.warn("⚠️ Invalid token:", err.message);
+//     return null;
+//   }
+// }
 
 // Define ApolloServer with your custom context type
 const server = new ApolloServer<MyContext>({
@@ -50,32 +50,7 @@ async function startApolloServer() {
   await connectToDatabase();
 
   const { url } = await startStandaloneServer(server, {
-    context: async ({ req }: { req: IncomingMessage }) => {
-      const auth = req.headers.authorization || "";
-      let affiliate = null;
-
-      if (auth.startsWith("Bearer ")) {
-        const token = auth.replace("Bearer ", "");
-        const decoded = verifyToken(token);
-
-        if (
-          decoded &&
-          typeof decoded === "object" &&
-          "affiliateId" in decoded &&
-          typeof (decoded as any).affiliateId === "string"
-        ) {
-          const { affiliateId } = decoded as { affiliateId: string };
-          affiliate = await Affiliate.findById(affiliateId);
-          if (!affiliate) {
-            console.warn("⚠️ Affiliate not found in database.");
-          }
-        } else {
-          console.warn("⚠️ Invalid token payload structure.");
-        }
-      }
-
-      return { affiliate };
-    },
+   context: createContext as any,
   });
 
   console.log(`🚀 Server is running! 📭 Query at ${url}`);

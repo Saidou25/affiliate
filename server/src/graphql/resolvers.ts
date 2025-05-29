@@ -16,7 +16,13 @@ if (!SECRET) {
 }
 
 function requireAdmin(context: MyContext) {
-  if (!context.affiliate || context.affiliate.role !== "admin") {
+  if (!context.affiliate) {
+    console.warn("⚠️ Access denied: no affiliate in context");
+    throw new Error("Admin privileges required");
+  }
+
+  if (context.affiliate.role !== "admin") {
+    console.warn(`⚠️ Access denied: user role is '${context.affiliate.role}'`);
     throw new Error("Admin privileges required");
   }
 }
@@ -25,11 +31,10 @@ const resolvers = {
   Date: dateScalar,
 
   Query: {
-   getAffiliates: async (_: any, __: any, context: MyContext) => {
-  requireAdmin(context);
-  return Affiliate.find();
-},
-
+    getAffiliates: async (_: any, __: any, context: MyContext) => {
+      requireAdmin(context);
+      return Affiliate.find();
+    },
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
       return Affiliate.findOne({ _id: id });
@@ -43,10 +48,20 @@ const resolvers = {
       return Affiliate.findOne({ _id: context.affiliate.id }); // This populates full product info
     },
 
-    getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
-      requireAdmin(context);
+    // getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
+    //   requireAdmin(context);
+    //   return AffiliateSale.find();
+    // },
+    getAllAffiliateSales: async () => {
       return AffiliateSale.find();
     },
+
+    // getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
+    //   requireAdmin(context);
+    //   const sales = await AffiliateSale.find();
+    //   console.log("AffiliateSales:", sales);
+    //   return sales;
+    // },
 
     getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
       return AffiliateSale.find({ refId }); // likely multiple sales per affiliate
@@ -220,6 +235,8 @@ const resolvers = {
           commissionEarned: commission.toFixed(2),
         });
         await sale.save();
+
+        // 📧 4. Send confirmation emails
         await sendConfirmationEmail({
           buyerEmail,
           event,
@@ -234,7 +251,8 @@ const resolvers = {
           commission,
         });
 
-        // 📈 4. Update the affiliate's total commissions
+        // 📈 5. Update affiliate’s stats
+        affiliate.totalSales = (affiliate.totalSales || 0) + amount;
         affiliate.totalCommissions =
           (affiliate.totalCommissions || 0) + commission;
         await affiliate.save();
@@ -256,8 +274,8 @@ const resolvers = {
 
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
           { refId },
-          { $inc: { totalClicks: 1 } },
-          { new: true }
+          { $inc: { totalClicks: 1 } },// Increment totalClicks by 1
+          { new: true }  // Return the updated document
         );
 
         if (!updatedAffiliate) {

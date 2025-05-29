@@ -1,11 +1,15 @@
 import { useQuery } from "@apollo/client";
-import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
+import {
+  GET_AFFILIATESALES,
+  // GET_ALLAFFILIATESALES,
+  QUERY_ME,
+} from "../utils/queries";
 import { useEffect, useState } from "react";
 import { useClicksTracker } from "../hooks/useClicksTracker";
+import { useSalesTracker } from "../hooks/useSalesTracker";
 import DetailedReportView from "./DetailedReportView";
 
 import "./DetailedReport.css";
-import { useSalesTracker } from "../hooks/useSalesTracker";
 
 interface AffiliateSale {
   refId: string;
@@ -35,6 +39,7 @@ export default function DetailedReport() {
     variables: { refId },
     skip: !refId,
   });
+  // const { data: allSalesData, error } = useQuery(GET_ALLAFFILIATESALES);
 
   const { salesPerMonth } = useSalesTracker();
   const { clicksPerMonth } = useClicksTracker();
@@ -43,6 +48,7 @@ export default function DetailedReport() {
   // console.log("clicksPerDay:", clicksPerDay)
   // console.log("clicksPerWeek:", clicksPerWeek)
   // console.log("clicksPerMonth:", clicksPerMonth);
+  // console.log("salesPerMonth:", salesPerMonth);
 
   useEffect(() => {
     if (salesData?.getAffiliateSales) {

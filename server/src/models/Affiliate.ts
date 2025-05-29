@@ -7,10 +7,10 @@ interface IAffiliate extends Document {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
+  totalSales: number;
   password: string;
   commissionRate: number;
   role?: "admin" | "affiliate";
-  totalSales: number;
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
 }

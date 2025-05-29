@@ -2,8 +2,8 @@ type Props = {
   addedSales: number;
   addedCommissions: number;
   currentMonth: string;
-  salesPerMonth: any;
-  clicksPerMonth: any;
+  salesPerMonth?: any;
+  clicksPerMonth?: any;
 };
 
 export default function TotalBar({
@@ -14,17 +14,21 @@ export default function TotalBar({
   clicksPerMonth,
 }: Props) {
   const xtractTotalSales = () => {
-    let month = salesPerMonth[0].data.filter(
-      (sale: any) => sale.x === currentMonth
-    );
-    return month[0].y;
+    if (salesPerMonth?.length) {
+      let month = salesPerMonth[0]?.data.filter(
+        (sale: any) => sale.x === currentMonth
+      );
+      return month[0].y;
+    }
   };
 
   const xtractTotalClicks = () => {
-    let month = clicksPerMonth[0].data.filter(
-      (click: any) => click.x === currentMonth
-    );
-    return month[0].y;
+    if (clicksPerMonth?.length) {
+      let month = clicksPerMonth[0]?.data.filter(
+        (click: any) => click.x === currentMonth
+      );
+      return month[0].y;
+    }
   };
   return (
     <>

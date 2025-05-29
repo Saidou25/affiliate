@@ -57,7 +57,7 @@ export const createContext = async ({
     // Create the affiliate object to return in the context
     const affiliate: Affiliate = {
       id: foundAffiliate.id.toString(),
-      name: foundAffiliate.name,
+      name: foundAffiliate.name ?? "Unnamed Affiliate",
       email: foundAffiliate.email,
       refId: foundAffiliate.refId,
       totalClicks: foundAffiliate.totalClicks,
