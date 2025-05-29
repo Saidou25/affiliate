@@ -56,6 +56,7 @@ const typeDefs = gql`
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
     getAffiliateClickLogs(refId: ID): [ClickLog]
+    getAllAffiliatesClickLogs: [ClickLog!]!
   }
 
   type Mutation {

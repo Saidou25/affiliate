@@ -28,6 +28,7 @@ type Props = {
   setShowReport: (item: number | null) => void;
   salesPerMonth?: any;
   clicksPerMonth?: any;
+  clicksData?: any;
 };
 
 export default function DetailedReportView({
@@ -36,9 +37,28 @@ export default function DetailedReportView({
   setShowReport,
   salesPerMonth,
   clicksPerMonth,
+  clicksData,
 }: Props) {
   const addedSales = useAddMonthSales(monthSales);
   const addedCommissions = useAddMonthCommissions(monthSales);
+
+  // const date = new Date(currentMonth);
+  // const formatted = date.toLocaleDateString("en-US", {
+  //   month: "long",
+  //   year: "numeric",
+  // });
+  // console.log(currentMonth);
+  // console.log(formatted);
+
+  const findClicks = () => {
+      const monthClicksArrAdmin = clicksData.getAllAffiliatesClickLogs.filter((data: any) =>
+        new Date(data.createdAt).toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        }) === currentMonth
+      )
+  return monthClicksArrAdmin.length;
+  };
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
@@ -129,11 +149,13 @@ export default function DetailedReportView({
                 addedSales={addedSales()}
                 addedCommissions={addedCommissions()}
                 currentMonth={currentMonth}
-                salesPerMonth={salesPerMonth}
+                // salesPerMonth={salesPerMonth}
                 clicksPerMonth={clicksPerMonth}
+                monthSales={monthSales}
+                findClicks={findClicks()}
               />
               <br />
-              <table style={{ borderCollapse: "collapse", width: "100%" }}>
+              {/* <table style={{ borderCollapse: "collapse", width: "100%" }}>
                 <thead>
                   <tr>
                     <th className="cell-style">Month</th>
@@ -152,7 +174,7 @@ export default function DetailedReportView({
                     </td>
                   </tr>
                 </tbody>
-              </table>
+              </table> */}
             </>
           )}
           {me.role === "affiliate" && (

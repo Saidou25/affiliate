@@ -81,6 +81,16 @@ export const QUERY_ME = gql`
   }
 `;
 
+export const GET_ALLAFFILIATESCLICKLOGS = gql`
+  query getAllAffiliatesClickLogs {
+    getAllAffiliatesClickLogs {
+      id
+      refId
+      createdAt
+      updatedAt
+    }
+  }
+`;
 export const GET_AFFILIATECLICKLOGS = gql`
   query getAffiliateClickLogs($refId: ID) {
     getAffiliateClickLogs(refId: $refId) {

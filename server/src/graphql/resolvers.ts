@@ -69,6 +69,11 @@ const resolvers = {
     getAffiliateClickLogs: async (_: any, { refId }: { refId: string }) => {
       return ClickLog.find({ refId }); // likely multiple sales per affiliate
     },
+
+    getAllAffiliatesClickLogs: async (_: any, __: any, context: MyContext) => {
+      requireAdmin(context);
+      return ClickLog.find(); // likely multiple sales per affiliate
+    },
   },
 
   Mutation: {
@@ -274,8 +279,8 @@ const resolvers = {
 
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
           { refId },
-          { $inc: { totalClicks: 1 } },// Increment totalClicks by 1
-          { new: true }  // Return the updated document
+          { $inc: { totalClicks: 1 } }, // Increment totalClicks by 1
+          { new: true } // Return the updated document
         );
 
         if (!updatedAffiliate) {

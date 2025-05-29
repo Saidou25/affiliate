@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client";
-import { GET_ALLAFFILIATESALES } from "../utils/queries";
+import { GET_ALLAFFILIATESALES, GET_ALLAFFILIATESCLICKLOGS } from "../utils/queries";
 import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
@@ -15,7 +15,6 @@ interface AffiliateSale {
   __typename?: string; // Optional if you're not using it
 }
 
-
 export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
   const {
@@ -26,19 +25,11 @@ export default function AffiliatesSalesReport() {
     GET_ALLAFFILIATESALES
   );
 
+  const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
+  console.log(clicksData);
+
   const { monthlySales } = useSalesReport(salesData);
-  
 
-  //    const date = new Date();
-  //     const month = date.toLocaleString("en-US", { month: "long" });
-  //     const year = date.getFullYear();
-  //     const key = `${month} ${year}`;
-
-  // const mostRescent = () => {
-  //   for (let actualMonth of monthlySales) {
-  //     return actualMonth.month === key
-  //   }
-  // };
 
   return (
     <div className="">
@@ -52,17 +43,19 @@ export default function AffiliatesSalesReport() {
                   monthSales={monthSales.sales}
                   currentMonth={monthSales.month}
                   setShowReport={setShowReport}
+                  clicksData={clicksData}
                 />
               )}
               {showReport === null && (
                 <>
-                {/* {monthSales.month === key ? <span>most rescent report</span> : <span>previous reports</span>} */}
-                <span
-                  className="view-line"
-                  onClick={() => setShowReport(index)}
-                >
-                  {monthSales.month} detailed report
-                </span></>
+                  {/* {monthSales.month === key ? <span>most rescent report</span> : <span>previous reports</span>} */}
+                  <span
+                    className="view-line"
+                    onClick={() => setShowReport(index)}
+                  >
+                    {monthSales.month} detailed report
+                  </span>
+                </>
               )}
             </div>
           ))}
