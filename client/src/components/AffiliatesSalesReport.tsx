@@ -26,7 +26,6 @@ export default function AffiliatesSalesReport() {
   );
 
   const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
-  console.log(clicksData);
 
   const { monthlySales } = useSalesReport(salesData);
 

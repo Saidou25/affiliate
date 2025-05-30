@@ -1,17 +1,17 @@
 import { useQuery } from "@apollo/client";
-import { GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
+import { GET_AFFILIATESALES } from "../utils/queries";
 import { useEffect, useState } from "react";
 
-interface Affiliate {
-  id: string;
-  name?: string;
-  email: string;
-  refId?: string;
-  totalClicks?: number;
-  totalCommissions?: number;
-  commissionRate?: number;
-  totalSales?: number;
-}
+// interface Affiliate {
+//   id: string;
+//   name?: string;
+//   email: string;
+//   refId?: string;
+//   totalClicks?: number;
+//   totalCommissions?: number;
+//   commissionRate?: number;
+//   totalSales?: number;
+// }
 
 type DataObj = {
   x: string; // label (date, week, or month)
@@ -23,17 +23,17 @@ type SaleObj = {
   data: DataObj[];
 };
 
-export function useSalesTracker() {
-  const [me, setMe] = useState<Affiliate | null>(null);
+export function useSalesTracker(affiliateRefId: string) {
+  const [referenceId, setReferenceId] = useState("");
   const [totalSales, setTotalSales] = useState(0);
   const [salesPerDay, setSalesPerDay] = useState<SaleObj[]>([]);
   const [salesPerWeek, setSalesPerWeek] = useState<SaleObj[]>([]);
   const [salesPerMonth, setSalesPerMonth] = useState<SaleObj[]>([]);
 
-  const { data } = useQuery(QUERY_ME);
+  // const { data } = useQuery(QUERY_ME);
   const { data: salesData } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId: me?.refId },
-    skip: !me?.refId,
+    variables: { refId: referenceId },
+    skip: !referenceId,
   });
 
   const toEasternDate = (isoDate: string) =>
@@ -70,7 +70,7 @@ export function useSalesTracker() {
   };
 
   useEffect(() => {
-    if (salesData?.getAffiliateSales && me?.refId) {
+    if (salesData?.getAffiliateSales && referenceId) {
       const sortedSales = [...salesData.getAffiliateSales].sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -129,13 +129,11 @@ export function useSalesTracker() {
       setSalesPerWeek([{ id: "Sales per week", data: weeklyData }]);
       setSalesPerMonth([{ id: "Sales per month", data: monthlyData }]);
     }
-  }, [salesData, me]);
+  }, [salesData, referenceId]);
 
   useEffect(() => {
-    if (data?.me) {
-      setMe(data.me);
-    }
-  }, [data]);
+    setReferenceId(affiliateRefId);
+  }, [affiliateRefId]);
 
   useEffect(() => {
     if (salesData?.getAffiliateSales) {

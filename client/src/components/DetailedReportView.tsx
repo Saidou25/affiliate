@@ -51,13 +51,13 @@ export default function DetailedReportView({
   // console.log(formatted);
 
   const findClicks = () => {
-      const monthClicksArrAdmin = clicksData.getAllAffiliatesClickLogs.filter((data: any) =>
+      const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter((data: any) =>
         new Date(data.createdAt).toLocaleDateString("en-US", {
           month: "long",
           year: "numeric",
         }) === currentMonth
       )
-  return monthClicksArrAdmin.length;
+  return monthClicksArrAdmin?.length;
   };
 
   const { data } = useQuery(QUERY_ME);

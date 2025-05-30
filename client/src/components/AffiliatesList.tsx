@@ -52,9 +52,10 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
   // };
 
   return (
+    <>
+      <h2>Affiliates</h2>
     <div className="res">
       <h2>
-        Affiliates Team:{" "}
         {data?.getAffiliates?.length ? (
           <>
             Total sale's force has {data?.getAffiliates?.length - 1} affiliates{" "}
@@ -129,6 +130,6 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
           </table>
         </div>
       )}
-    </div>
+    </div></>
   );
 }

@@ -1,7 +1,8 @@
-import AffiliatesList from "./AffiliatesList";
-import AffiliatesSalesReport from "./AffiliatesSalesReport";
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATES } from "../utils/queries";
+import AffiliatesList from "./AffiliatesList";
+import AffiliatesSalesReport from "./AffiliatesSalesReport";
+import SearchAffiliate from "./SearchAffiliate";
 
 import "./Admin.css";
 
@@ -28,6 +29,7 @@ export default function Admin() {
         loading={loading}
         errorText={error?.message}
       />
+      <SearchAffiliate />
       <AffiliatesSalesReport  />
     </div>
   );

@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client";
 import {
+  GET_AFFILIATES,
   GET_AFFILIATESALES,
-  // GET_ALLAFFILIATESALES,
   QUERY_ME,
 } from "../utils/queries";
 import { useEffect, useState } from "react";
@@ -22,33 +22,52 @@ interface AffiliateSale {
   __typename?: string;
 }
 
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  refId: string;
+  totalClicks: number;
+  totalCommissions: number;
+  __typename?: string;
+}
+
 interface MonthlySalesGroup {
   month: string;
   sales: AffiliateSale[];
 }
-export default function DetailedReport() {
+
+type Props = {
+  refId: string;
+};
+export default function DetailedReport({ refId }: Props) {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
-
-  const { data } = useQuery(QUERY_ME);
-  const me = data.me || {};
-  const refId = me?.refId;
 
   const { data: salesData } = useQuery(GET_AFFILIATESALES, {
     variables: { refId },
     skip: !refId,
   });
-  // const { data: allSalesData, error } = useQuery(GET_ALLAFFILIATESALES);
 
-  const { salesPerMonth } = useSalesTracker();
+  const { data: affiliatesData } = useQuery(GET_AFFILIATES);
+
+  const { data: meData } = useQuery(QUERY_ME);
+  const me = meData?.me || {};
+
+  const { salesPerMonth } = useSalesTracker(refId);
   const { clicksPerMonth } = useClicksTracker();
 
-  // console.log("totalSales:", totalSales)
-  // console.log("clicksPerDay:", clicksPerDay)
-  // console.log("clicksPerWeek:", clicksPerWeek)
-  // console.log("clicksPerMonth:", clicksPerMonth);
-  // console.log("salesPerMonth:", salesPerMonth);
+  const findEmail = () => {
+    if (affiliatesData) {
+      const foundAffiliate = affiliatesData.getAffiliates.filter(
+        (affiliate: Affiliate) => affiliate.refId === refId
+      );
+      return foundAffiliate[0].email;
+    }
+  };
+
+  findEmail();
 
   useEffect(() => {
     if (salesData?.getAffiliateSales) {
@@ -94,7 +113,11 @@ export default function DetailedReport() {
 
   return (
     <>
-      <h2>Reports</h2>
+      {me.role === "admin" ? (
+        <h2>Report for {findEmail()}</h2>
+      ) : (
+        <h2>Reports</h2>
+      )}
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
           <div className="" key={monthSales.month}>

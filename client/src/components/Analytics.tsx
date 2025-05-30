@@ -1,8 +1,8 @@
 import TotalSales from "./TotalSales";
 import TotalClick from "./TotalClicks";
+import TotalCommissions from "./TotalCommissions";
 
 import "./Analytics.css";
-import TotalCommissions from "./TotalCommissions";
 
 export default function Analytics() {
   return (

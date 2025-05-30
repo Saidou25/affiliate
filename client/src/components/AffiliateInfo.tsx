@@ -22,7 +22,7 @@ export default function AffiliateInfo() {
     <div className="my-profile">
       <h1>Affiliate's Dashboard</h1>
       <Profile />
-      <DetailedReport />
+      <DetailedReport refId={refId} />
       <Analytics />
       <Products />
       <SalesTaxPolicy />
