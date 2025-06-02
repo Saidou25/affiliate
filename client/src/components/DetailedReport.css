@@ -46,6 +46,13 @@
   height: 90%;
   width: 90%;
 }
+.cell-style-top {
+  border: 1px solid #cccccc;
+  padding: 8px;
+  text-align: left;
+  color: black; 
+  text-align: center;
+}
 .cell-style {
   border: 1px solid #cccccc;
   padding: 8px;

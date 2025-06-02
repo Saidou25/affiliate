@@ -14,3 +14,13 @@ export interface MyContext {
       }
     | undefined;
 }
+export type AffiliateSale = {
+  refId: string;
+  buyerEmail: string;
+  event: string;
+  commissionEarned: number;
+  timestamp: string | Date;
+  amount: number;
+  productId: string;
+  __typename?: string;
+};

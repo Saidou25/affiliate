@@ -1,70 +1,74 @@
-import { useState } from "react";
-import AuthService from "./utils/auth";
-import RegisterForm from "./components/RegisterForm";
-import AffiliateLogin from "./components/AffiliateLogin";
-import Dashboard from "./components/Dashboard";
+import { Routes, Route } from "react-router-dom";
+import Register from "./components/Register";
+import Login from "./components/Login";
+import Home from "./components/Home";
+import AffiliateDashboard from "./components/AffiliateDashboard";
+import Profile from "./components/Profile";
+import Analytics from "./components/Analytics";
+import DetailedReport from "./components/DetailedReport";
+import { useQuery } from "@apollo/client";
+import { GET_AFFILIATES, QUERY_ME } from "./utils/queries";
+import Products from "./components/Products";
+import DataCenter from "./components/DataCenter";
+import AffiliatesSalesReport from "./components/AffiliatesSalesReport";
+import AffiliatesLookUp from "./components/AffiliatesLookUp";
+import AffiliatesList from "./components/AffiliatesList";
+import AdminDashboard from "./components/AdminDashboard";
 
 import "./index.css";
-import { useQuery } from "@apollo/client";
-import { QUERY_ME } from "./utils/queries";
+
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  refId: string;
+  totalClicks: number;
+  totalCommissions: number;
+  __typename?: string;
+}
 
 function App() {
-  const [showRegistration, setShowRegistration] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
+  const { data: meData } = useQuery(QUERY_ME);
+  const me = meData?.me || {};
 
-  const isLoggedIn = AuthService.loggedIn();
+  const refId = me?.refId;
 
-  const { data } = useQuery(QUERY_ME);
-  const me = data?.me || {};
+  const { data, loading, error } = useQuery<{ getAffiliates: Affiliate[] }>(
+    GET_AFFILIATES
+  );
 
-  if (showRegistration) {
-    return <RegisterForm closeForm={setShowRegistration} />;
-  }
-  if (showLogin) {
-    return <AffiliateLogin closeForm={setShowLogin} />;
-  }
-  if (isLoggedIn) {
-    return <Dashboard data={me.role} />;
-  }
   return (
-    <div
-      className="but-container"
-      style={{
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        marginTop: "30%",
-      }}
-    >
-      <button
-        className=""
-        onClick={() => {
-          setShowRegistration(true);
-        }}
-        style={{
-          padding: "1%",
-          borderRadius: "10px",
-          width: "20%",
-          margin: "5px",
-        }}
-      >
-        Register
-      </button>
-      <button
-        className=""
-        onClick={() => {
-          setShowLogin(true);
-        }}
-        style={{
-          padding: "1%",
-          borderRadius: "10px",
-          width: "20%",
-          margin: "5px",
-        }}
-      >
-        Login
-      </button>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/admin" element={<AdminDashboard data={data}
+              loading={loading}
+              errorText={error?.message}/>}>
+        <Route
+          path="affiliatesList"
+          element={
+            <AffiliatesList
+              data={data}
+              loading={loading}
+              errorText={error?.message}
+            />
+          }
+        />
+        <Route path="affiliatesLookUp" element={<AffiliatesLookUp />} />
+        <Route
+          path="affiliatesSalesReport"
+          element={<AffiliatesSalesReport />}
+        />
+        <Route path="datacenter" element={<DataCenter />} />
+      </Route>
+      <Route path="/affiliate" element={<AffiliateDashboard />}>
+        <Route path="products" element={<Products />} />
+        <Route path="reports" element={<DetailedReport refId={refId} />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="profile" element={<Profile />} />
+      </Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+    </Routes>
   );
 }
 

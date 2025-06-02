@@ -78,15 +78,16 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
             style={{ borderCollapse: "collapse", width: "100%" }}
           >
             <thead>
-              <tr>
-                <th className="cell-style">Email</th>
-                <th className="cell-style">Reference ID</th>
-                <th className="cell-style">Affiliate ID</th>
-                <th className="cell-style">Affiliate since</th>
-                <th className="cell-style">Total Clicks(yearly)</th>
-                <th className="cell-style">Total Sales(yearly)</th>
-                <th className="cell-style">CommissionRate</th>
-                <th className="cell-style">Commissions Earned(yearly)</th>
+              <tr style={{ textAlign: "center" }}>
+                <th className="cell-style-top">Email</th>
+                <th className="cell-style-top">Affiliate ID</th>
+                <th className="cell-style-top">Reference ID</th>
+                <th className="cell-style-top">Affiliate since</th>
+                <th className="cell-style-top">Total Clicks(yearly)</th>
+                <th className="cell-style-top">Total Sales(yearly)</th>
+                <th className="cell-style-top">Total Sale's amount(yearly)</th>
+                <th className="cell-style-top">Commission Rate</th>
+                <th className="cell-style-top">Commissions Earned(yearly)</th>
                 {/* <th className="cell-style">Price</th> */}
               </tr>
             </thead>
@@ -107,6 +108,7 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
                         )}
                       </td>
                       <td className="cell-style">{affiliate.totalClicks}</td>
+                      <td className="cell-style"></td>
                       <td className="cell-style">
                         ${affiliate.totalSales}
                       </td>

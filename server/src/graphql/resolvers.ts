@@ -10,6 +10,7 @@ import { sendTrackASaleConfEmail } from "../utils/sendTrackASaleConfEmail";
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 import ClickLog from "../models/ClickLog";
+import ReportHistory from "../models/ReportHistory";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -25,6 +26,14 @@ function requireAdmin(context: MyContext) {
     console.warn(`⚠️ Access denied: user role is '${context.affiliate.role}'`);
     throw new Error("Admin privileges required");
   }
+}
+
+interface PaymentInput {
+  amount: number;
+  date: Date;
+  method: string;
+  transactionId?: string;
+  notes?: string;
 }
 
 const resolvers = {
@@ -73,6 +82,37 @@ const resolvers = {
     getAllAffiliatesClickLogs: async (_: any, __: any, context: MyContext) => {
       requireAdmin(context);
       return ClickLog.find(); // likely multiple sales per affiliate
+    },
+
+    getAllReports: async () => {
+      const history = await ReportHistory.findOne();
+      if (!history) return [];
+
+      // Convert each pdf buffer to base64 string
+      return history.reports.map((report) => ({
+        month: report.month,
+        createdAt: report.createdAt,
+        pdf: report.pdf.toString("base64"), // <-- convert Buffer to base64 string here
+      }));
+    },
+
+    getReportByMonth: async (_: any, { month }: { month: string }) => {
+      const history = await ReportHistory.findOne();
+      return history?.reports.find((r) => r.month === month) || null;
+    },
+
+    getAffiliatePaymentHistory: async (
+      _: any,
+      { refId }: { refId: string }
+    ) => {
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate) throw new Error("Affiliate not found");
+      return affiliate.paymentHistory;
+    },
+
+    getAllAffiliatePayments: async (_: any, __: any, context: MyContext) => {
+      requireAdmin(context);
+      return Affiliate.find({ "paymentHistory.0": { $exists: true } });
     },
   },
 
@@ -295,6 +335,72 @@ const resolvers = {
       } catch (error) {
         console.error("Error logging click:", error);
         throw new Error("Failed to log click");
+      }
+    },
+
+    addMonthlyReport: async (
+      _: any,
+      { month, pdf }: { month: string; pdf: string }
+    ) => {
+      const buffer = Buffer.from(pdf, "base64");
+
+      let history = await ReportHistory.findOne();
+
+      if (!history) {
+        history = new ReportHistory({ reports: [] });
+      }
+
+      // Remove existing entry if same month exists
+      history.reports = history.reports.filter((r) => r.month !== month);
+
+      history.reports.push({ month, pdf: buffer });
+      await history.save();
+
+      return history.reports.find((r) => r.month === month);
+    },
+
+    addAffiliatePayment: async (
+      _: unknown,
+      {
+        payment,
+        refId,
+      }: {
+        payment: PaymentInput;
+        refId: string;
+      }
+    ) => {
+      try {
+        // 🔍 1. Find the affiliate by refId
+        const affiliate = await Affiliate.findOne({ refId });
+        if (!affiliate) throw new Error("Affiliate not found");
+
+        if (payment.amount > affiliate.totalCommissions)
+          throw new Error("Payment exceeds unpaid commissions.");
+
+        // 💰 2. Add payment record to history
+        affiliate.paymentHistory.push(payment);
+
+        await affiliate.save();
+
+        // 📧 4. Send confirmation emails
+        // await sendConfirmationEmail({
+        //   buyerEmail,
+        //   event,
+        //   amount,
+        //   commission,
+        // });
+        // await sendTrackASaleConfEmail({
+        //   buyerEmail,
+        //   affiliateEmail: affiliate.email,
+        //   event,
+        //   amount,
+        //   commission,
+        // });
+
+        return affiliate;
+      } catch (error) {
+        console.error("❌ Error tracking affiliate sale:", error);
+        throw new Error("Failed to track affiliate sale");
       }
     },
   },

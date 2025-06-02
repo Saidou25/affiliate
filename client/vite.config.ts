@@ -7,5 +7,5 @@ export default defineConfig({
   build: {
     outDir: 'dist',  // This is pointing to the 'dist' folder inside the client
   },
-  base: '/affiliate/', 
+  base: '/', 
 });

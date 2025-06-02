@@ -1,6 +1,14 @@
 import mongoose, { CallbackError, Document, Schema } from "mongoose";
 import * as bcrypt from "bcrypt";
 
+interface IPaymentRecord {
+  amount: number;
+  date: Date;
+  method: "paypal" | "bank" | "crypto" | string;
+  transactionId?: string;
+  notes?: string;
+}
+
 interface IAffiliate extends Document {
   name: string;
   email: string;
@@ -13,6 +21,7 @@ interface IAffiliate extends Document {
   role?: "admin" | "affiliate";
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
+  paymentHistory: IPaymentRecord[];
 }
 
 const AffiliateSchema = new Schema<IAffiliate>(
@@ -26,6 +35,15 @@ const AffiliateSchema = new Schema<IAffiliate>(
     commissionRate: { type: Number, default: 0.1 }, // 10 %
     totalSales: { type: Number, default: 0 },
     role: { type: String, enum: ["admin", "affiliate"], default: "affiliate" },
+    paymentHistory: [
+      {
+        amount: { type: Number, required: true },
+        date: { type: Date, required: true },
+        method: { type: String, required: true },
+        transactionId: { type: String },
+        notes: { type: String },
+      },
+    ],
   },
   { timestamps: true } // 👈 automatically adds createdAt and updatedAt
 );

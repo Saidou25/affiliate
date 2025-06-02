@@ -16,7 +16,7 @@ interface AffiliateSale {
   buyerEmail: string;
   event: string;
   commissionEarned: number;
-  timestamp: string;
+  timestamp: string | Date;
   amount: number;
   productId: string;
   __typename?: string; // Optional if you're not using it
@@ -51,13 +51,14 @@ export default function DetailedReportView({
   // console.log(formatted);
 
   const findClicks = () => {
-      const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter((data: any) =>
+    const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
+      (data: any) =>
         new Date(data.createdAt).toLocaleDateString("en-US", {
           month: "long",
           year: "numeric",
         }) === currentMonth
-      )
-  return monthClicksArrAdmin?.length;
+    );
+    return monthClicksArrAdmin?.length;
   };
 
   const { data } = useQuery(QUERY_ME);
@@ -111,7 +112,7 @@ export default function DetailedReportView({
             backgroundColor: "rgb(243, 238, 220)",
           }}
         >
-          <h2 style={{ color: "black" }}>Detailed Report for {currentMonth}</h2>
+          <h3 style={{ color: "black" }}>Detailed Report for {currentMonth}</h3>
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
@@ -155,26 +156,6 @@ export default function DetailedReportView({
                 findClicks={findClicks()}
               />
               <br />
-              {/* <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                <thead>
-                  <tr>
-                    <th className="cell-style">Month</th>
-                    <th className="cell-style">Total Sales</th>
-                    <th className="cell-style">Total Commissions</th>
-                    <th className="cell-style">Earnings</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="cell-style">{currentMonth}</td>
-                    <td className="cell-style">${addedSales()}</td>
-                    <td className="cell-style">${addedCommissions()}</td>
-                    <td className="cell-style">
-                      ${addedSales() - addedCommissions()}
-                    </td>
-                  </tr>
-                </tbody>
-              </table> */}
             </>
           )}
           {me.role === "affiliate" && (

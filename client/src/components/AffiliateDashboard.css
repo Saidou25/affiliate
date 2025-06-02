@@ -1,0 +1,44 @@
+.my-profile {
+    border: 1px solid white;
+    padding: 2%;
+    border-radius: 10px;
+    margin-top: 2%;
+}
+.clicks-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+.log-out {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: 3%;
+}
+.iomdlogout {
+  height: 40px;
+  width: 40px;
+  color: black;
+  cursor: pointer;
+}
+.iomdlogout:hover {
+  height: 40px;
+  width: 40px;
+  color: rgb(78, 135, 227);
+  cursor: pointer;
+}
+
+.card {
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    margin: 5px; 
+    padding: 2%;
+    border-radius: 10px;
+}
+.card-title {
+    text-align: center;
+}
+.card-footer {
+    text-align: center;
+}

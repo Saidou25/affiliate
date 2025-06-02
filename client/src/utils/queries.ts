@@ -91,6 +91,7 @@ export const GET_ALLAFFILIATESCLICKLOGS = gql`
     }
   }
 `;
+
 export const GET_AFFILIATECLICKLOGS = gql`
   query getAffiliateClickLogs($refId: ID) {
     getAffiliateClickLogs(refId: $refId) {
@@ -98,6 +99,53 @@ export const GET_AFFILIATECLICKLOGS = gql`
       refId
       createdAt
       updatedAt
+    }
+  }
+`;
+
+export const GET_REPORT_BY_MONTH = gql`
+  query getReportByMonth($month: String!) {
+    getReportByMonth(month: $month) {
+      month
+      createdAt
+      pdf
+    }
+  }
+`;
+
+export const GET_ALLREPORTS = gql`
+  query getAllReports {
+    getAllReports {
+      month
+      createdAt
+      pdf
+    }
+  }
+`;
+
+export const GET_AFFILIATE_PAYMENT_HISTORY = gql`
+  query GetAffiliatePaymentHistory($refId: String!) {
+    getAffiliatePaymentHistory(refId: $refId) {
+      amount
+      date
+      method
+      transactionId
+      notes
+    }
+  }
+`;
+
+export const GET_ALL_AFFILIATE_PAYMENTS = gql`
+  query GetAllAffiliatePayments {
+    getAllAffiliatePayments {
+      id
+      email
+      name
+      paymentHistory {
+        amount
+        date
+        method
+      }
     }
   }
 `;

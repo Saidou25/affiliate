@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 import path from "path";
 
@@ -59,3 +60,4 @@ async function startApolloServer() {
 startApolloServer().catch((err) => {
   console.error("❌ Server failed to start:", err);
 });
+

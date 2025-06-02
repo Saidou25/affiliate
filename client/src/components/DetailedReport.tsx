@@ -114,7 +114,7 @@ export default function DetailedReport({ refId }: Props) {
   return (
     <>
       {me.role === "admin" ? (
-        <h2>Report for {findEmail()}</h2>
+        <h3>Report for {findEmail()}</h3>
       ) : (
         <h2>Reports</h2>
       )}
