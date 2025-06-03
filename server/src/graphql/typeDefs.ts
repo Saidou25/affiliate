@@ -87,6 +87,8 @@ const typeDefs = gql`
     getAllAffiliatesClickLogs: [ClickLog!]!
     getReportByMonth(month: String!): ReportEntry
     getAllReports: [ReportEntry!]!
+    getAffiliatePaymentHistory(refId: String!): [PaymentRecord!]!
+    getAllAffiliatePayments: [PaymentRecord!]!
   }
 
   type Mutation {
@@ -128,8 +130,6 @@ const typeDefs = gql`
     ): AffiliateSale!
 
     addMonthlyReport(month: String!, pdf: String!): ReportEntry!
-
-    addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
 
     addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
   }
