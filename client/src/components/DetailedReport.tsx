@@ -16,6 +16,7 @@ interface AffiliateSale {
   buyerEmail: string;
   event: string;
   commissionEarned: number;
+  commissionStatus: string;
   timestamp: string;
   amount: number;
   productId: string;
