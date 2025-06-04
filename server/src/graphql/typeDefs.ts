@@ -53,6 +53,7 @@ const typeDefs = gql`
     event: String!
     timestamp: Date!
     commissionEarned: Float
+    commissionStatus: String
   }
 
   type ClickLog {
@@ -127,7 +128,10 @@ const typeDefs = gql`
       event: String!
       timestamp: Date
       commissionEarned: Float
+      commissionStatus: String
     ): AffiliateSale!
+
+    markSaleAsPaid(saleId: ID!): AffiliateSale
 
     addMonthlyReport(month: String!, pdf: String!): ReportEntry!
 

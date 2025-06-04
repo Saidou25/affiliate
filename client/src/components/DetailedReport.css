@@ -59,6 +59,22 @@
   text-align: left;
   color: black; 
 }
+.paid-button {
+  padding: 4px 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  /* cursor: pointer; */
+}
+.unpaid-button {
+  padding: 4px 10px;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  /* cursor: pointer; */
+}
 /* #pdf-content {
   font-family: Arial, sans-serif;
   color: black;

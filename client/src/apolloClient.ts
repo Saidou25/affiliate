@@ -1,14 +1,11 @@
 // src/apolloClient.ts
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink
-} from "@apollo/client";
+import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
 // 1️⃣ Determine your GraphQL endpoint
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.DEV
+  ? import.meta.env.VITE_API_URL
+  : import.meta.env.VITE_API_BASE_URL;
 
 // 2️⃣ Create an HTTP link to your server
 const httpLink = createHttpLink({

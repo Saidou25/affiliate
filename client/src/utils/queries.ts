@@ -45,6 +45,7 @@ export const GET_ALLAFFILIATESALES = gql`
       event
       timestamp
       commissionEarned
+      commissionStatus
     }
   }
 `;
@@ -60,6 +61,7 @@ export const GET_AFFILIATESALES = gql`
       event
       timestamp
       commissionEarned
+      commissionStatus
     }
   }
 `;

@@ -277,7 +277,8 @@ const resolvers = {
           amount,
           event,
           timestamp: timestamp || new Date(),
-          commissionEarned: commission.toFixed(2),
+          commissionEarned: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number
+          commissionStatus: "unpaid", // ✅ explicitly set default
         });
         await sale.save();
 
@@ -402,6 +403,22 @@ const resolvers = {
         console.error("❌ Error tracking affiliate sale:", error);
         throw new Error("Failed to track affiliate sale");
       }
+    },
+
+    markSaleAsPaid: async (
+      _: unknown,
+      { saleId }: { saleId: string },
+      context: MyContext
+    ) => {
+      requireAdmin(context); // or your own admin check logic
+
+      const sale = await AffiliateSale.findById(saleId);
+      if (!sale) throw new Error("Sale not found");
+
+      sale.commissionStatus = "paid";
+      await sale.save();
+
+      return sale;
     },
   },
 };

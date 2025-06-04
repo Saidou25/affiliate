@@ -2,7 +2,6 @@ import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
-// import html2pdf from "html2pdf.js";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
@@ -16,10 +15,11 @@ interface AffiliateSale {
   buyerEmail: string;
   event: string;
   commissionEarned: number;
+  commissionStatus: string;
   timestamp: string | Date;
   amount: number;
   productId: string;
-  __typename?: string; // Optional if you're not using it
+  __typename?: string;
 }
 
 type Props = {
@@ -41,15 +41,7 @@ export default function DetailedReportView({
 }: Props) {
   const addedSales = useAddMonthSales(monthSales);
   const addedCommissions = useAddMonthCommissions(monthSales);
-
-  // const date = new Date(currentMonth);
-  // const formatted = date.toLocaleDateString("en-US", {
-  //   month: "long",
-  //   year: "numeric",
-  // });
-  // console.log(currentMonth);
-  // console.log(formatted);
-
+  console.log(monthSales);
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
       (data: any) =>
@@ -116,13 +108,14 @@ export default function DetailedReportView({
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
-                <th className="cell-style">Purchase date</th>
-                <th className="cell-style">Buyer's email</th>
-                <th className="cell-style">Product</th>
-                <th className="cell-style">Product ID</th>
-                <th className="cell-style">Reference ID</th>
-                <th className="cell-style">Price</th>
-                <th className="cell-style">Commission</th>
+                <th className="cell-style-top">Purchase date</th>
+                <th className="cell-style-top">Buyer's email</th>
+                <th className="cell-style-top">Product</th>
+                <th className="cell-style-top">Product ID</th>
+                <th className="cell-style-top">Reference ID</th>
+                <th className="cell-style-top">Price</th>
+                <th className="cell-style-top">Commission</th>
+                <th className="cell-style-top">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -135,11 +128,30 @@ export default function DetailedReportView({
                       })}
                     </td>
                     <td className="cell-style">{sale.buyerEmail}</td>
-                    <td className="cell-style">{sale.event}</td>
+                    <td className="cell-style">
+                      {sale.event.length <= 20
+                        ? sale.event
+                        : `${sale.event.slice(0, 20)}...`}
+                    </td>
                     <td className="cell-style">{sale.productId}</td>
                     <td className="cell-style">{sale.refId}</td>
                     <td className="cell-style">${sale.amount}</td>
                     <td className="cell-style">${sale.commissionEarned}</td>
+                    <td className="cell-style">
+                      <button
+                        className={
+                          sale?.commissionStatus === "paid"
+                            ? "paid-button"
+                            : "unpaid-button"
+                        }
+                      >
+                        {sale?.commissionStatus === "paid" ? (
+                          <span>paid</span>
+                        ) : (
+                          <span>pay</span>
+                        )}
+                      </button>
+                    </td>
                   </tr>
                 ))}
             </tbody>

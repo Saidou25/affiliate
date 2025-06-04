@@ -1,13 +1,14 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface IAffiliateSale extends Document {
-  productId: string,
-  refId: string,
-  buyerEmail: string,
-  amount: number,
-  event: "purchase",
-  timestamp: Date,
-  commissionEarned: number
+  productId: string;
+  refId: string;
+  buyerEmail: string;
+  amount: number;
+  event: "purchase";
+  timestamp: Date;
+  commissionEarned: number;
+  commissionStatus: "paid" | "unpaid";
 }
 
 const AffiliateSaleSchema = new Schema<IAffiliateSale>({
@@ -17,7 +18,12 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>({
   amount: { type: Number },
   timestamp: { type: Date, default: Date.now },
   buyerEmail: { type: String, required: false },
-  commissionEarned: { type: Number }
+  commissionEarned: { type: Number },
+  commissionStatus: {
+    type: String,
+    enum: ["paid", "unpaid"],
+    default: "unpaid", // ✅ Mongoose handles the default
+  },
 });
 
 const AffiliateSale = mongoose.model<IAffiliateSale>(
