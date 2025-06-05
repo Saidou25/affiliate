@@ -1,14 +1,8 @@
-// import { useQuery } from "@apollo/client";
-// import { QUERY_ME } from "../utils/queries";
 
 import { AffiliateSale } from "../types";
 
 export default function useAddMonthCommissions(monthSales: AffiliateSale[]) {
-  // const { data } = useQuery(QUERY_ME);
-  // const me = data?.me || {};
-  // const rate = me.commissionRate;
 
-  console.log("month Sales: ", monthSales);
   const calculateCommissionsByStatus = () => {
     let totalUnpaid = 0;
     let totalPaid = 0;

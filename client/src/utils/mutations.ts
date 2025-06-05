@@ -107,6 +107,15 @@ export const TRACK_AFFILIATESALES = gql`
   }
 `;
 
+export const UPDATE_AFFILIATE_SALE = gql`
+  mutation UpdateAffiliateSale($saleId: ID!, $commissionStatus: String) {
+    updateAffiliateSale(id: $saleId, commissionStatus: $commissionStatus) {
+      id
+      commissionStatus
+    }
+  }
+`;
+
 export const CLICK_LOG = gql`
   mutation ClickLog($refId: String) {
     clickLog(refId: $refId) {
@@ -122,10 +131,7 @@ export const MARK_SALE_HAS_PAID = gql`
     markSaleAsPaid(saleId: $saleId) {
       id
       refId
-      createdAt
-      updatedAt
       productId
-      refId
       buyerEmail
       amount
       event

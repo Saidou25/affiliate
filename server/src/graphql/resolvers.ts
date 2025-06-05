@@ -309,78 +309,61 @@ const resolvers = {
         throw new Error("Failed to track affiliate sale");
       }
     },
+updateAffiliateSale: async (
+  _: unknown,
+  {
+    id,
+    productId,
+    refId,
+    buyerEmail,
+    amount,
+    event,
+    timestamp,
+    commissionStatus,
+    commissionEarned,
+  }: {
+    id: string;
+    productId?: string;
+    refId?: string;
+    buyerEmail?: string;
+    amount?: number;
+    event?: string;
+    timestamp?: Date | string;
+    commissionStatus?: string;
+    commissionEarned?: number;
+  }
+) => {
+  try {
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (productId !== undefined) updateData.productId = productId;
+    if (refId !== undefined) updateData.refId = refId;
+    if (buyerEmail !== undefined) updateData.buyerEmail = buyerEmail;
+    if (amount !== undefined) updateData.amount = amount;
+    if (event !== undefined) updateData.event = event;
+    if (timestamp !== undefined) updateData.timestamp = new Date(timestamp);
+    if (commissionStatus !== undefined) updateData.commissionStatus = commissionStatus;
+    if (commissionEarned !== undefined) updateData.commissionEarned = commissionEarned;
 
-    // updateAffiliateSale: async (
-    //   _: unknown,
-    //   {
-    //     id,
-    //     productId,
-    //     refId,
-    //     buyerEmail,
-    //     amount,
-    //     event,
-    //     timestamp,
-    //     commissionStatus,
-    //   }: {
-    //     id: string;
-    //     productId: string;
-    //     refId: string;
-    //     buyerEmail: string;
-    //     amount: number;
-    //     event: string;
-    //     timestamp?: Date;
-    //     commissionStatus?: string;
-    //   }
-    // ) => {
-    //   try {
-    //     // 🔍 1. Find the affiliate by refId
-    //     const affiliate = await Affiliate.findOne({ refId });
-    //     if (!affiliate) throw new Error("Affiliate not found");
+    const updatedSale = await AffiliateSale.findOneAndUpdate(
+      { _id: id },
+      updateData,
+      { new: true }
+    );
 
-    //     // 💰 2. Calculate the commission (default 10% if none set)
-    //     const commissionRate = affiliate.commissionRate ?? 0.1;
-    //     const commission = amount * commissionRate;
+    if (!updatedSale) throw new Error("Sale not found");
 
-    //     // 📝 3. Save the sale
-    //     const sale = new AffiliateSale({
-    //       productId,
-    //       refId,
-    //       buyerEmail,
-    //       amount,
-    //       event,
-    //       timestamp: timestamp || new Date(),
-    //       commissionEarned: parseFloat(commission.toFixed(2)),
-    //       commissionStatus,
-    //     });
-    //     await sale.save();
+    // Optionally send emails or update stats here if you want
+    // await sendConfirmationEmail({ ... });
+    // await updateAffiliateStats(updatedSale);
 
-    //     // 📧 4. Send confirmation emails
-    //     // await sendConfirmationEmail({
-    //     //   buyerEmail,
-    //     //   event,
-    //     //   amount,
-    //     //   commission,
-    //     // });
-    //     // await sendTrackASaleConfEmail({
-    //     //   buyerEmail,
-    //     //   affiliateEmail: affiliate.email,
-    //     //   event,
-    //     //   amount,
-    //     //   commission,
-    //     // });
+    return updatedSale;
+  } catch (error: any) {
+    console.error("Failed to update affiliate sale:", error);
+    throw new Error("Failed to update affiliate sale");
+  }
+},
 
-    //     // 📈 5. Update affiliate’s stats
-    //     affiliate.totalSales = (affiliate.totalSales || 0) + amount;
-    //     affiliate.totalCommissions =
-    //       (affiliate.totalCommissions || 0) + commission;
-    //     await affiliate.save();
-
-    //     return sale;
-    //   } catch (error) {
-    //     console.error("❌ Error tracking affiliate sale:", error);
-    //     throw new Error("Failed to track affiliate sale");
-    //   }
-    // },
 
     clickLog: async (_: unknown, { refId }: { refId: string }) => {
       try {

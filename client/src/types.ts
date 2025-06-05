@@ -8,7 +8,6 @@ export type AffiliateSale = {
   timestamp: string | Date;
   amount: number;
   productId: string;
-  __typename?: string;
 };
 
 export type PaymentRecord = {

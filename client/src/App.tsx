@@ -6,6 +6,7 @@ import AffiliateDashboard from "./components/AffiliateDashboard";
 import Profile from "./components/Profile";
 import Analytics from "./components/Analytics";
 import DetailedReport from "./components/DetailedReport";
+import { Affiliate } from "./types";
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATES, QUERY_ME } from "./utils/queries";
 import Products from "./components/Products";
@@ -16,7 +17,6 @@ import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 
 import "./index.css";
-import { Affiliate } from "./types";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);

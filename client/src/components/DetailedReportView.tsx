@@ -13,17 +13,16 @@ import { Affiliate, AffiliateSale } from "../types";
 import { useState } from "react";
 import Spinner from "./Spinner";
 import { useMutation } from "@apollo/client";
-import { MARK_SALE_HAS_PAID } from "../utils/mutations";
-
+import { UPDATE_AFFILIATE_SALE } from "../utils/mutations";
 
 type Props = {
-  monthSales: AffiliateSale[];
+  monthSales: any;
   currentMonth: string;
   setShowReport: (item: number | null) => void;
   salesPerMonth?: any;
   clicksPerMonth?: any;
   clicksData?: any;
-  me: Affiliate;
+  me?: Affiliate;
 };
 
 export default function DetailedReportView({
@@ -64,7 +63,30 @@ export default function DetailedReportView({
   //   },
   // });
 
-  const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID);
+  // const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID);
+  const [updateAffiliateSale] = useMutation(UPDATE_AFFILIATE_SALE);
+
+  const payNow = async (sale: AffiliateSale) => {
+    setLoadingId(sale.id);
+    const id = sale.id;
+    console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
+    if (!id || typeof id !== "string") {
+      console.error("❌ Invalid saleId:", id);
+      return;
+    }
+    try {
+      const { data } = await updateAffiliateSale({
+        variables: { saleId: id, commissionStatus: "paid" },
+      });
+      if (data) {
+        console.log("payment successful!");
+        setLoadingId(null);
+      }
+    } catch (error: any) {
+      console.error("GraphQL error:", error.message);
+      console.error("Full error object:", error);
+    }
+  };
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
@@ -77,28 +99,29 @@ export default function DetailedReportView({
     return monthClicksArrAdmin?.length;
   };
 
-  const payNow = async (sale: AffiliateSale) => {
-    setLoadingId(sale.id);
-    const id = sale.id;
-    console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
-    if (!id || typeof id !== "string") {
-      console.error("❌ Invalid saleId:", id);
-      return;
-    }
-
-    try {
-      const { data } = await markSaleAsPaid({
-        variables: { saleId: id },
-      });
-      if (data) {
-        console.log("payment successful!");
-        setLoadingId(null);
-      }
-    } catch (error: any) {
-      console.error("GraphQL error:", error.message);
-      console.error("Full error object:", error);
-    }
-  };
+  // const payNow = async (sale: AffiliateSale) => {
+  //   setLoadingId(sale.id);
+  //   const id = sale.id;
+  //   console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
+  //   if (!id || typeof id !== "string") {
+  //     console.error("❌ Invalid saleId:", id);
+  //     return;
+  //   }
+  //   if (id) {
+  //     try {
+  //       const { data } = await markSaleAsPaid({
+  //         variables: { saleId: id },
+  //       });
+  //       if (data) {
+  //         console.log("payment successful!");
+  //         setLoadingId(null);
+  //       }
+  //     } catch (error: any) {
+  //       console.error("GraphQL error:", error.message);
+  //       console.error("Full error object:", error);
+  //     }
+  //   }
+  // };
 
   async function saveToPDF() {
     const element = document.getElementById("pdf-content");
@@ -165,7 +188,7 @@ export default function DetailedReportView({
             </thead>
             <tbody>
               {monthSales &&
-                monthSales?.map((sale, index) => (
+                monthSales?.map((sale: any, index: number) => (
                   <tr key={index}>
                     <td className="cell-style">
                       {new Date(sale.timestamp).toLocaleDateString("en-US", {
