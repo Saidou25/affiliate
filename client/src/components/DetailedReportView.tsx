@@ -9,22 +9,12 @@ import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 import TotalBar from "./TotalBar";
 
 import "./DetailedReport.css";
-import { AffiliateSale } from "../types";
+import { Affiliate, AffiliateSale } from "../types";
 import { useState } from "react";
 import Spinner from "./Spinner";
 import { useMutation } from "@apollo/client";
 import { MARK_SALE_HAS_PAID } from "../utils/mutations";
 
-interface Affiliate {
-  id: string;
-  name: string;
-  email: string;
-  refId: string;
-  totalClicks: number;
-  totalCommissions: number;
-  role: string;
-  __typename?: string;
-}
 
 type Props = {
   monthSales: AffiliateSale[];

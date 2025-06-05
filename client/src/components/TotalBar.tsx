@@ -71,12 +71,12 @@ export default function TotalBar({
         <tbody>
           <tr>
             <td className="cell-style">{currentMonth}</td>
-            {me?.role === "admin" ? (
+            {me.role === "admin" ? (
               <td className="cell-style">{findClicks}</td>
             ) : (
               <td className="cell-style">{xtractTotalClicks()}</td>
             )}
-            {me?.role === "admin" ? (
+            {me.role === "admin" ? (
               <td className="cell-style">{monthSales?.length}</td>
             ) : (
               <td className="cell-style">{xtractTotalSales()}</td>
@@ -89,7 +89,7 @@ export default function TotalBar({
             </td>
             <td className="cell-style">${calculateCommissionsByStatus.paid}</td>
             <td className="cell-style">
-              {me?.role === "affiliate"
+              {me.role === "affiliate"
                 ? `$${calculateCommissionsByStatus.paid.toFixed(2)}`
                 : `$${(addedSales - calculateCommissionsByStatus.paid).toFixed(
                     2

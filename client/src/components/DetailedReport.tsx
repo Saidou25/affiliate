@@ -10,29 +10,7 @@ import { useSalesTracker } from "../hooks/useSalesTracker";
 import DetailedReportView from "./DetailedReportView";
 
 import "./DetailedReport.css";
-
-interface AffiliateSale {
-  id: string;
-  refId: string;
-  buyerEmail: string;
-  event: string;
-  commissionEarned: number;
-  commissionStatus: string;
-  timestamp: string;
-  amount: number;
-  productId: string;
-  __typename?: string;
-}
-
-interface Affiliate {
-  id: string;
-  name: string;
-  email: string;
-  refId: string;
-  totalClicks: number;
-  totalCommissions: number;
-  __typename?: string;
-}
+import { Affiliate, AffiliateSale } from "../types";
 
 interface MonthlySalesGroup {
   month: string;
