@@ -3,17 +3,7 @@ import { GET_ALLAFFILIATESALES, GET_ALLAFFILIATESCLICKLOGS } from "../utils/quer
 import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
-
-interface AffiliateSale {
-  refId: string;
-  buyerEmail: string;
-  event: string;
-  commissionEarned: number;
-  timestamp: string;
-  amount: number;
-  productId: string;
-  __typename?: string; // Optional if you're not using it
-}
+import { AffiliateSale } from "../types";
 
 export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);

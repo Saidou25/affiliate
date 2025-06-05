@@ -16,17 +16,7 @@ import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 
 import "./index.css";
-
-interface Affiliate {
-  id: string;
-  name: string;
-  email: string;
-  refId: string;
-  totalClicks: number;
-  totalCommissions: number;
-  role: string;
-  __typename?: string;
-}
+import { Affiliate } from "./types";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);
