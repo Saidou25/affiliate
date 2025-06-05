@@ -94,12 +94,15 @@ export const TRACK_AFFILIATESALES = gql`
       event: $event
       timestamp: $timestamp
     ) {
+      id
       productId
       refId
       buyerEmail
       amount
       event
       timestamp
+      commissionEarned
+      commissionStatus
     }
   }
 `;
@@ -110,6 +113,25 @@ export const CLICK_LOG = gql`
       refId
       createdAt
       updatedAt
+    }
+  }
+`;
+
+export const MARK_SALE_HAS_PAID = gql`
+  mutation MarkSaleAsPaid($saleId: String!) {
+    markSaleAsPaid(saleId: $saleId) {
+      id
+      refId
+      createdAt
+      updatedAt
+      productId
+      refId
+      buyerEmail
+      amount
+      event
+      timestamp
+      commissionEarned
+      commissionStatus
     }
   }
 `;

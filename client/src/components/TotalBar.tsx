@@ -1,28 +1,37 @@
-import { useQuery } from "@apollo/client";
-import { QUERY_ME } from "../utils/queries";
+interface Affiliate {
+  id: string;
+  name: string;
+  email: string;
+  refId: string;
+  totalClicks: number;
+  totalCommissions: number;
+  role: string;
+  __typename?: string;
+}
 
 type Props = {
   addedSales: number;
   addedCommissions: number;
+  calculateCommissionsByStatus: { unpaid: number; paid: number };
   findClicks?: number;
   currentMonth: string;
   salesPerMonth?: any;
   clicksPerMonth?: any;
   monthSales?: any;
+  me: Affiliate;
 };
 
 export default function TotalBar({
   addedSales,
   addedCommissions,
+  calculateCommissionsByStatus,
   findClicks,
   currentMonth,
   clicksPerMonth,
   monthSales,
   salesPerMonth,
+  me,
 }: Props) {
-  const { data } = useQuery(QUERY_ME);
-  const me = data?.me || {};
-
   // for affiliate's role
   const xtractTotalClicks = () => {
     if (clicksPerMonth?.length) {
@@ -33,7 +42,7 @@ export default function TotalBar({
     }
   };
 
-    // for affiliate's role
+  // for affiliate's role
   const xtractTotalSales = () => {
     if (salesPerMonth?.length) {
       let month = salesPerMonth[0]?.data.filter(
@@ -54,18 +63,20 @@ export default function TotalBar({
             <th className="cell-style">Total Sales</th>
             <th className="cell-style">Total Sales Amount</th>
             <th className="cell-style">Total Commissions</th>
+            <th className="cell-style">Unpaid Commissions</th>
+            <th className="cell-style">Paid Commissions</th>
             <th className="cell-style">Earnings</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td className="cell-style">{currentMonth}</td>
-            {me.role === "admin" ? (
+            {me?.role === "admin" ? (
               <td className="cell-style">{findClicks}</td>
             ) : (
               <td className="cell-style">{xtractTotalClicks()}</td>
             )}
-            {me.role === "admin" ? (
+            {me?.role === "admin" ? (
               <td className="cell-style">{monthSales?.length}</td>
             ) : (
               <td className="cell-style">{xtractTotalSales()}</td>
@@ -74,7 +85,15 @@ export default function TotalBar({
             <td className="cell-style">${addedSales}</td>
             <td className="cell-style">${addedCommissions}</td>
             <td className="cell-style">
-              ${(addedSales - addedCommissions).toFixed(2)}
+              ${calculateCommissionsByStatus.unpaid}
+            </td>
+            <td className="cell-style">${calculateCommissionsByStatus.paid}</td>
+            <td className="cell-style">
+              {me?.role === "affiliate"
+                ? `$${calculateCommissionsByStatus.paid.toFixed(2)}`
+                : `$${(addedSales - calculateCommissionsByStatus.paid).toFixed(
+                    2
+                  )}`}
             </td>
           </tr>
         </tbody>

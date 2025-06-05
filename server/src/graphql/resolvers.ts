@@ -310,6 +310,78 @@ const resolvers = {
       }
     },
 
+    // updateAffiliateSale: async (
+    //   _: unknown,
+    //   {
+    //     id,
+    //     productId,
+    //     refId,
+    //     buyerEmail,
+    //     amount,
+    //     event,
+    //     timestamp,
+    //     commissionStatus,
+    //   }: {
+    //     id: string;
+    //     productId: string;
+    //     refId: string;
+    //     buyerEmail: string;
+    //     amount: number;
+    //     event: string;
+    //     timestamp?: Date;
+    //     commissionStatus?: string;
+    //   }
+    // ) => {
+    //   try {
+    //     // 🔍 1. Find the affiliate by refId
+    //     const affiliate = await Affiliate.findOne({ refId });
+    //     if (!affiliate) throw new Error("Affiliate not found");
+
+    //     // 💰 2. Calculate the commission (default 10% if none set)
+    //     const commissionRate = affiliate.commissionRate ?? 0.1;
+    //     const commission = amount * commissionRate;
+
+    //     // 📝 3. Save the sale
+    //     const sale = new AffiliateSale({
+    //       productId,
+    //       refId,
+    //       buyerEmail,
+    //       amount,
+    //       event,
+    //       timestamp: timestamp || new Date(),
+    //       commissionEarned: parseFloat(commission.toFixed(2)),
+    //       commissionStatus,
+    //     });
+    //     await sale.save();
+
+    //     // 📧 4. Send confirmation emails
+    //     // await sendConfirmationEmail({
+    //     //   buyerEmail,
+    //     //   event,
+    //     //   amount,
+    //     //   commission,
+    //     // });
+    //     // await sendTrackASaleConfEmail({
+    //     //   buyerEmail,
+    //     //   affiliateEmail: affiliate.email,
+    //     //   event,
+    //     //   amount,
+    //     //   commission,
+    //     // });
+
+    //     // 📈 5. Update affiliate’s stats
+    //     affiliate.totalSales = (affiliate.totalSales || 0) + amount;
+    //     affiliate.totalCommissions =
+    //       (affiliate.totalCommissions || 0) + commission;
+    //     await affiliate.save();
+
+    //     return sale;
+    //   } catch (error) {
+    //     console.error("❌ Error tracking affiliate sale:", error);
+    //     throw new Error("Failed to track affiliate sale");
+    //   }
+    // },
+
     clickLog: async (_: unknown, { refId }: { refId: string }) => {
       try {
         if (!refId) {
@@ -405,13 +477,8 @@ const resolvers = {
       }
     },
 
-    markSaleAsPaid: async (
-      _: unknown,
-      { saleId }: { saleId: string },
-      context: MyContext
-    ) => {
-      requireAdmin(context); // or your own admin check logic
-
+    markSaleAsPaid: async (_: unknown, { saleId }: { saleId: string }) => {
+        console.log("💥 Received saleId on backend:", saleId);
       const sale = await AffiliateSale.findById(saleId);
       if (!sale) throw new Error("Sale not found");
 
@@ -420,6 +487,21 @@ const resolvers = {
 
       return sale;
     },
+    // markSaleAsPaid: async (
+    //   _: unknown,
+    //   { saleId }: { saleId: string },
+    //   context: MyContext
+    // ) => {
+    //   requireAdmin(context); // or your own admin check logic
+
+    //   const sale = await AffiliateSale.findById(saleId);
+    //   if (!sale) throw new Error("Sale not found");
+
+    //   sale.commissionStatus = "paid";
+    //   await sale.save();
+
+    //   return sale;
+    // },
   },
 };
 

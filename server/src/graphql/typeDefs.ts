@@ -131,11 +131,22 @@ const typeDefs = gql`
       commissionStatus: String
     ): AffiliateSale!
 
-    markSaleAsPaid(saleId: ID!): AffiliateSale
+    updateAffiliateSale(
+      id: ID!
+      productId: String!
+      refId: String!
+      buyerEmail: String
+      amount: Int!
+      event: String!
+      timestamp: Date
+      commissionEarned: Float
+      commissionStatus: String): AffiliateSale!
+
+    markSaleAsPaid(saleId: String!): AffiliateSale
 
     addMonthlyReport(month: String!, pdf: String!): ReportEntry!
 
     addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
   }
-`;
+`;  
 export default typeDefs;

@@ -24,6 +24,7 @@ interface Affiliate {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
+  role: string;
   __typename?: string;
 }
 
@@ -40,9 +41,16 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/admin" element={<AdminDashboard data={data}
-              loading={loading}
-              errorText={error?.message}/>}>
+      <Route
+        path="/admin"
+        element={
+          <AdminDashboard
+            data={data}
+            loading={loading}
+            errorText={error?.message}
+          />
+        }
+      >
         <Route
           path="affiliatesList"
           element={

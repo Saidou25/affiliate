@@ -12,6 +12,7 @@ import DetailedReportView from "./DetailedReportView";
 import "./DetailedReport.css";
 
 interface AffiliateSale {
+  id: string;
   refId: string;
   buyerEmail: string;
   event: string;
@@ -129,6 +130,7 @@ export default function DetailedReport({ refId }: Props) {
                 setShowReport={setShowReport}
                 salesPerMonth={salesPerMonth}
                 clicksPerMonth={clicksPerMonth}
+                me={me}
               />
             )}
             {showReport === null && (
