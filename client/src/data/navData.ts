@@ -6,10 +6,10 @@ const affiliateLinks = {
 const adminLinks = {
   group: "admin",
   links: [
-    "affiliatesList",
-    "affiliatesLookUp",
-    "affiliatesSalesReport",
-    "dataCenter",
+    "affiliates",
+    "look up",
+    "sales report",
+    "data center",
   ],
 };
 export { affiliateLinks, adminLinks };

@@ -16,9 +16,29 @@ const typeDefs = gql`
     notes: String
   }
 
+  type Payment {
+    id: ID!
+    affiliateId: ID!
+    saleIds: [ID!]!
+    amount: Float!
+    date: Date!
+    method: String!
+    transactionId: String
+    notes: String
+  }
+
   input PaymentInput {
     amount: Float!
     date: Date!
+    method: String!
+    transactionId: String
+    notes: String
+  }
+
+  input RecordAffiliatePaymentInput {
+    affiliateId: ID!
+    saleIds: [ID!]!
+    amount: Float!
     method: String!
     transactionId: String
     notes: String
@@ -90,6 +110,7 @@ const typeDefs = gql`
     getAllReports: [ReportEntry!]!
     getAffiliatePaymentHistory(refId: String!): [PaymentRecord!]!
     getAllAffiliatePayments: [PaymentRecord!]!
+     getAllPayments: [Payment!]!
   }
 
   type Mutation {
@@ -138,13 +159,16 @@ const typeDefs = gql`
       event: String
       timestamp: Date
       commissionEarned: Float
-      commissionStatus: String): AffiliateSale!
+      commissionStatus: String
+    ): AffiliateSale!
 
     markSaleAsPaid(saleId: String!): AffiliateSale!
+
+    recordAffiliatePayment(input: RecordAffiliatePaymentInput!): Payment!
 
     addMonthlyReport(month: String!, pdf: String!): ReportEntry!
 
     addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
   }
-`;  
+`;
 export default typeDefs;

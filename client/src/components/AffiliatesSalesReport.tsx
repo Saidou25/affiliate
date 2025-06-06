@@ -4,6 +4,7 @@ import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
 import { AffiliateSale } from "../types";
+import PaymentsReports from "./PaymentsReports";
 
 export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
@@ -14,6 +15,9 @@ export default function AffiliatesSalesReport() {
   } = useQuery<{ getAllAffiliateSales: AffiliateSale[] }>(
     GET_ALLAFFILIATESALES
   );
+
+  // const { data } = useQuery(QUERY_ME);
+  // const me = data?.me || {};
 
   const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
 
@@ -49,6 +53,12 @@ export default function AffiliatesSalesReport() {
             </div>
           ))}
       </div>
+       {/* {me.role === "admin" && ( */}
+        <>
+         <h2>Sales Reports</h2>
+       <PaymentsReports />
+         </>
+      {/* )} */}
     </div>
   );
 }

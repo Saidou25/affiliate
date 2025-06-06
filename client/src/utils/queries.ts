@@ -151,3 +151,18 @@ export const GET_ALL_AFFILIATE_PAYMENTS = gql`
     }
   }
 `;
+
+export const GET_ALL_PAYMENTS = gql`
+  query GetAllPayments {
+    getAllPayments {
+      id
+      affiliateId
+      saleIds
+      amount
+      date
+      method
+      transactionId
+      notes
+    }
+  }
+`;

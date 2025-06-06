@@ -141,3 +141,19 @@ export const MARK_SALE_HAS_PAID = gql`
     }
   }
 `;
+
+export const RECORD_AFFILIATE_PAYMENT = gql`
+  mutation RecordAffiliatePayment($input: RecordAffiliatePaymentInput!) {
+    recordAffiliatePayment(input: $input) {
+      id
+      affiliateId
+      amount
+      date
+      method
+      transactionId
+      notes
+      saleIds
+    }
+  }
+`;
+

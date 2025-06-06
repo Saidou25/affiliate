@@ -1,19 +1,18 @@
+import { useState } from "react";
+import { useMutation, useQuery } from "@apollo/client";
+import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
-// import { useQuery } from "@apollo/client";
-// import { QUERY_ME } from "../utils/queries";
+import { AffiliateSale } from "../types";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
 import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 import TotalBar from "./TotalBar";
+import Spinner from "./Spinner";
 
 import "./DetailedReport.css";
-import { Affiliate, AffiliateSale } from "../types";
-import { useState } from "react";
-import Spinner from "./Spinner";
-import { useMutation } from "@apollo/client";
-import { UPDATE_AFFILIATE_SALE } from "../utils/mutations";
+import { QUERY_ME } from "../utils/queries";
 
 type Props = {
   monthSales: any;
@@ -22,7 +21,6 @@ type Props = {
   salesPerMonth?: any;
   clicksPerMonth?: any;
   clicksData?: any;
-  me?: Affiliate;
 };
 
 export default function DetailedReportView({
@@ -32,7 +30,6 @@ export default function DetailedReportView({
   salesPerMonth,
   clicksPerMonth,
   clicksData,
-  me,
 }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
@@ -40,6 +37,8 @@ export default function DetailedReportView({
   const { addedCommissions, calculateCommissionsByStatus } =
     useAddMonthCommissions(monthSales);
 
+  const { data } = useQuery(QUERY_ME);
+  const me = data?.me || {};
   // const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID, {
   //   update(cache, { data: { markSaleAsPaid } }) {
   //     try {
@@ -64,29 +63,64 @@ export default function DetailedReportView({
   // });
 
   // const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID);
-  const [updateAffiliateSale] = useMutation(UPDATE_AFFILIATE_SALE);
+  // const [updateAffiliateSale] = useMutation(UPDATE_AFFILIATE_SALE);
+  const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
 
   const payNow = async (sale: AffiliateSale) => {
     setLoadingId(sale.id);
     const id = sale.id;
-    console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
+
     if (!id || typeof id !== "string") {
       console.error("❌ Invalid saleId:", id);
       return;
     }
+
     try {
-      const { data } = await updateAffiliateSale({
-        variables: { saleId: id, commissionStatus: "paid" },
+      const { data } = await recordAffiliatePayment({
+        variables: {
+          input: {
+            affiliateId: "683069ae94d51ebdcef64de9",
+            saleIds: [sale.id], // Replace with real selected IDs
+            amount: sale.amount,
+            method: "bank",
+            transactionId: "BANK-TRX-123",
+            notes: `Test June payout for ${sale.refId}`,
+          },
+        },
       });
+
       if (data) {
-        console.log("payment successful!");
+        console.log("✅ Payment successful!", data);
         setLoadingId(null);
+        // Optionally: refresh your sales list here!
       }
     } catch (error: any) {
       console.error("GraphQL error:", error.message);
       console.error("Full error object:", error);
     }
   };
+
+  // const payNow = async (sale: AffiliateSale) => {
+  //   setLoadingId(sale.id);
+  //   const id = sale.id;
+  //   console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
+  //   if (!id || typeof id !== "string") {
+  //     console.error("❌ Invalid saleId:", id);
+  //     return;
+  //   }
+  //   try {
+  //     const { data } = await updateAffiliateSale({
+  //       variables: { saleId: id, commissionStatus: "unpaid" },
+  //     });
+  //     if (data) {
+  //       console.log("payment successful!");
+  //       setLoadingId(null);
+  //     }
+  //   } catch (error: any) {
+  //     console.error("GraphQL error:", error.message);
+  //     console.error("Full error object:", error);
+  //   }
+  // };
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
@@ -183,7 +217,13 @@ export default function DetailedReportView({
                 <th className="cell-style-top">Reference ID</th>
                 <th className="cell-style-top">Price</th>
                 <th className="cell-style-top">Commission</th>
-                <th className="cell-style-top">Action</th>
+                <th className="cell-style-top">
+                  {me?.role === "admin" ? (
+                    <span className="">Action</span>
+                  ) : (
+                    <span className="">Status</span>
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -210,17 +250,25 @@ export default function DetailedReportView({
                       <button
                         className={
                           sale?.commissionStatus === "paid"
-                            ? "paid-button"
-                            : "unpaid-button"
+                            ? `paid-button-${me?.role}`
+                            : `unpaid-button-${me?.role}`
                         }
                         onClick={() => payNow(sale)}
-                        disabled={loadingId === sale.id}
+                        disabled={
+                          loadingId === sale.id ||
+                          sale.commissionStatus === "paid" ||
+                          me?.role === "affiliate"
+                        }
                       >
                         {loadingId === sale.id && <Spinner />}
                         {sale?.commissionStatus === "paid" &&
                           loadingId !== sale.id && <span>paid</span>}
-                        {sale.commissionStatus === "unpaid" &&
+                        {me?.role === "admin" &&
+                          sale.commissionStatus === "unpaid" &&
                           loadingId !== sale.id && <span>pay</span>}
+                        {me?.role === "affiliate" &&
+                          sale.commissionStatus === "unpaid" &&
+                          loadingId !== sale.id && <span>unpaid</span>}
                       </button>
                     </td>
                   </tr>

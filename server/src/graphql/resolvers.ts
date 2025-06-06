@@ -3,6 +3,7 @@ dotenv.config();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { SECRET } from "../config/env";
+import { Types } from "mongoose";
 import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
 import { sendConfirmationEmail } from "../utils/sendConfirmationEmail";
@@ -11,6 +12,7 @@ import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 import ClickLog from "../models/ClickLog";
 import ReportHistory from "../models/ReportHistory";
+import Payment from "../models/Payment";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -113,6 +115,11 @@ const resolvers = {
     getAllAffiliatePayments: async (_: any, __: any, context: MyContext) => {
       requireAdmin(context);
       return Affiliate.find({ "paymentHistory.0": { $exists: true } });
+    },
+
+    getAllPayments: async () => {
+      // requireAdmin(context); // Optional: only allow admin to see all payments
+      return Payment.find().sort({ date: -1 }); // Sort by most recent first
     },
   },
 
@@ -309,61 +316,63 @@ const resolvers = {
         throw new Error("Failed to track affiliate sale");
       }
     },
-updateAffiliateSale: async (
-  _: unknown,
-  {
-    id,
-    productId,
-    refId,
-    buyerEmail,
-    amount,
-    event,
-    timestamp,
-    commissionStatus,
-    commissionEarned,
-  }: {
-    id: string;
-    productId?: string;
-    refId?: string;
-    buyerEmail?: string;
-    amount?: number;
-    event?: string;
-    timestamp?: Date | string;
-    commissionStatus?: string;
-    commissionEarned?: number;
-  }
-) => {
-  try {
-    // Build update object with only provided fields
-    const updateData: any = {};
-    if (productId !== undefined) updateData.productId = productId;
-    if (refId !== undefined) updateData.refId = refId;
-    if (buyerEmail !== undefined) updateData.buyerEmail = buyerEmail;
-    if (amount !== undefined) updateData.amount = amount;
-    if (event !== undefined) updateData.event = event;
-    if (timestamp !== undefined) updateData.timestamp = new Date(timestamp);
-    if (commissionStatus !== undefined) updateData.commissionStatus = commissionStatus;
-    if (commissionEarned !== undefined) updateData.commissionEarned = commissionEarned;
 
-    const updatedSale = await AffiliateSale.findOneAndUpdate(
-      { _id: id },
-      updateData,
-      { new: true }
-    );
+    updateAffiliateSale: async (
+      _: unknown,
+      {
+        id,
+        productId,
+        refId,
+        buyerEmail,
+        amount,
+        event,
+        timestamp,
+        commissionStatus,
+        commissionEarned,
+      }: {
+        id: string;
+        productId?: string;
+        refId?: string;
+        buyerEmail?: string;
+        amount?: number;
+        event?: string;
+        timestamp?: Date | string;
+        commissionStatus?: string;
+        commissionEarned?: number;
+      }
+    ) => {
+      try {
+        // Build update object with only provided fields
+        const updateData: any = {};
+        if (productId !== undefined) updateData.productId = productId;
+        if (refId !== undefined) updateData.refId = refId;
+        if (buyerEmail !== undefined) updateData.buyerEmail = buyerEmail;
+        if (amount !== undefined) updateData.amount = amount;
+        if (event !== undefined) updateData.event = event;
+        if (timestamp !== undefined) updateData.timestamp = new Date(timestamp);
+        if (commissionStatus !== undefined)
+          updateData.commissionStatus = commissionStatus;
+        if (commissionEarned !== undefined)
+          updateData.commissionEarned = commissionEarned;
 
-    if (!updatedSale) throw new Error("Sale not found");
+        const updatedSale = await AffiliateSale.findOneAndUpdate(
+          { _id: id },
+          updateData,
+          { new: true }
+        );
 
-    // Optionally send emails or update stats here if you want
-    // await sendConfirmationEmail({ ... });
-    // await updateAffiliateStats(updatedSale);
+        if (!updatedSale) throw new Error("Sale not found");
 
-    return updatedSale;
-  } catch (error: any) {
-    console.error("Failed to update affiliate sale:", error);
-    throw new Error("Failed to update affiliate sale");
-  }
-},
+        // Optionally send emails or update stats here if you want
+        // await sendConfirmationEmail({ ... });
+        // await updateAffiliateStats(updatedSale);
 
+        return updatedSale;
+      } catch (error: any) {
+        console.error("Failed to update affiliate sale:", error);
+        throw new Error("Failed to update affiliate sale");
+      }
+    },
 
     clickLog: async (_: unknown, { refId }: { refId: string }) => {
       try {
@@ -391,6 +400,68 @@ updateAffiliateSale: async (
       } catch (error) {
         console.error("Error logging click:", error);
         throw new Error("Failed to log click");
+      }
+    },
+
+    recordAffiliatePayment: async (
+      _: unknown,
+      {
+        input,
+      }: {
+        input: {
+          affiliateId: string;
+          saleIds: string[];
+          amount: number;
+          method: string;
+          transactionId?: string;
+          notes?: string;
+        };
+      }
+    ) => {
+      try {
+        // 🔍 1. Create a new Payment document
+        const payment = await Payment.create({
+          affiliateId: new Types.ObjectId(input.affiliateId),
+          saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
+          amount: input.amount,
+          method: input.method,
+          transactionId: input.transactionId,
+          notes: input.notes,
+          date: new Date(),
+        });
+
+        // 🔄 2. Update selected AffiliateSale document
+        const affiliateSale = await AffiliateSale.findOneAndUpdate(
+          { _id: input.saleIds[0] },
+          {
+            $set: {
+              commissionStatus: "paid",
+              paidAt: new Date(),
+              paymentId: payment._id,
+            },
+          },
+          { new: true }
+        );
+        console.log("✅ AffiliateSale updated:", affiliateSale);
+
+        // 📝 3. Push a PaymentRecord snapshot to Affiliate.paymentHistory
+        await Affiliate.findByIdAndUpdate(input.affiliateId, {
+          $push: {
+            paymentHistory: {
+              amount: input.amount,
+              date: payment.date,
+              method: input.method,
+              transactionId: input.transactionId,
+              notes: input.notes,
+            },
+          },
+        });
+
+        // ✅ 4. Return the new Payment record
+        return payment;
+      } catch (error) {
+        console.error("❌ Error recording affiliate payment:", error);
+        throw new Error("Failed to record affiliate payment");
       }
     },
 
@@ -461,7 +532,7 @@ updateAffiliateSale: async (
     },
 
     markSaleAsPaid: async (_: unknown, { saleId }: { saleId: string }) => {
-        console.log("💥 Received saleId on backend:", saleId);
+      console.log("💥 Received saleId on backend:", saleId);
       const sale = await AffiliateSale.findById(saleId);
       if (!sale) throw new Error("Sale not found");
 

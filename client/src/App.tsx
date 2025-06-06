@@ -42,7 +42,7 @@ function App() {
         }
       >
         <Route
-          path="affiliatesList"
+          path="affiliates"
           element={
             <AffiliatesList
               data={data}
@@ -51,12 +51,12 @@ function App() {
             />
           }
         />
-        <Route path="affiliatesLookUp" element={<AffiliatesLookUp />} />
+        <Route path="look up" element={<AffiliatesLookUp />} />
         <Route
-          path="affiliatesSalesReport"
+          path="sales report"
           element={<AffiliatesSalesReport />}
         />
-        <Route path="datacenter" element={<DataCenter />} />
+        <Route path="data center" element={<DataCenter />} />
       </Route>
       <Route path="/affiliate" element={<AffiliateDashboard />}>
         <Route path="products" element={<Products />} />
