@@ -106,7 +106,6 @@ export default function DetailedReport({ refId }: Props) {
                   setShowReport={setShowReport}
                   salesPerMonth={salesPerMonth}
                   clicksPerMonth={clicksPerMonth}
-                  me={me}
                 />
               )}
               {showReport === null && (
