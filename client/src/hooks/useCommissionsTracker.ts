@@ -23,6 +23,7 @@ type SaleObj = {
   data: DataObj[];
 };
 
+// This works per affiliate, not admin
 export function useCommissionsTracker() {
   const [me, setMe] = useState<Affiliate | null>(null);
   const [commissionPerDay, setCommissionPerDay] = useState<SaleObj[]>([]);

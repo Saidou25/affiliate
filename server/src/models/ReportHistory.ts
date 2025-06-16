@@ -1,31 +1,19 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface ReportEntry {
+export interface IReportHistory extends Document {
   month: string;
-  pdf: Buffer;
+  pdf?: Buffer;
+  html?: string;
   createdAt?: Date;
 }
 
-export interface IReportHistory extends Document {
-  reports: ReportEntry[];
-}
-
-const ReportEntrySchema = new Schema<ReportEntry>(
-  {
-    month: { type: String, required: true },
-    pdf: { type: Buffer, required: true },
-    createdAt: { type: Date, default: Date.now },
-  },
-  { _id: false }
-);
-
 const ReportHistorySchema = new Schema<IReportHistory>({
-  reports: { type: [ReportEntrySchema], default: [] },
+  month: { type: String, required: true, unique: true },
+  pdf: { type: Buffer },
+  html: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
-const ReportHistory = mongoose.model<IReportHistory>(
-  "ReportHistory",
-  ReportHistorySchema
-);
+const ReportHistory = mongoose.model<IReportHistory>("ReportHistory", ReportHistorySchema);
 
 export default ReportHistory;

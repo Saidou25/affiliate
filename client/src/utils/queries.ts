@@ -116,11 +116,13 @@ export const GET_REPORT_BY_MONTH = gql`
 `;
 
 export const GET_ALLREPORTS = gql`
-  query getAllReports {
+  query GetAllReports {
     getAllReports {
+      id
       month
-      createdAt
+      html
       pdf
+      createdAt
     }
   }
 `;

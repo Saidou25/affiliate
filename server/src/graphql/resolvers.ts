@@ -11,8 +11,9 @@ import { sendTrackASaleConfEmail } from "../utils/sendTrackASaleConfEmail";
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 import ClickLog from "../models/ClickLog";
-import ReportHistory from "../models/ReportHistory";
+import ReportHistory, { IReportHistory } from "../models/ReportHistory";
 import Payment from "../models/Payment";
+import { generateMonthlyPDFReportPDF } from "../cron/generateMonthlyReportPDF";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -59,20 +60,9 @@ const resolvers = {
       return Affiliate.findOne({ _id: context.affiliate.id }); // This populates full product info
     },
 
-    // getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
-    //   requireAdmin(context);
-    //   return AffiliateSale.find();
-    // },
     getAllAffiliateSales: async () => {
       return AffiliateSale.find();
     },
-
-    // getAllAffiliateSales: async (_: any, __: any, context: MyContext) => {
-    //   requireAdmin(context);
-    //   const sales = await AffiliateSale.find();
-    //   console.log("AffiliateSales:", sales);
-    //   return sales;
-    // },
 
     getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
       return AffiliateSale.find({ refId }); // likely multiple sales per affiliate
@@ -87,20 +77,30 @@ const resolvers = {
     },
 
     getAllReports: async () => {
-      const history = await ReportHistory.findOne();
-      if (!history) return [];
+      const reports = await ReportHistory.find({})
+        .sort({ createdAt: -1 })
+        .lean();
 
-      // Convert each pdf buffer to base64 string
-      return history.reports.map((report) => ({
-        month: report.month,
-        createdAt: report.createdAt,
-        pdf: report.pdf.toString("base64"), // <-- convert Buffer to base64 string here
+      return reports.map((r) => ({
+        id: r._id.toString(),
+        month: r.month,
+        html: r.html ?? null,
+        pdf: r.pdf ? r.pdf.toString("base64") : null,
+        createdAt: r.createdAt?.toISOString() ?? null,
       }));
     },
 
     getReportByMonth: async (_: any, { month }: { month: string }) => {
-      const history = await ReportHistory.findOne();
-      return history?.reports.find((r) => r.month === month) || null;
+      const report = await ReportHistory.findOne({ month }).lean();
+      if (!report) return null;
+
+      return {
+        id: report._id.toString(),
+        month: report.month,
+        html: report.html ?? null,
+        pdf: report.pdf ? report.pdf.toString("base64") : null,
+        createdAt: report.createdAt?.toISOString() ?? null,
+      };
     },
 
     getAffiliatePaymentHistory: async (
@@ -465,26 +465,35 @@ const resolvers = {
       }
     },
 
-    addMonthlyReport: async (
-      _: any,
-      { month, pdf }: { month: string; pdf: string }
-    ) => {
-      const buffer = Buffer.from(pdf, "base64");
+    // addMonthlyReport: async (
+    //   _: any,
+    //   { month, pdf }: { month: string; pdf: string }
+    // ) => {
+    //   const buffer = Buffer.from(pdf, "base64");
 
-      let history = await ReportHistory.findOne();
+    //   const updated = await ReportHistory.findOneAndUpdate(
+    //     { month },
+    //     {
+    //       pdf: buffer,
+    //       createdAt: new Date(),
+    //     },
+    //     { upsert: true, new: true }
+    //   );
 
-      if (!history) {
-        history = new ReportHistory({ reports: [] });
-      }
+    //   if (!updated) {
+    //     throw new Error("Failed to create or update the report");
+    //   }
 
-      // Remove existing entry if same month exists
-      history.reports = history.reports.filter((r) => r.month !== month);
+    //   const reportId = (updated._id as Types.ObjectId).toString();
 
-      history.reports.push({ month, pdf: buffer });
-      await history.save();
-
-      return history.reports.find((r) => r.month === month);
-    },
+    //   return {
+    //     id: reportId,
+    //     month: updated.month,
+    //     html: updated.html ?? null,
+    //     pdf: updated.pdf ? updated.pdf.toString("base64") : null,
+    //     createdAt: updated.createdAt?.toISOString() ?? null,
+    //   };
+    // },
 
     addAffiliatePayment: async (
       _: unknown,
@@ -531,6 +540,36 @@ const resolvers = {
       }
     },
 
+    saveHtmlReport: async (
+      _: unknown,
+      { html, month }: { html: string; month: string }
+    ) => {
+      const existing: IReportHistory | null = await ReportHistory.findOne({
+        month,
+      });
+      if (existing) {
+        throw new Error(`Report for month "${month}" already exists.`);
+      }
+
+      // Generate the PDF
+      const pdfBuffer = await generateMonthlyPDFReportPDF(html, month);
+
+      // Create the report document (including pdf now)
+      const newReport = await ReportHistory.create({
+        month,
+        html,
+        pdf: pdfBuffer,
+      });
+
+      return {
+        id: (newReport._id as Types.ObjectId).toString(),
+        month: newReport.month,
+        html: newReport.html ?? null,
+        pdf: pdfBuffer.toString("base64"),
+        createdAt: newReport.createdAt?.toISOString() ?? null,
+      };
+    },
+
     markSaleAsPaid: async (_: unknown, { saleId }: { saleId: string }) => {
       console.log("💥 Received saleId on backend:", saleId);
       const sale = await AffiliateSale.findById(saleId);
@@ -541,21 +580,6 @@ const resolvers = {
 
       return sale;
     },
-    // markSaleAsPaid: async (
-    //   _: unknown,
-    //   { saleId }: { saleId: string },
-    //   context: MyContext
-    // ) => {
-    //   requireAdmin(context); // or your own admin check logic
-
-    //   const sale = await AffiliateSale.findById(saleId);
-    //   if (!sale) throw new Error("Sale not found");
-
-    //   sale.commissionStatus = "paid";
-    //   await sale.save();
-
-    //   return sale;
-    // },
   },
 };
 

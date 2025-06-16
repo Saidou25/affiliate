@@ -89,13 +89,17 @@ const typeDefs = gql`
 
   type ReportEntry {
     month: String!
-    pdf: String!
+    pdf: String
+    html: String
     createdAt: String
   }
 
   type ReportHistory {
     id: ID!
-    reportHistory: [ReportEntry!]!
+    month: String!
+    html: String
+    pdf: String
+    createdAt: String
   }
 
   type Query {
@@ -106,11 +110,11 @@ const typeDefs = gql`
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
     getAffiliateClickLogs(refId: ID): [ClickLog]
     getAllAffiliatesClickLogs: [ClickLog!]!
-    getReportByMonth(month: String!): ReportEntry
-    getAllReports: [ReportEntry!]!
+    getReportByMonth(month: String!): ReportHistory
+    getAllReports: [ReportHistory!]!
     getAffiliatePaymentHistory(refId: String!): [PaymentRecord!]!
     getAllAffiliatePayments: [PaymentRecord!]!
-     getAllPayments: [Payment!]!
+    getAllPayments: [Payment!]!
   }
 
   type Mutation {
@@ -166,9 +170,11 @@ const typeDefs = gql`
 
     recordAffiliatePayment(input: RecordAffiliatePaymentInput!): Payment!
 
-    addMonthlyReport(month: String!, pdf: String!): ReportEntry!
+    addMonthlyReport(month: String!, pdf: String!): ReportHistory!
 
     addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
+
+    saveHtmlReport(html: String!, month: String!): ReportHistory
   }
 `;
 export default typeDefs;

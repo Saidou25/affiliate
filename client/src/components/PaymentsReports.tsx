@@ -6,16 +6,22 @@ import { IoMdClose } from "react-icons/io";
 export default function SalesReport() {
   const { data } = useQuery(GET_ALL_PAYMENTS);
   // console.log("payment data: ", data?.getAllPayments);
-return (
+  return (
     <div className="print">
       <div className="res">
+        <h3>
+          So far {data?.getAllPayments?.length} payments were maid for this month.
+        </h3>
+        <br />
         <div className="pis-container no-print">
           <div className="pdf-print-line">
-            <PiFilePdfThin className="pifile" 
-            // onClick={() => saveToPDF()} 
+            <PiFilePdfThin
+              className="pifile"
+              // onClick={() => saveToPDF()}
             />
-            <PiPrinterThin className="piprint" 
-            // onClick={() => window.print()} 
+            <PiPrinterThin
+              className="piprint"
+              // onClick={() => window.print()}
             />
           </div>
           <div className="close">
@@ -34,6 +40,7 @@ return (
           }}
         >
           {/* <h3 style={{ color: "black" }}>Detailed Report for {currentMonth}</h3> */}
+
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
@@ -43,6 +50,7 @@ return (
                 <th className="cell-style-top">Transaction ID</th>
                 {/* <th className="cell-style-top">Product ID</th> */}
                 <th className="cell-style-top">Sale ID</th>
+                <th className="cell-style-top">Affiliate ID</th>
                 <th className="cell-style-top">Amount</th>
                 <th className="cell-style-top">note</th>
                 {/* <th className="cell-style-top">Action</th> */}
@@ -66,6 +74,7 @@ return (
                     </td> */}
                     <td className="cell-style">{payment.transactionId}</td>
                     <td className="cell-style">{payment.saleIds[0]}</td>
+                    <td className="cell-style">{payment.affiliateId}</td>
                     <td className="cell-style">${payment.amount}</td>
                     <td className="cell-style">{payment.notes}</td>
                     {/* <td className="cell-style">

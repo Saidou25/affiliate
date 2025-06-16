@@ -4,14 +4,14 @@ import {
   GET_ALLAFFILIATESCLICKLOGS,
 } from "../utils/queries";
 import { useState } from "react";
+import { AffiliateSale } from "../types";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
-import { AffiliateSale } from "../types";
 import PaymentsReports from "./PaymentsReports";
 import PaidCommissions from "./PaidCommissions";
 import UnpaidCommissions from "./UnpaidCommissions";
 
-export default function AffiliatesSalesReport() {
+export default function PDFReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
   const {
     data: salesData,
@@ -46,9 +46,7 @@ export default function AffiliatesSalesReport() {
               )}
               {showReport === null && (
                 <>
-                  {/* {monthSales.month === key ? <span>most rescent report</span> : <span>previous reports</span>} */}
-                  <span>📄</span>
-                  <span
+                 <span
                     className="view-line"
                     onClick={() => setShowReport(index)}
                   >
@@ -59,16 +57,6 @@ export default function AffiliatesSalesReport() {
             </div>
           ))}
       </div>
-      {/* {me.role === "admin" && ( */}
-      <>
-        <h2>Payment Reports(commission paid for the current month):</h2>
-        <PaymentsReports />
-        <h2>Paid commissions</h2>
-        <PaidCommissions />
-        <h2>Unpaid commissions</h2>
-        <UnpaidCommissions />
-      </>
-      {/* )} */}
     </div>
   );
 }

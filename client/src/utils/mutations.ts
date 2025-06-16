@@ -157,3 +157,16 @@ export const RECORD_AFFILIATE_PAYMENT = gql`
   }
 `;
 
+export const SAVE_HTML_REPORT = gql`
+  mutation SaveHtmlReport($html: String!, $month: String!) {
+    saveHtmlReport(html: $html, month: $month) {
+      id
+      month
+      html
+      pdf
+      createdAt
+    }
+  }
+`;
+
+

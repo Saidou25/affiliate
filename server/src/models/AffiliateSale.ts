@@ -9,6 +9,8 @@ interface IAffiliateSale extends Document {
   timestamp: Date;
   commissionEarned: number;
   commissionStatus: "paid" | "unpaid";
+  paidAt: Date;
+  paymentId?: mongoose.Types.ObjectId;
 }
 
 const AffiliateSaleSchema = new Schema<IAffiliateSale>({
@@ -24,6 +26,8 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>({
     enum: ["paid", "unpaid"],
     default: "unpaid", // ✅ Mongoose handles the default
   },
+  paidAt: { type: Date },
+  paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
 });
 
 const AffiliateSale = mongoose.model<IAffiliateSale>(

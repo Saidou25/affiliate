@@ -4,6 +4,7 @@ import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
 import { AffiliateSale } from "../types";
+import { QUERY_ME } from "../utils/queries";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
@@ -12,7 +13,6 @@ import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 
 import "./DetailedReport.css";
-import { QUERY_ME } from "../utils/queries";
 
 type Props = {
   monthSales: any;
@@ -121,6 +121,8 @@ export default function DetailedReportView({
   //     console.error("Full error object:", error);
   //   }
   // };
+
+  // console.log("month sales: ", monthSales);
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(

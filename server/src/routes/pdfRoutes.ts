@@ -11,7 +11,8 @@ if (!month) {
   }
   try {
     const history = await ReportHistory.findOne();
-    const report = history?.reports.find((r) => r.month === month);
+    const report = await ReportHistory.findOne({ month });
+
 
     if (!report) return res.status(404).send("Report not found");
 

@@ -113,7 +113,7 @@ export default function DetailedReport({ refId }: Props) {
                   className="view-line"
                   onClick={() => setShowReport(index)}
                 >
-                  {monthSales.month} detailed report
+                 📄 {monthSales.month} detailed report
                 </span>
               )}
             </div>
