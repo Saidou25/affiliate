@@ -9,7 +9,9 @@ const typeDefs = gql`
   }
 
   type PaymentRecord {
-    amount: Float!
+    saleAmount: Float!
+    paidCommission: Float
+    productName: String
     date: Date!
     method: String!
     transactionId: String
@@ -20,17 +22,21 @@ const typeDefs = gql`
     id: ID!
     affiliateId: ID!
     saleIds: [ID!]!
-    amount: Float!
+    saleAmount: Float!
+    paidCommission: Float
     date: Date!
+    productName: String
     method: String!
     transactionId: String
     notes: String
   }
 
   input PaymentInput {
-    amount: Float!
+    saleAmount: Float!
+    paidCommission: Float
     date: Date!
     method: String!
+    productName: String
     transactionId: String
     notes: String
   }
@@ -38,7 +44,9 @@ const typeDefs = gql`
   input RecordAffiliatePaymentInput {
     affiliateId: ID!
     saleIds: [ID!]!
-    amount: Float!
+    saleAmount: Float!
+    paidCommission: Float
+    productName: String
     method: String!
     transactionId: String
     notes: String

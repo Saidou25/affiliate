@@ -160,7 +160,9 @@ export const GET_ALL_PAYMENTS = gql`
       id
       affiliateId
       saleIds
-      amount
+      saleAmount
+      paidCommission
+      productName
       date
       method
       transactionId

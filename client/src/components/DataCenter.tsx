@@ -1,5 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { GET_ALLREPORTS } from "../utils/queries";
+import SalesReport from "./PaymentsReports";
 
 type ReportEntry = {
   id: string;
@@ -13,6 +14,7 @@ export default function DataCenter() {
   const { data, loading, error } = useQuery<{ getAllReports: ReportEntry[] }>(
     GET_ALLREPORTS
   );
+
 
   const handleDownloadPDF = (report: ReportEntry) => {
     if (!report.pdf) {
@@ -52,6 +54,7 @@ export default function DataCenter() {
           <p>No reports found.</p>
         )}
       </div>
+      <SalesReport />
     </div>
   );
 }

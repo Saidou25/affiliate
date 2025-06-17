@@ -39,30 +39,7 @@ export default function DetailedReportView({
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
-  // const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID, {
-  //   update(cache, { data: { markSaleAsPaid } }) {
-  //     try {
-  //       // Read the current cache for sales (you may need to adjust the query)
-  //       const id = cache.identify({
-  //         __typename: "AffiliateSale",
-  //         id: markSaleAsPaid.id, // Assuming your backend returns the `id`
-  //       });
-
-  //       cache.modify({
-  //         id,
-  //         fields: {
-  //           commissionStatus() {
-  //             return "paid"; // ✅ update status directly in cache
-  //           },
-  //         },
-  //       });
-  //     } catch (e) {
-  //       console.error("Cache update error:", e);
-  //     }
-  //   },
-  // });
-
-  // const [markSaleAsPaid] = useMutation(MARK_SALE_HAS_PAID);
+  
   // const [updateAffiliateSale] = useMutation(UPDATE_AFFILIATE_SALE);
   const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
 
@@ -134,30 +111,6 @@ export default function DetailedReportView({
     );
     return monthClicksArrAdmin?.length;
   };
-
-  // const payNow = async (sale: AffiliateSale) => {
-  //   setLoadingId(sale.id);
-  //   const id = sale.id;
-  //   console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
-  //   if (!id || typeof id !== "string") {
-  //     console.error("❌ Invalid saleId:", id);
-  //     return;
-  //   }
-  //   if (id) {
-  //     try {
-  //       const { data } = await markSaleAsPaid({
-  //         variables: { saleId: id },
-  //       });
-  //       if (data) {
-  //         console.log("payment successful!");
-  //         setLoadingId(null);
-  //       }
-  //     } catch (error: any) {
-  //       console.error("GraphQL error:", error.message);
-  //       console.error("Full error object:", error);
-  //     }
-  //   }
-  // };
 
   async function saveToPDF() {
     const element = document.getElementById("pdf-content");

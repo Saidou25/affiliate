@@ -43,10 +43,13 @@ const resolvers = {
   Date: dateScalar,
 
   Query: {
-    getAffiliates: async (_: any, __: any, context: MyContext) => {
-      requireAdmin(context);
+    getAffiliates: async () => {
       return Affiliate.find();
     },
+    // getAffiliates: async (_: any, __: any, context: MyContext) => {
+    //   requireAdmin(context);
+    //   return Affiliate.find();
+    // },
 
     getAffiliate: async (_: any, { id }: { id: string }) => {
       return Affiliate.findOne({ _id: id });
@@ -411,21 +414,37 @@ const resolvers = {
         input: {
           affiliateId: string;
           saleIds: string[];
-          amount: number;
+          saleAmount: number;
           method: string;
           transactionId?: string;
           notes?: string;
         };
       }
     ) => {
+      const affiliateSale = await AffiliateSale.findById(input.saleIds);
+      if (!affiliateSale) {
+        throw new Error("Affiliate sale not found.");
+      }
+      const productName = affiliateSale?.event;
+
+      const affiliate = await Affiliate.findById(input.affiliateId);
+      // 💰 2. Calculate the commission (default 10% if none set)
+      if (!affiliate) {
+        throw new Error("Affiliate not found.");
+      }
+
+      const commissionRate = affiliate.commissionRate ?? 0.1;
+      const commission = input.saleAmount * commissionRate;
       try {
         // 🔍 1. Create a new Payment document
         const payment = await Payment.create({
           affiliateId: new Types.ObjectId(input.affiliateId),
           saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
-          amount: input.amount,
+          saleAmount: parseFloat(input.saleAmount.toFixed(2)),
+          paidCommission: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number,
           method: input.method,
           transactionId: input.transactionId,
+          productName: productName,
           notes: input.notes,
           date: new Date(),
         });
@@ -448,11 +467,13 @@ const resolvers = {
         await Affiliate.findByIdAndUpdate(input.affiliateId, {
           $push: {
             paymentHistory: {
-              amount: input.amount,
+              paidCommission: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number,
+              saleAmount: parseFloat(input.saleAmount.toFixed(2)), // ✅ ensure it's a number,
               date: payment.date,
               method: input.method,
               transactionId: input.transactionId,
               notes: input.notes,
+              productName: productName,
             },
           },
         });

@@ -9,6 +9,7 @@ export const generatePDF = async (htmlContent: string): Promise<Buffer> => {
   const pdfUint8Array = await page.pdf({
     format: "A4",
     printBackground: true,
+    landscape: true, // 👈 this enables landscape mode
   });
 
   await browser.close();

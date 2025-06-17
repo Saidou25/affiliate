@@ -3,7 +3,9 @@ import mongoose, { Document, Schema } from "mongoose";
 export interface IPayment extends Document {
   affiliateId: mongoose.Types.ObjectId;
   saleIds: mongoose.Types.ObjectId[];
-  amount: number;
+  saleAmount: number;
+  paidCommission: number;
+  productName: string;
   date: Date;
   method: "paypal" | "bank" | "crypto" | string;
   transactionId?: string;
@@ -12,13 +14,19 @@ export interface IPayment extends Document {
 
 const PaymentSchema = new Schema<IPayment>(
   {
-    affiliateId: { type: Schema.Types.ObjectId, ref: "Affiliate", required: true }, //  who was paid
-    saleIds: [{ type: Schema.Types.ObjectId, ref: "AffiliateSale" }],// which sales were included in this payment
-    amount: { type: Number, required: true },// total amount paid
-    date: { type: Date, default: Date.now },// payment date
-    method: { type: String, required: true },//  "bank", "paypal", etc.
-    transactionId: { type: String },// for bank/PayPal tracking (optional)
-    notes: { type: String },// free text field for admin notes
+    affiliateId: {
+      type: Schema.Types.ObjectId,
+      ref: "Affiliate",
+      required: true,
+    }, //  who was paid
+    saleIds: [{ type: Schema.Types.ObjectId, ref: "AffiliateSale" }], // which sales were included in this payment
+    saleAmount: { type: Number, required: true }, // total amount paid
+    paidCommission: { type: Number }, // total amount paid
+    productName: { type: String },
+    date: { type: Date, default: Date.now }, // payment date
+    method: { type: String, required: true }, //  "bank", "paypal", etc.
+    transactionId: { type: String }, // for bank/PayPal tracking (optional)
+    notes: { type: String }, // free text field for admin notes
   },
   { timestamps: true }
 );

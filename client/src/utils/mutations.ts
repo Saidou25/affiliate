@@ -147,7 +147,9 @@ export const RECORD_AFFILIATE_PAYMENT = gql`
     recordAffiliatePayment(input: $input) {
       id
       affiliateId
-      amount
+      saleAmount
+      paidCommission
+      productName
       date
       method
       transactionId
