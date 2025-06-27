@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IPayment extends Document {
   affiliateId: mongoose.Types.ObjectId;
+  refId: string;
   saleIds: mongoose.Types.ObjectId[];
   saleAmount: number;
   paidCommission: number;
@@ -19,6 +20,7 @@ const PaymentSchema = new Schema<IPayment>(
       ref: "Affiliate",
       required: true,
     }, //  who was paid
+    refId: { type: String },
     saleIds: [{ type: Schema.Types.ObjectId, ref: "AffiliateSale" }], // which sales were included in this payment
     saleAmount: { type: Number, required: true }, // total amount paid
     paidCommission: { type: Number }, // total amount paid

@@ -20,7 +20,8 @@ const typeDefs = gql`
 
   type Payment {
     id: ID!
-    affiliateId: ID!
+    refId: String!
+    affiliateId: String
     saleIds: [ID!]!
     saleAmount: Float!
     paidCommission: Float
@@ -34,6 +35,7 @@ const typeDefs = gql`
   input PaymentInput {
     saleAmount: Float!
     paidCommission: Float
+    affiliateId: String
     date: Date!
     method: String!
     productName: String
@@ -42,7 +44,8 @@ const typeDefs = gql`
   }
 
   input RecordAffiliatePaymentInput {
-    affiliateId: ID!
+    refId: String!
+    affiliateId: String
     saleIds: [ID!]!
     saleAmount: Float!
     paidCommission: Float
@@ -62,6 +65,7 @@ const typeDefs = gql`
     commissionRate: Float
     totalSales: Int
     createdAt: Date
+    stripeAccountId: String
     updatedAt: Date
     role: Role
     paymentHistory: [PaymentRecord!]!
@@ -113,6 +117,7 @@ const typeDefs = gql`
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
+    getAffiliateByRefId(refID: String!): Affiliate
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
@@ -180,9 +185,11 @@ const typeDefs = gql`
 
     addMonthlyReport(month: String!, pdf: String!): ReportHistory!
 
-    addAffiliatePayment(affiliateId: ID!, payment: PaymentInput!): Affiliate!
+    addAffiliatePayment(refId: String!, payment: PaymentInput!): Affiliate!
 
     saveHtmlReport(html: String!, month: String!): ReportHistory
+
+    createAffiliateStripeAccount(affiliateId: ID!): String!
   }
 `;
 export default typeDefs;

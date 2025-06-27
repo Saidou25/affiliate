@@ -8,8 +8,8 @@ import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
 import { AffiliateSale } from "../types";
 import PaymentsReports from "./PaymentsReports";
-import PaidCommissions from "./PaidCommissions";
-import UnpaidCommissions from "./UnpaidCommissions";
+// import PaidCommissions from "./PaidCommissions";
+// import UnpaidCommissions from "./UnpaidCommissions";
 
 export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
@@ -63,10 +63,10 @@ export default function AffiliatesSalesReport() {
       <>
         <h2>Payment Reports(commission paid for the current month):</h2>
         <PaymentsReports />
-        <h2>Paid commissions</h2>
-        <PaidCommissions />
-        <h2>Unpaid commissions</h2>
-        <UnpaidCommissions />
+        {/* <h2>Paid commissions</h2> */}
+        {/* <PaidCommissions /> */}
+        {/* <h2>Unpaid commissions</h2> */}
+        {/* <UnpaidCommissions /> */}
       </>
       {/* )} */}
     </div>

@@ -1,5 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
+import OnboardStripeButton from "./OnboardStripeButton";
 
 export default function Profile() {
   const { data } = useQuery(QUERY_ME);
@@ -42,6 +43,12 @@ export default function Profile() {
             {me.commissionRate * 100}%<br />
           </>
         )}
+        <br />
+        {!me.stripeAccountId ? (
+      <OnboardStripeButton affiliateId={me.id} />
+    ) : (
+      <p>✅ Stripe connected</p>
+    )}
       </div>
     </>
   );

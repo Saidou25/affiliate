@@ -34,6 +34,23 @@ export const GET_AFFILIATE = gql`
   }
 `;
 
+export const GET_AFFILIATE_BY_REFID = gql`
+  query GetAffiliateByRefId($refId: String!) {
+    getAffiliateByRefId(refId: $refId) {
+      id
+      name
+      email
+      refId
+      totalClicks
+      totalCommissions
+      commissionRate
+      totalSales
+      createdAt
+      role
+    }
+  }
+`;
+
 export const GET_ALLAFFILIATESALES = gql`
   query getAllAffiliateSales {
     getAllAffiliateSales {

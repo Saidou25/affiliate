@@ -34,7 +34,8 @@
     "node-cron": "^4.0.7",
     "nodemailer": "^7.0.3",
     "path-to-regexp": "^8.2.0",
-    "puppeteer": "^24.9.0"
+    "puppeteer": "^24.9.0",
+    "stripe": "^18.2.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

@@ -18,6 +18,7 @@ export default function SalesReport() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [enableSaveReport, setEnableSaveReport] = useState(false);
 
   const { data, error: paymentError } = useQuery(GET_ALL_PAYMENTS);
   // console.log("payment data: ", data?.getAllPayments);
@@ -61,7 +62,7 @@ export default function SalesReport() {
     if (monthlySales) {
       for (let m of monthlySales) {
         if (m.month === currentMonth) {
-          console.log("current month: ", m.sales);
+          // console.log("current month: ", m.sales);
           const sales = m.sales;
           setMonthSales(sales as AffiliateSale[]);
         }
@@ -71,11 +72,11 @@ export default function SalesReport() {
   }, [monthlySales, currentMonth, setMonthSales]);
 
   useEffect(() => {
-    console.log(data);
+    // console.log(data);
   }, [data]);
 
   const SaveHtmlReport = async () => {
-    setLoading(true)
+    setLoading(true);
     const htmlElement = document.getElementById("pdf-content");
     if (!htmlElement) return;
 
@@ -90,23 +91,27 @@ export default function SalesReport() {
       });
       setLoading(false);
       setSuccess("✅ Report saved successfully!");
-
     } catch (err) {
       setError("❌ Failed to save report:");
       // console.log("❌ Failed to save report:", err);
-      alert("Error saving report");
+      // alert("Error saving report");
+      setLoading(false);
     }
   };
 
   if (error) return <p>{paymentError?.message}</p>;
   return (
     <div className="print">
+      <br />
       <div className="res">
         <div style={{ display: "flex" }}>
           <h3 style={{ marginRight: "2%" }}>
             Report for {currentMonth} is complete and ready to save to database
           </h3>
-          <button onClick={() => SaveHtmlReport()}>
+          <button
+            onClick={() => SaveHtmlReport()}
+            disabled={loading || !enableSaveReport}
+          >
             {loading && <span>Loading...</span>}
             {error && <span>{error}</span>}
             {success && <span>{success}</span>}

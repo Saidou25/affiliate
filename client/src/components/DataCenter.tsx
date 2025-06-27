@@ -15,7 +15,6 @@ export default function DataCenter() {
     GET_ALLREPORTS
   );
 
-
   const handleDownloadPDF = (report: ReportEntry) => {
     if (!report.pdf) {
       alert("PDF is not available for this report.");
@@ -55,6 +54,7 @@ export default function DataCenter() {
         )}
       </div>
       <SalesReport />
+    
     </div>
   );
 }

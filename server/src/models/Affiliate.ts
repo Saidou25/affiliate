@@ -17,6 +17,7 @@ interface IAffiliate extends Document {
   totalCommissions: number;
   totalSales: number;
   password: string;
+  stripeAccountId?: string;
   commissionRate: number;
   role?: "admin" | "affiliate";
   createdAt?: Date; // ✅ Automatically added by Mongoose
@@ -32,6 +33,7 @@ const AffiliateSchema = new Schema<IAffiliate>(
     password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
     totalClicks: { type: Number, default: 0 },
     totalCommissions: { type: Number, default: 0 },
+    stripeAccountId: { type: String },
     commissionRate: { type: Number, default: 0.1 }, // 10 %
     totalSales: { type: Number, default: 0 },
     role: { type: String, enum: ["admin", "affiliate"], default: "affiliate" },

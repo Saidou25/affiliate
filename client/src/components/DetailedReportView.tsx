@@ -3,8 +3,8 @@ import { useMutation, useQuery } from "@apollo/client";
 import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
-import { AffiliateSale } from "../types";
-import { QUERY_ME } from "../utils/queries";
+import { Affiliate, AffiliateSale } from "../types";
+import { GET_AFFILIATES, QUERY_ME } from "../utils/queries";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
@@ -39,35 +39,43 @@ export default function DetailedReportView({
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
-  
-  // const [updateAffiliateSale] = useMutation(UPDATE_AFFILIATE_SALE);
+
+  const { data: affiliatesData } = useQuery(GET_AFFILIATES);
   const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
 
   const payNow = async (sale: AffiliateSale) => {
     setLoadingId(sale.id);
     const id = sale.id;
-
+    let affiliateId;
     if (!id || typeof id !== "string") {
       console.error("❌ Invalid saleId:", id);
       return;
+    }
+
+    if (affiliatesData) {
+      const foundAffiliate = affiliatesData.getAffiliates.find(
+        (affiliate: Affiliate) => affiliate.refId === sale.refId
+      );
+      affiliateId = foundAffiliate.id;
     }
 
     try {
       const { data } = await recordAffiliatePayment({
         variables: {
           input: {
-            affiliateId: "683069ae94d51ebdcef64de9",
-            saleIds: [sale.id], // Replace with real selected IDs
-            amount: sale.amount,
+            refId: sale.refId,
+            saleIds: sale.id,
+            affiliateId,
+            saleAmount: sale.amount,
             method: "bank",
             transactionId: "BANK-TRX-123",
-            notes: `Test June payout for ${sale.refId}`,
+            notes: `${currentMonth} payout for ${sale.refId}`,
           },
         },
       });
 
       if (data) {
-        console.log("✅ Payment successful!", data);
+        console.log("✅ Payment successful!");
         setLoadingId(null);
         // Optionally: refresh your sales list here!
       }
@@ -76,30 +84,6 @@ export default function DetailedReportView({
       console.error("Full error object:", error);
     }
   };
-
-  // const payNow = async (sale: AffiliateSale) => {
-  //   setLoadingId(sale.id);
-  //   const id = sale.id;
-  //   console.log("🧪 Triggering markSaleAsPaid with saleId:", id, typeof id);
-  //   if (!id || typeof id !== "string") {
-  //     console.error("❌ Invalid saleId:", id);
-  //     return;
-  //   }
-  //   try {
-  //     const { data } = await updateAffiliateSale({
-  //       variables: { saleId: id, commissionStatus: "unpaid" },
-  //     });
-  //     if (data) {
-  //       console.log("payment successful!");
-  //       setLoadingId(null);
-  //     }
-  //   } catch (error: any) {
-  //     console.error("GraphQL error:", error.message);
-  //     console.error("Full error object:", error);
-  //   }
-  // };
-
-  // console.log("month sales: ", monthSales);
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(

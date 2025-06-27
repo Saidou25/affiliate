@@ -146,11 +146,10 @@ export const RECORD_AFFILIATE_PAYMENT = gql`
   mutation RecordAffiliatePayment($input: RecordAffiliatePaymentInput!) {
     recordAffiliatePayment(input: $input) {
       id
+      refId
       affiliateId
       saleAmount
-      paidCommission
       productName
-      date
       method
       transactionId
       notes
@@ -171,4 +170,8 @@ export const SAVE_HTML_REPORT = gql`
   }
 `;
 
-
+export const CREATE_STRIPE_ACCOUNT = gql`
+  mutation CreateStripeAccount($affiliateId: ID!) {
+    createAffiliateStripeAccount(affiliateId: $affiliateId)
+  }
+`;

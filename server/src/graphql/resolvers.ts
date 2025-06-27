@@ -14,6 +14,7 @@ import ClickLog from "../models/ClickLog";
 import ReportHistory, { IReportHistory } from "../models/ReportHistory";
 import Payment from "../models/Payment";
 import { generateMonthlyPDFReportPDF } from "../cron/generateMonthlyReportPDF";
+import { createStripeAccountAndOnboardingLink } from "../utils/stripe";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -51,8 +52,12 @@ const resolvers = {
     //   return Affiliate.find();
     // },
 
+    getAffiliateByRefId: async (_: any, { refId }: { refId: string }) => {
+      return await Affiliate.findOne({ refId });
+    },
+
     getAffiliate: async (_: any, { id }: { id: string }) => {
-      return Affiliate.findOne({ _id: id });
+      return await Affiliate.findOne({ _id: id });
     },
 
     me: async (_parent: any, _: any, context: MyContext) => {
@@ -64,14 +69,14 @@ const resolvers = {
     },
 
     getAllAffiliateSales: async () => {
-      return AffiliateSale.find();
+      return await AffiliateSale.find();
     },
 
     getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
-      return AffiliateSale.find({ refId }); // likely multiple sales per affiliate
+      return await AffiliateSale.find({ refId }); // likely multiple sales per affiliate
     },
     getAffiliateClickLogs: async (_: any, { refId }: { refId: string }) => {
-      return ClickLog.find({ refId }); // likely multiple sales per affiliate
+      return await ClickLog.find({ refId }); // likely multiple sales per affiliate
     },
 
     getAllAffiliatesClickLogs: async (_: any, __: any, context: MyContext) => {
@@ -412,7 +417,7 @@ const resolvers = {
         input,
       }: {
         input: {
-          affiliateId: string;
+          refId: string;
           saleIds: string[];
           saleAmount: number;
           method: string;
@@ -421,13 +426,13 @@ const resolvers = {
         };
       }
     ) => {
-      const affiliateSale = await AffiliateSale.findById(input.saleIds);
+      const affiliateSale = await AffiliateSale.findById(input.saleIds[0]);
       if (!affiliateSale) {
         throw new Error("Affiliate sale not found.");
       }
       const productName = affiliateSale?.event;
 
-      const affiliate = await Affiliate.findById(input.affiliateId);
+      const affiliate = await Affiliate.findOne({ refId: input.refId });
       // 💰 2. Calculate the commission (default 10% if none set)
       if (!affiliate) {
         throw new Error("Affiliate not found.");
@@ -438,7 +443,8 @@ const resolvers = {
       try {
         // 🔍 1. Create a new Payment document
         const payment = await Payment.create({
-          affiliateId: new Types.ObjectId(input.affiliateId),
+          refId: affiliate.refId,
+          affiliateId: affiliate._id,
           saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
           saleAmount: parseFloat(input.saleAmount.toFixed(2)),
           paidCommission: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number,
@@ -450,7 +456,7 @@ const resolvers = {
         });
 
         // 🔄 2. Update selected AffiliateSale document
-        const affiliateSale = await AffiliateSale.findOneAndUpdate(
+        const affiliateSale = await AffiliateSale.findByIdAndUpdate(
           { _id: input.saleIds[0] },
           {
             $set: {
@@ -464,19 +470,22 @@ const resolvers = {
         console.log("✅ AffiliateSale updated:", affiliateSale);
 
         // 📝 3. Push a PaymentRecord snapshot to Affiliate.paymentHistory
-        await Affiliate.findByIdAndUpdate(input.affiliateId, {
-          $push: {
-            paymentHistory: {
-              paidCommission: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number,
-              saleAmount: parseFloat(input.saleAmount.toFixed(2)), // ✅ ensure it's a number,
-              date: payment.date,
-              method: input.method,
-              transactionId: input.transactionId,
-              notes: input.notes,
-              productName: productName,
+        await Affiliate.findOneAndUpdate(
+          { refId: input.refId },
+          {
+            $push: {
+              paymentHistory: {
+                paidCommission: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number,
+                saleAmount: parseFloat(input.saleAmount.toFixed(2)), // ✅ ensure it's a number,
+                date: payment.date,
+                method: input.method,
+                transactionId: input.transactionId,
+                notes: input.notes,
+                productName: productName,
+              },
             },
-          },
-        });
+          }
+        );
 
         // ✅ 4. Return the new Payment record
         return payment;
@@ -600,6 +609,24 @@ const resolvers = {
       await sale.save();
 
       return sale;
+    },
+
+    createAffiliateStripeAccount: async (
+      _: any,
+      { affiliateId }: { affiliateId: string }
+    ) => {
+      const affiliate = await Affiliate.findById(affiliateId);
+      if (!affiliate) throw new Error("Affiliate not found");
+
+      // ✅ Call Stripe API to create connected account + onboarding link
+      const { onboardingUrl, stripeAccountId } =
+        await createStripeAccountAndOnboardingLink(affiliateId);
+
+      // ✅ Save the Stripe account ID to the affiliate document
+      affiliate.stripeAccountId = stripeAccountId;
+      await affiliate.save();
+
+      return onboardingUrl;
     },
   },
 };
