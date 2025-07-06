@@ -17,6 +17,7 @@ import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 
 import "./index.css";
+import StripeReturn from "./components/StripeReturn";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -31,6 +32,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
       <Route
         path="/admin"
         element={
@@ -52,10 +54,7 @@ function App() {
           }
         />
         <Route path="look up" element={<AffiliatesLookUp />} />
-        <Route
-          path="sales report"
-          element={<AffiliatesSalesReport />}
-        />
+        <Route path="sales report" element={<AffiliatesSalesReport />} />
         <Route path="data center" element={<DataCenter />} />
       </Route>
       <Route path="/affiliate" element={<AffiliateDashboard />}>

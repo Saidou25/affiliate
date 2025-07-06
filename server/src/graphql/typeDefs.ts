@@ -114,10 +114,27 @@ const typeDefs = gql`
     createdAt: String
   }
 
+  type OnboardingResponse {
+    onboardingUrl: String!
+    stripeAccountId: String!
+  }
+
+  type StripeStatus {
+    id: ID!
+    charges_enabled: Boolean
+    payouts_enabled: Boolean
+    details_submitted: Boolean
+  }
+
+  type StripeOnboardingResult {
+    url: String!
+    resumed: Boolean!
+  }
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
-    getAffiliateByRefId(refID: String!): Affiliate
+    getAffiliateByRefId(refId: String!): Affiliate
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
@@ -128,6 +145,7 @@ const typeDefs = gql`
     getAffiliatePaymentHistory(refId: String!): [PaymentRecord!]!
     getAllAffiliatePayments: [PaymentRecord!]!
     getAllPayments: [Payment!]!
+    checkStripeStatus(affiliateId: ID!): StripeStatus
   }
 
   type Mutation {
@@ -189,7 +207,8 @@ const typeDefs = gql`
 
     saveHtmlReport(html: String!, month: String!): ReportHistory
 
-    createAffiliateStripeAccount(affiliateId: ID!): String!
+    createAffiliateStripeAccount(affiliateId: ID!): StripeOnboardingResult!
+
   }
 `;
 export default typeDefs;

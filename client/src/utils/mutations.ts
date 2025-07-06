@@ -170,8 +170,12 @@ export const SAVE_HTML_REPORT = gql`
   }
 `;
 
-export const CREATE_STRIPE_ACCOUNT = gql`
-  mutation CreateStripeAccount($affiliateId: ID!) {
-    createAffiliateStripeAccount(affiliateId: $affiliateId)
+export const CREATE_AFFILIATE_STRIPE_ACCOUNT = gql`
+  mutation CreateAffiliateStripeAccount($affiliateId: ID!) {
+    createAffiliateStripeAccount(affiliateId: $affiliateId) {
+      url
+      resumed
+    }
   }
 `;
+

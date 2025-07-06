@@ -14,7 +14,11 @@ import ClickLog from "../models/ClickLog";
 import ReportHistory, { IReportHistory } from "../models/ReportHistory";
 import Payment from "../models/Payment";
 import { generateMonthlyPDFReportPDF } from "../cron/generateMonthlyReportPDF";
-import { createStripeAccountAndOnboardingLink } from "../utils/stripe";
+import {
+  createStripeAccountAndOnboardingLink,
+  getOnboardingLinkForExistingAccount,
+} from "../utils/stripe";
+import { checkStripeAccountStatus } from "../utils/checkStripeAccount";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -128,6 +132,28 @@ const resolvers = {
     getAllPayments: async () => {
       // requireAdmin(context); // Optional: only allow admin to see all payments
       return Payment.find().sort({ date: -1 }); // Sort by most recent first
+    },
+
+    checkStripeStatus: async (
+      _: any,
+      { affiliateId }: { affiliateId: string }
+    ) => {
+      const affiliate = await Affiliate.findById(affiliateId);
+      if (!affiliate || !affiliate.stripeAccountId) {
+        throw new Error("Affiliate or Stripe account not found.");
+      }
+
+      const result = await checkStripeAccountStatus(affiliate.stripeAccountId);
+
+      if (!result.success) {
+        throw new Error(result.message || "Stripe status check failed.");
+      }
+
+      // Match StripeStatus type directly
+      const { id, charges_enabled, payouts_enabled, details_submitted } =
+        result;
+
+      return { id, charges_enabled, payouts_enabled, details_submitted };
     },
   },
 
@@ -618,15 +644,50 @@ const resolvers = {
       const affiliate = await Affiliate.findById(affiliateId);
       if (!affiliate) throw new Error("Affiliate not found");
 
-      // ✅ Call Stripe API to create connected account + onboarding link
+      let resumed = false;
+
+      // ⚠️ Resume onboarding if account exists but is incomplete
+      if (affiliate.stripeAccountId) {
+        try {
+          const result = await checkStripeAccountStatus(
+            affiliate.stripeAccountId
+          );
+          if (result.success && !result.details_submitted) {
+            resumed = true;
+            const resumeLink = await getOnboardingLinkForExistingAccount(
+              affiliate.stripeAccountId
+            );
+            console.log("♻️ Resuming onboarding:", {
+              url: resumeLink,
+              resumed: true,
+            });
+            return {
+              url: resumeLink,
+              resumed,
+            };
+          }
+        } catch (err) {
+          console.warn(
+            "⚠️ Could not retrieve existing Stripe account. Will create a new one."
+          );
+        }
+      }
+
+      // ✅ Create new account and onboarding link
       const { onboardingUrl, stripeAccountId } =
         await createStripeAccountAndOnboardingLink(affiliateId);
 
-      // ✅ Save the Stripe account ID to the affiliate document
       affiliate.stripeAccountId = stripeAccountId;
       await affiliate.save();
+      console.log("✅ Final return to GraphQL:", {
+        url: onboardingUrl,
+        resumed,
+      });
 
-      return onboardingUrl;
+      return {
+        url: onboardingUrl,
+        resumed,
+      };
     },
   },
 };

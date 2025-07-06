@@ -59,6 +59,15 @@
   text-align: left;
   color: black; 
 }
+button:disabled {
+  /* opacity: 0.5; */
+  cursor: not-allowed; /* optional: shows a clear disabled signal */
+}
+
+button:disabled:hover {
+   cursor: default; 
+}
+
 .paid-button-admin {
   padding: 4px 8px;
   background-color: #4CAF50;

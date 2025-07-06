@@ -32,4 +32,5 @@ export type Affiliate = {
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
   paymentHistory: PaymentRecord[];
+  stripeAccountId?: String
 };

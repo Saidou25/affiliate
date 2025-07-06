@@ -1,5 +1,4 @@
 import { useState } from "react";
-// import { useSalesTracker } from "../hooks/useSalesTracker";np8aKVvD
 import DetailedReport from "./DetailedReport";
 
 export default function AffiliatesLookUp() {

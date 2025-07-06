@@ -13,6 +13,7 @@ export const GET_AFFILIATES = gql`
       totalSales
       createdAt
       role
+      stripeAccountId
     }
   }
 `;
@@ -30,6 +31,7 @@ export const GET_AFFILIATE = gql`
       totalSales
       createdAt
       role
+      stripeAccountId
     }
   }
 `;
@@ -47,6 +49,7 @@ export const GET_AFFILIATE_BY_REFID = gql`
       totalSales
       createdAt
       role
+      stripeAccountId
     }
   }
 `;
@@ -96,6 +99,7 @@ export const QUERY_ME = gql`
       totalSales
       createdAt
       role
+      stripeAccountId
     }
   }
 `;
@@ -187,3 +191,16 @@ export const GET_ALL_PAYMENTS = gql`
     }
   }
 `;
+
+export const CHECK_STRIPE_STATUS = gql`
+  query CheckStripeStatus($affiliateId: ID!) {
+    checkStripeStatus(affiliateId: $affiliateId) {
+      id
+      charges_enabled
+      payouts_enabled
+      details_submitted
+    }
+  }
+`;
+
+

@@ -4,8 +4,8 @@ import OnboardStripeButton from "./OnboardStripeButton";
 
 export default function Profile() {
   const { data } = useQuery(QUERY_ME);
-  const me = data.me || {};
-// console.log(me)
+  const me = data?.me || {};
+
   return (
     <>
       <h2>My Profile</h2>
@@ -45,10 +45,10 @@ export default function Profile() {
         )}
         <br />
         {!me.stripeAccountId ? (
-      <OnboardStripeButton affiliateId={me.id} />
-    ) : (
-      <p>✅ Stripe connected</p>
-    )}
+          <OnboardStripeButton />
+        ) : (
+          <p>✅ Stripe connected</p>
+        )}
       </div>
     </>
   );

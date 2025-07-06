@@ -1,10 +1,15 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
 import { Affiliate, AffiliateSale } from "../types";
-import { GET_AFFILIATES, QUERY_ME } from "../utils/queries";
+import {
+  CHECK_STRIPE_STATUS,
+  GET_AFFILIATE_BY_REFID,
+  GET_AFFILIATES,
+  QUERY_ME,
+} from "../utils/queries";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
@@ -13,6 +18,7 @@ import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 
 import "./DetailedReport.css";
+// import { useGetOneAffiliate } from "../hooks/useGetOneAffiliate";
 
 type Props = {
   monthSales: any;
@@ -31,7 +37,16 @@ export default function DetailedReportView({
   clicksPerMonth,
   clicksData,
 }: Props) {
+  //  Create a state to track Stripe statuses per affiliate
+  const [stripeStatusMap, setStripeStatusMap] = useState<
+    Record<string, boolean>
+  >({});
+  const [stripeLoadingMap, setStripeLoadingMap] = useState<
+    Record<string, boolean>
+  >({});
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  // const [showStripeMessage, setShowStripeMessage] = useState(false);
+  // const [redirectUrl, setRedirectUrl] = useState("");
 
   const addedSales = useAddMonthSales(monthSales);
   const { addedCommissions, calculateCommissionsByStatus } =
@@ -42,11 +57,13 @@ export default function DetailedReportView({
 
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
   const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
+  const [getAffiliateByRefId] = useLazyQuery(GET_AFFILIATE_BY_REFID);
+  const [checkStripeStatus] = useLazyQuery(CHECK_STRIPE_STATUS);
 
-  const payNow = async (sale: AffiliateSale) => {
+  const payNow = async (sale: AffiliateSale, affiliateId: string) => {
     setLoadingId(sale.id);
     const id = sale.id;
-    let affiliateId;
+    // let affiliateId;
     if (!id || typeof id !== "string") {
       console.error("❌ Invalid saleId:", id);
       return;
@@ -84,6 +101,75 @@ export default function DetailedReportView({
       console.error("Full error object:", error);
     }
   };
+
+  const handleClick = async (sale: AffiliateSale) => {
+    try {
+      const { data } = await getAffiliateByRefId({
+        variables: { refId: sale.refId },
+      });
+      const affiliateId = data?.getAffiliateByRefId?.id;
+      if (!affiliateId) return;
+
+      const { data: stripeData } = await checkStripeStatus({
+        variables: { affiliateId },
+      });
+      const isReady =
+        stripeData?.checkStripeStatus?.charges_enabled &&
+        stripeData?.checkStripeStatus?.payouts_enabled;
+
+      if (!isReady) {
+        alert("Affiliate not ready for payouts.");
+        return;
+      }
+
+      payNow(sale, affiliateId);
+    } catch (err: any) {
+      console.error("❌ Failed to process payout:", err.message);
+    }
+  };
+
+  const handleCheckEnrollment = async (refId: string) => {
+    setStripeLoadingMap((prev) => ({ ...prev, [refId]: true }));
+    try {
+      const affiliateResult = await getAffiliateByRefId({
+        variables: { refId },
+      });
+      const affiliateId = affiliateResult?.data?.getAffiliateByRefId?.id;
+
+      if (!affiliateId) {
+        setStripeStatusMap((prev) => ({ ...prev, [refId]: false }));
+        setStripeLoadingMap((prev) => ({ ...prev, [refId]: false }));
+        return;
+      }
+
+      const stripeResult = await checkStripeStatus({
+        variables: { affiliateId },
+      });
+      const stripeStatus = stripeResult?.data?.checkStripeStatus;
+
+      const ready =
+        stripeStatus?.charges_enabled && stripeStatus?.payouts_enabled;
+
+      setStripeStatusMap((prev) => ({ ...prev, [refId]: ready }));
+    } catch (err) {
+      console.error("Error checking Stripe enrollment:", err);
+      setStripeStatusMap((prev) => ({ ...prev, [refId]: false }));
+    } finally {
+      setStripeLoadingMap((prev) => ({ ...prev, [refId]: false }));
+    }
+  };
+
+  // useEffect to trigger checks on render
+  useEffect(() => {
+    const sales = monthSales as AffiliateSale[];
+    const uniqueRefIds = Array.from(new Set(sales.map((sale) => sale.refId)));
+
+    uniqueRefIds.forEach((refId) => {
+      if (!(refId in stripeStatusMap)) {
+        handleCheckEnrollment(refId);
+      }
+    });
+  }, [monthSales, stripeStatusMap]);
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
@@ -149,13 +235,26 @@ export default function DetailedReportView({
             <thead>
               <tr>
                 <th className="cell-style-top">Purchase date</th>
-                <th className="cell-style-top">Sale ID</th>
+                {/* <th className="cell-style-top">Sale ID</th> */}
                 <th className="cell-style-top">Buyer's email</th>
                 <th className="cell-style-top">Product</th>
-                <th className="cell-style-top">Product ID</th>
+                {/* <th className="cell-style-top">Product ID</th> */}
                 <th className="cell-style-top">Reference ID</th>
                 <th className="cell-style-top">Price</th>
                 <th className="cell-style-top">Commission</th>
+                {/* <th className="cell-style-top">
+                  {status ? (
+                    status.charges_enabled && status.payouts_enabled ? (
+                      <p>✅ Ready for Payouts</p>
+                    ) : (
+                      <p>⚠️ Not payout-ready yet</p>
+                    )
+                  ) : (
+                    <p>Loading status...</p>
+                  )}
+                </th> */}
+
+                <th className="cell-style-top">Enrolled</th>
                 <th className="cell-style-top">
                   {me?.role === "admin" ? (
                     <span className="">Action</span>
@@ -174,17 +273,28 @@ export default function DetailedReportView({
                         timeZone: "America/New_York",
                       })}
                     </td>
-                    <td className="cell-style">{sale.id}</td>
+                    {/* <td className="cell-style">{sale.id}</td> */}
                     <td className="cell-style">{sale.buyerEmail}</td>
                     <td className="cell-style">
                       {sale.event.length <= 20
                         ? sale.event
                         : `${sale.event.slice(0, 20)}...`}
                     </td>
-                    <td className="cell-style">{sale.productId}</td>
+                    {/* <td className="cell-style">{sale.productId}</td> */}
                     <td className="cell-style">{sale.refId}</td>
                     <td className="cell-style">${sale.amount}</td>
                     <td className="cell-style">${sale.commissionEarned}</td>
+                    {/* Update the cell to show status of enrollement */}
+                    <td className="cell-style">
+                      {stripeLoadingMap[sale.refId] ? (
+                        <Spinner />
+                      ) : stripeStatusMap[sale.refId] === true ? (
+                        <span style={{ color: "green" }}>✅ Ready</span>
+                      ) : (
+                        <span style={{ color: "orange" }}>⚠️ Not ready</span>
+                      )}
+                    </td>
+
                     <td className="cell-style">
                       <button
                         className={
@@ -192,11 +302,13 @@ export default function DetailedReportView({
                             ? `paid-button-${me?.role}`
                             : `unpaid-button-${me?.role}`
                         }
-                        onClick={() => payNow(sale)}
+                        onClick={() => handleClick(sale)}
                         disabled={
                           loadingId === sale.id ||
                           sale.commissionStatus === "paid" ||
-                          me?.role === "affiliate"
+                          me?.role === "affiliate" ||
+                          stripeStatusMap[sale.refId] === false ||
+                          stripeStatusMap[sale.refId] === undefined
                         }
                       >
                         {loadingId === sale.id && <Spinner />}
