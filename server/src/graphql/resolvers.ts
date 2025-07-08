@@ -144,16 +144,19 @@ const resolvers = {
       }
 
       const result = await checkStripeAccountStatus(affiliate.stripeAccountId);
-
       if (!result.success) {
-        throw new Error(result.message || "Stripe status check failed.");
+        throw new Error(
+          result.message || "Unable to fetch Stripe account status."
+        );
       }
 
-      // Match StripeStatus type directly
-      const { id, charges_enabled, payouts_enabled, details_submitted } =
-        result;
-
-      return { id, charges_enabled, payouts_enabled, details_submitted };
+      // Return a consistent shape regardless of success
+      return {
+        id: result.id,
+        charges_enabled: result.charges_enabled,
+        payouts_enabled: result.payouts_enabled,
+        details_submitted: result.details_submitted,
+      };
     },
   },
 

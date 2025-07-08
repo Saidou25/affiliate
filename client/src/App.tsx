@@ -15,9 +15,9 @@ import AffiliatesSalesReport from "./components/AffiliatesSalesReport";
 import AffiliatesLookUp from "./components/AffiliatesLookUp";
 import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
+import StripeReturn from "./components/StripeReturn";
 
 import "./index.css";
-import StripeReturn from "./components/StripeReturn";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);

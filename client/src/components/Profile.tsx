@@ -1,10 +1,28 @@
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import OnboardStripeButton from "./OnboardStripeButton";
+import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
+import { useEffect } from "react";
+import StripeStatusCard from "./StripStatusCard";
 
 export default function Profile() {
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
+
+  const { stripeStatusData, loading } = useCheckOnboardingStatus(me.id);
+  // console.log(stripeStatusData, loading, error);
+
+  useEffect(() => {
+    if (stripeStatusData) {
+      // console.log("✅ Stripe status:", stripeStatusData);
+      if (
+        !stripeStatusData.charges_enabled ||
+        !stripeStatusData.payouts_enabled
+      ) {
+        console.log("Affiliate is not fully onboarded.");
+      }
+    }
+  }, [stripeStatusData]);
 
   return (
     <>
@@ -44,11 +62,14 @@ export default function Profile() {
           </>
         )}
         <br />
-        {!me.stripeAccountId ? (
+        {!me.stripeAccountId && !stripeStatusData?.payouts_enabled && (
           <OnboardStripeButton />
-        ) : (
-          <p>✅ Stripe connected</p>
         )}
+        <StripeStatusCard
+          affiliateId={me.id}
+          stripeStatusData={stripeStatusData}
+          loading={loading}
+        />
       </div>
     </>
   );

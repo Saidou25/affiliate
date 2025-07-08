@@ -32,5 +32,28 @@ export type Affiliate = {
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
   paymentHistory: PaymentRecord[];
-  stripeAccountId?: String
+  stripeAccountId?: String;
+};
+
+export type GetAffiliateByRefIdData = {
+  getAffiliateByRefId: {
+    id: string;
+  };
+};
+
+export type GetAffiliateByRefIdVars = {
+  refId: string;
+};
+
+export type CheckStripeStatusData = {
+  checkStripeStatus: {
+    id: string;
+    charges_enabled: boolean;
+    payouts_enabled: boolean;
+    details_submitted: boolean;
+  };
+};
+
+export type CheckStripeStatusVars = {
+  affiliateId: string;
 };
