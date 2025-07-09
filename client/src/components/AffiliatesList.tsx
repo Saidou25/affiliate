@@ -1,17 +1,10 @@
 // import { DELETE_AFFILIATE } from "../utils/mutations";
-
-import { useEffect, useState } from "react";
-import {
-  Affiliate,
-  CheckStripeStatusData,
-  CheckStripeStatusVars,
-  GetAffiliateByRefIdData,
-  GetAffiliateByRefIdVars,
-} from "../types";
 import "./DetailedReport.css";
-import Spinner from "./Spinner";
-import { CHECK_STRIPE_STATUS, GET_AFFILIATE_BY_REFID } from "../utils/queries";
-import { useLazyQuery } from "@apollo/client";
+// import Spinner from "./Spinner";
+// import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
+import { Affiliate } from "../types";
+import { useEffect, useState } from "react";
+import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 
 type Props = {
   data: any;
@@ -20,69 +13,26 @@ type Props = {
 };
 
 export default function AffiliatesList({ data, loading, errorText }: Props) {
-  //  Create a state to track Stripe statuses per affiliate
-  const [stripeStatusMap, setStripeStatusMap] = useState<
-    Record<string, boolean>
-  >({});
-  const [stripeLoadingMap, setStripeLoadingMap] = useState<
-    Record<string, boolean>
-  >({});
-  const [getAffiliateByRefId] = useLazyQuery<
-    GetAffiliateByRefIdData,
-    GetAffiliateByRefIdVars
-  >(GET_AFFILIATE_BY_REFID);
-  const [checkStripeStatus] = useLazyQuery<
-    CheckStripeStatusData,
-    CheckStripeStatusVars
-  >(CHECK_STRIPE_STATUS);
+  const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
+  // const refIds = data?.getAffiliates?.map((a: Affiliate) => a.refId) || [];
+  const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
 
-  const handleCheckEnrollment = async (refId: string) => {
-    setStripeLoadingMap((prev) => ({ ...prev, [refId]: true }));
-    try {
-      const affiliateResult = await getAffiliateByRefId({
-        variables: { refId },
-      });
-      const affiliateId = affiliateResult?.data?.getAffiliateByRefId
-        ?.id as string;
-
-      if (!affiliateId) {
-        setStripeStatusMap((prev) => ({ ...prev, [refId]: false }));
-        setStripeLoadingMap((prev) => ({ ...prev, [refId]: false }));
-        return;
-      }
-
-      const stripeResult = await checkStripeStatus({
-        variables: { affiliateId },
-      });
-      const stripeStatus = stripeResult?.data?.checkStripeStatus;
-
-      const ready: boolean =
-        Boolean(stripeStatus?.charges_enabled) &&
-        Boolean(stripeStatus?.payouts_enabled);
-
-      setStripeStatusMap((prev) => ({ ...prev, [refId]: ready }));
-    } catch (err) {
-      console.error("Error checking Stripe enrollment:", err);
-      setStripeStatusMap((prev) => ({ ...prev, [refId]: false }));
-    } finally {
-      setStripeLoadingMap((prev) => ({ ...prev, [refId]: false }));
-    }
-  };
-
-  // useEffect to trigger checks on render
   useEffect(() => {
-    const affiliatesData = data?.getAffiliates;
-    if (!affiliatesData) return;
-
-    const uniqueRefIds: string[] = Array.from(
-      new Set(
-        affiliatesData.map((affiliateData: Affiliate) => affiliateData.refId)
-      )
-    );
-
-    uniqueRefIds.forEach((refId) => {
-      handleCheckEnrollment(refId);
-    });
+    let idsArr: string[] = [];
+    if (data) {
+      const affiliatesOnly = data.getAffiliates.filter(
+        (affiliate: Affiliate) => affiliate.role !== "admin"
+      );
+      const refIds = affiliatesOnly.map(
+        (affiliate: Affiliate) => affiliate.refId
+      );
+      for (let refId of refIds) {
+        if (!idsArr.includes(refId)) {
+          idsArr.push(refId);
+        }
+      }
+      setRefIdsArr(idsArr);
+    }
   }, [data]);
 
   // const yearlySales = (allSalesData?.getAllAffiliateSales)?.length;
@@ -195,9 +145,7 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
                           ${affiliate.totalCommissions.toFixed(2)}
                         </td>
                         <td className="cell-style">
-                          {stripeLoadingMap[affiliate.refId] ? (
-                            <Spinner />
-                          ) : stripeStatusMap[affiliate.refId] === true ? (
+                          {stripeReadyArr.includes(affiliate.refId) ? (
                             <span style={{ color: "green" }}>✅ Ready</span>
                           ) : (
                             <span style={{ color: "orange" }}>
