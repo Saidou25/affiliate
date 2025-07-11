@@ -6,6 +6,7 @@ import { Affiliate } from "../types";
 import { IoPersonCircleOutline } from "react-icons/io5";
 
 import "./AffiliatesLookUp.css";
+import NotificationForm from "./NotificationForm";
 
 export default function AffiliatesLookUp() {
   const [affiliateData, setAffiliateData] = useState<Affiliate | null>(null);
@@ -136,6 +137,7 @@ export default function AffiliatesLookUp() {
             Affiliate since {affiliateData?.createdAt?.toISOString()}
           </div>
         </div>
+        <NotificationForm />
         {!affiliateData?.totalCommissions &&
           !affiliateData?.totalClicks &&
           !affiliateData?.totalSales && (

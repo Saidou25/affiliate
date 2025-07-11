@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Notification } from "../types";
 
-
 import "./ViewAllNotifications.css";
 
 export default function ViewAllNotifications() {
@@ -19,7 +18,9 @@ export default function ViewAllNotifications() {
     fetchPolicy: "network-only",
   });
 
-  const notifications: Notification[] = data?.me?.notifications ?? [];
+  const notifications: Notification[] = [
+    ...(data?.me?.notifications ?? []),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   useEffect(() => {
     if (openedFromMenu && data?.me?.refId) {

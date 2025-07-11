@@ -4,6 +4,7 @@ import OnboardStripeButton from "./OnboardStripeButton";
 import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import { useEffect } from "react";
 import StripeStatusCard from "./StripStatusCard";
+import StripeSetupBanner from "./StripeSetupBanner";
 
 export default function Profile() {
   const { data } = useQuery(QUERY_ME);

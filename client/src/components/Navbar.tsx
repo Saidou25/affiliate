@@ -14,6 +14,7 @@ import "./Navbar.css";
 export default function Navbar() {
   const [links, setLinks] = useState<string[]>([]);
   const [group, setGroup] = useState("");
+  
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
   };

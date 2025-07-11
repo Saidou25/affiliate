@@ -17,6 +17,7 @@ import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 import StripeReturn from "./components/StripeReturn";
 import ViewAllNotifications from "./components/ViewAllNotifications";
+import Settings from "./components/Settings";
 
 import "./index.css";
 
@@ -64,6 +65,7 @@ function App() {
         <Route path="reports" element={<DetailedReport refId={refId} />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

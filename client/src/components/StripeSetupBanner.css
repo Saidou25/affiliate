@@ -1,0 +1,59 @@
+.stripe-banner {
+  background-color: #fff8e1;
+  border: 1px solid #ffecb3;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.stripe-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #795548;
+  flex: 1;
+}
+
+.stripe-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: 1rem;
+}
+
+.stripe-button {
+  background-color: #673ab7;
+  color: white;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.stripe-button:hover {
+  background-color: #5e35b1;
+}
+
+.stripe-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #795548;
+  cursor: pointer;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
