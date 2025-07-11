@@ -224,6 +224,12 @@ const typeDefs = gql`
     ): Affiliate!
 
     markNotificationsRead(refId: String!): Affiliate!
+
+    updateNotificationReadStatus(
+      refId: String!
+      title: String!
+      read: Boolean!
+    ): Affiliate!
   }
 `;
 export default typeDefs;

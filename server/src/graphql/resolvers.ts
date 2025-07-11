@@ -223,13 +223,13 @@ const resolvers = {
         refId,
         createdAt,
         notifications: [
-      {
-        title: "Welcome to the Princeton Green's Affiliate Program!",
-        text: "Your account has been successfully created.",
-        date: new Date(),
-        read: false,
-      },
-    ],
+          {
+            title: "Welcome to the Princeton Green's Affiliate Program!",
+            text: "Your account has been successfully created.",
+            date: new Date(),
+            read: false,
+          },
+        ],
       });
       await affiliate.save();
 
@@ -732,6 +732,24 @@ const resolvers = {
       );
 
       await affiliate.save();
+      return affiliate;
+    },
+
+    updateNotificationReadStatus: async (
+      _: unknown,
+      { refId, title, read }: { refId: string; title: string; read: boolean }
+    ) => {
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate) throw new Error("Affiliate not found");
+
+      const notification = affiliate.notifications?.find(
+        (n) => n.title === title
+      );
+      if (notification) {
+        notification.read = read;
+        await affiliate.save();
+      }
+
       return affiliate;
     },
   },

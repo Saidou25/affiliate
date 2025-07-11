@@ -192,3 +192,39 @@ export const MARK_NOTIFICATIONS_READ = gql`
     }
   }
 `;
+
+export const CREATE_NOTIFICATION = gql`
+  mutation CreateNotification(
+    $refId: String!
+    $title: String!
+    $text: String!
+  ) {
+    createNotification(refId: $refId, title: $title, text: $text) {
+      id
+      notifications {
+        date
+        title
+        text
+        read
+      }
+    }
+  }
+`;
+
+export const UPDATE_NOTIFICATION_READ_STATUS = gql`
+  mutation UpdateNotificationReadStatus(
+    $refId: String!
+    $title: String!
+    $read: Boolean!
+  ) {
+    updateNotificationReadStatus(refId: $refId, title: $title, read: $read) {
+      id
+      notifications {
+        date
+        title
+        text
+        read
+      }
+    }
+  }
+`;
