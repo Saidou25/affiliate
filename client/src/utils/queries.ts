@@ -14,6 +14,19 @@ export const GET_AFFILIATES = gql`
       createdAt
       role
       stripeAccountId
+      # paymentHistory {
+      #   date
+      #   amount
+      #   method
+      #   transactionId
+      #   notes
+      # }
+      notifications {
+        date
+        title
+        text
+        read
+      }
     }
   }
 `;
@@ -32,6 +45,19 @@ export const GET_AFFILIATE = gql`
       createdAt
       role
       stripeAccountId
+      # paymentHistory {
+      #   date
+      #   amount
+      #   method
+      #   transactionId
+      #   notes
+      # }
+      notifications {
+        date
+        title
+        text
+        read
+      }
     }
   }
 `;
@@ -50,6 +76,50 @@ export const GET_AFFILIATE_BY_REFID = gql`
       createdAt
       role
       stripeAccountId
+      # paymentHistory {
+      #   date
+      #   amount
+      #   method
+      #   transactionId
+      #   notes
+      # }
+      notifications {
+        date
+        title
+        text
+        read
+      }
+    }
+  }
+`;
+
+export const QUERY_ME = gql`
+  query me {
+    me {
+      id
+      email
+      refId
+      name
+      totalClicks
+      totalCommissions
+      commissionRate
+      totalSales
+      createdAt
+      role
+      stripeAccountId
+      # paymentHistory {
+      #   date
+      #   amount
+      #   method
+      #   transactionId
+      #   notes
+      # }
+      notifications {
+        date
+        title
+        text
+        read
+      }
     }
   }
 `;
@@ -82,24 +152,6 @@ export const GET_AFFILIATESALES = gql`
       timestamp
       commissionEarned
       commissionStatus
-    }
-  }
-`;
-
-export const QUERY_ME = gql`
-  query me {
-    me {
-      id
-      email
-      refId
-      name
-      totalClicks
-      totalCommissions
-      commissionRate
-      totalSales
-      createdAt
-      role
-      stripeAccountId
     }
   }
 `;
@@ -202,5 +254,3 @@ export const CHECK_STRIPE_STATUS = gql`
     }
   }
 `;
-
-

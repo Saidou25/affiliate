@@ -55,6 +55,13 @@ const typeDefs = gql`
     notes: String
   }
 
+  type Notification {
+    date: Date
+    title: String
+    text: String
+    read: Boolean
+  }
+
   type Affiliate {
     id: ID!
     email: String!
@@ -69,6 +76,7 @@ const typeDefs = gql`
     updatedAt: Date
     role: Role
     paymentHistory: [PaymentRecord!]!
+    notifications: [Notification]
   }
 
   type AuthPayload {
@@ -199,7 +207,7 @@ const typeDefs = gql`
 
     markSaleAsPaid(saleId: String!): AffiliateSale!
 
-    recordAffiliatePayment(input: RecordAffiliatePaymentInput!): Payment!
+    recordAffiliatePayment(input: RecordAffiliatePaymentInput!): Payment
 
     addMonthlyReport(month: String!, pdf: String!): ReportHistory!
 
@@ -209,6 +217,13 @@ const typeDefs = gql`
 
     createAffiliateStripeAccount(affiliateId: ID!): StripeOnboardingResult!
 
+    createNotification(
+      refId: String!
+      title: String!
+      text: String!
+    ): Affiliate!
+
+    markNotificationsRead(refId: String!): Affiliate!
   }
 `;
 export default typeDefs;

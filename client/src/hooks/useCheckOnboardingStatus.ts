@@ -27,7 +27,6 @@ const useCheckOnboardingStatus = (affiliateId: string) => {
 
   useEffect(() => {
     if (data?.checkStripeStatus) {
-      console.log("data: ", data);
       setStripeStatusData(data.checkStripeStatus);
     }
   }, [data]);

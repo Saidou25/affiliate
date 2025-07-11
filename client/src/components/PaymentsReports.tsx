@@ -21,7 +21,6 @@ export default function SalesReport() {
   const [enableSaveReport, setEnableSaveReport] = useState(false);
 
   const { data, error: paymentError } = useQuery(GET_ALL_PAYMENTS);
-  // console.log("payment data: ", data?.getAllPayments);
 
   const {
     data: salesData,
@@ -102,11 +101,13 @@ export default function SalesReport() {
   if (error) return <p>{paymentError?.message}</p>;
   return (
     <div className="print">
+        <h2>Payments' status for the month</h2>
       <br />
       <div className="res">
         <div style={{ display: "flex" }}>
           <h3 style={{ marginRight: "2%" }}>
-            Report for {currentMonth} is complete and ready to save to database
+            All commissions for {currentMonth} are paid, sale's report is ready
+            to be archived.
           </h3>
           <button
             onClick={() => SaveHtmlReport()}
@@ -115,10 +116,12 @@ export default function SalesReport() {
             {loading && <span>Loading...</span>}
             {error && <span>{error}</span>}
             {success && <span>{success}</span>}
-            {!loading && !error && !success && <span>Save Report</span>}
+            {!loading && !error && !success && <span>Archive Report</span>}
           </button>
         </div>
       </div>
+      <br />
+      {/* <h2>Payment Reports(commission paid for the current month):</h2>
       <br />
       <div className="res">
         <h3>
@@ -154,21 +157,21 @@ export default function SalesReport() {
         >
           {/* <h3 style={{ color: "black" }}>Detailed Report for {currentMonth}</h3> */}
 
-          <table style={{ borderCollapse: "collapse", width: "100%" }}>
+          {/* <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
                 <th className="cell-style-top">Payment date</th>
                 <th className="cell-style-top">Payment ID</th>
                 <th className="cell-style-top">Payment method</th>
                 {/* <th className="cell-style-top">Transaction ID</th> */}
-                <th className="cell-style-top">Sale ID</th>
+                {/* <th className="cell-style-top">Sale ID</th>
                 <th className="cell-style-top">Affiliate ID</th>
                 <th className="cell-style-top">Product</th>
                 <th className="cell-style-top">Sale Amount</th>
-                <th className="cell-style-top">Paid Commission</th>
-                <th className="cell-style-top">note</th>
+                <th className="cell-style-top">Paid Commission</th> */}
+                {/* <th className="cell-style-top">note</th> */}
                 {/* <th className="cell-style-top">Action</th> */}
-              </tr>
+              {/* </tr>
             </thead>
             <tbody>
               {data?.getAllPayments &&
@@ -180,20 +183,20 @@ export default function SalesReport() {
                       })}
                     </td>
                     <td className="cell-style">{payment.id}</td>
-                    <td className="cell-style">{payment.method}</td>
+                    <td className="cell-style">{payment.method}</td> */}
                     {/* <td className="cell-style">
                       {payment.event.length <= 20
                         ? payment.event
                         : `${payment.event.slice(0, 20)}...`}
                     </td> */}
                     {/* <td className="cell-style">{payment.id}</td> */}
-                    <td className="cell-style">{payment.saleIds[0]}</td>
-                    <td className="cell-style">{payment.affiliateId}</td>
+                    {/* <td className="cell-style">{payment.saleIds[0]}</td> */}
+                    {/* <td className="cell-style">{payment.affiliateId}</td>
                     <td className="cell-style">{payment?.productName}</td>
                     <td className="cell-style">${payment.saleAmount}</td>
-                    <td className="cell-style">${payment.paidCommission}</td>
-                    <td className="cell-style">{payment.notes}</td>
-                  </tr>
+                    <td className="cell-style">${payment.paidCommission}</td> */}
+                    {/* <td className="cell-style">{payment.notes}</td> */}
+                  {/* </tr>
                 ))}
             </tbody>
           </table>
@@ -232,9 +235,9 @@ export default function SalesReport() {
                 </td>
               </tr>
             </tbody>
-          </table>
-        </div>
-      </div>
+          </table> */}
+        {/* </div> */} 
+      {/* </div> */} 
     </div>
   );
 }

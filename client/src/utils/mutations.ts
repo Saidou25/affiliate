@@ -179,3 +179,16 @@ export const CREATE_AFFILIATE_STRIPE_ACCOUNT = gql`
   }
 `;
 
+export const MARK_NOTIFICATIONS_READ = gql`
+  mutation MarkNotificationsRead($refId: String!) {
+    markNotificationsRead(refId: $refId) {
+      id
+      notifications {
+        title
+        read
+        text
+        date
+      }
+    }
+  }
+`;

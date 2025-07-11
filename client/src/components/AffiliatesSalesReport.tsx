@@ -61,8 +61,8 @@ export default function AffiliatesSalesReport() {
       </div>
       {/* {me.role === "admin" && ( */}
       <>
-        <h2>Payment Reports(commission paid for the current month):</h2>
-        <PaymentsReports />
+        {/* <h2>Payment Reports(commission paid for the current month):</h2> */}
+        {/* <PaymentsReports /> */}
         {/* <h2>Paid commissions</h2> */}
         {/* <PaidCommissions /> */}
         {/* <h2>Unpaid commissions</h2> */}

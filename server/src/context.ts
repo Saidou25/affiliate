@@ -4,6 +4,19 @@ import Affiliate from "./models/Affiliate";
 
 export type Role = "affiliate" | "admin";
 
+interface IPaymentRecord {
+  amount: number;
+  date: Date;
+  method: "paypal" | "bank" | "crypto" | string;
+  transactionId?: string;
+  notes?: string;
+}
+
+interface INotification {
+  date: Date;
+  title: string;
+  text: string;
+}
 // Define the Affiliate interface
 export interface Affiliate {
   id: string;
@@ -12,9 +25,15 @@ export interface Affiliate {
   refId: string;
   totalClicks: number;
   totalCommissions: number;
-  role: Role;
-  commissionRate: number;
   totalSales: number;
+  password: string;
+  stripeAccountId?: string;
+  commissionRate: number;
+  role?: "admin" | "affiliate";
+  createdAt?: Date; // ✅ Automatically added by Mongoose
+  updatedAt?: Date; // ✅ Automatically added by Mongoose
+  paymentHistory: IPaymentRecord[];
+  notifications: INotification[];
 }
 
 // Define MyContext with affiliate (from JWT)
@@ -65,6 +84,10 @@ export const createContext = async ({
       role: foundAffiliate.role ?? "affiliate", // <-- fallback default
       commissionRate: foundAffiliate.commissionRate,
       totalSales: foundAffiliate.totalSales,
+      stripeAccountId: foundAffiliate.stripeAccountId,
+      paymentHistory: foundAffiliate.paymentHistory ?? [],
+      notifications: foundAffiliate.notifications ?? [],
+      password: foundAffiliate.password
     };
 
     console.log("👤 Context affiliate:", affiliate);

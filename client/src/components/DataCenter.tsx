@@ -34,13 +34,14 @@ export default function DataCenter() {
 
   return (
     <div>
+      <SalesReport />
       <h2>🗂️ Archive of reports</h2>
       <div className="res">
         <h3>Saved reports for the current year:</h3>
         {data?.getAllReports.length ? (
           data.getAllReports.map((report) => (
             <div key={report.id}>
-              <span>📄</span>
+              <span>📄&nbsp;</span>
               <span
                 className="view-line"
                 onClick={() => handleDownloadPDF(report)}
@@ -53,8 +54,6 @@ export default function DataCenter() {
           <p>No reports found.</p>
         )}
       </div>
-      <SalesReport />
-    
     </div>
   );
 }

@@ -9,6 +9,13 @@ interface IPaymentRecord {
   notes?: string;
 }
 
+interface INotification {
+  date: Date;
+  title: string;
+  text: string;
+  read: boolean;
+}
+
 interface IAffiliate extends Document {
   name: string;
   email: string;
@@ -22,7 +29,8 @@ interface IAffiliate extends Document {
   role?: "admin" | "affiliate";
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
-  paymentHistory: IPaymentRecord[];
+  paymentHistory?: IPaymentRecord[];
+  notifications?: INotification[];
 }
 
 const AffiliateSchema = new Schema<IAffiliate>(
@@ -39,13 +47,24 @@ const AffiliateSchema = new Schema<IAffiliate>(
     role: { type: String, enum: ["admin", "affiliate"], default: "affiliate" },
     paymentHistory: [
       {
-        amount: { type: Number, required: true },
-        date: { type: Date, required: true },
-        method: { type: String, required: true },
+        amount: { type: Number },
+        date: { type: Date },
+        method: { type: String },
         transactionId: { type: String },
         notes: { type: String },
       },
     ],
+    notifications: {
+      type: [
+        {
+          date: { type: Date },
+          title: { type: String },
+          text: { type: String },
+          read: { type: Boolean, default: false }, // ✅ This is where default is defined
+        },
+      ],
+      default: [], // ✅ Ensures the notifications array is always initialized
+    },
   },
   { timestamps: true } // 👈 automatically adds createdAt and updatedAt
 );

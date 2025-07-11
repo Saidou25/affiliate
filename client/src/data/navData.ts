@@ -1,7 +1,7 @@
 // data/products.ts
 const affiliateLinks = {
   group: "affiliate",
-  links: ["products", "reports", "profile", "analytics"],
+  links: ["products", "reports", "analytics"],
 };
 const adminLinks = {
   group: "admin",

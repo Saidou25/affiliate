@@ -39,7 +39,7 @@ export default function TotalBar({
       let month = salesPerMonth[0]?.data.filter(
         (sale: any) => sale.x === currentMonth
       );
-      return month[0].y;
+      return month[0]?.y;
     }
   };
 

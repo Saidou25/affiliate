@@ -5,6 +5,9 @@ import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
 import { affiliateLinks, adminLinks } from "../data/navData";
+import { IoPersonCircleOutline } from "react-icons/io5";
+import NotificationMenu from "./NotificationMenu";
+import ProfileMenu from "./ProfileMenu";
 
 import "./Navbar.css";
 
@@ -28,23 +31,34 @@ export default function Navbar() {
   }, [data]);
 
   return (
-    <nav
-      className="navbar"
-      style={{ display: "flex", justifyContent: "flex-end" }}
-    >
-      {links &&
-        links.map((link, index) => (
-          <NavLink
-            key={index}
-            to={`/${group}/${link.toLowerCase()}`}
-            // className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            {link}
-          </NavLink>
-        ))}
-      <div className="log-out">
-        <RiLogoutCircleRLine className="iomdlogout" onClick={handleLogout} />
+    <>
+      <div className="top-navbar">
+        {/* <NavLink to="/affiliate/profile">
+        <IoPersonCircleOutline className="person-nav" />
+        </NavLink> */}
+        <ProfileMenu  />
+        <NotificationMenu />
+        <RiLogoutCircleRLine
+          className="iomdlogout-nav"
+          onClick={handleLogout}
+        />
       </div>
-    </nav>
+      <br />
+      <nav
+        className="navbar"
+        style={{ display: "flex", justifyContent: "flex-end" }}
+      >
+        {links &&
+          links.map((link, index) => (
+            <NavLink
+              key={index}
+              to={`/${group}/${link.toLowerCase()}`}
+              // className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              {link}
+            </NavLink>
+          ))}
+      </nav>
+    </>
   );
 }

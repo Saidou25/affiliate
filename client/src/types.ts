@@ -18,6 +18,14 @@ export type PaymentRecord = {
   notes?: string;
 };
 
+export type Notification = {
+  title: string;
+  text: string;
+  date: string;
+  read?: boolean;
+};
+
+
 export type Affiliate = {
   id: string;
   name: string;
@@ -33,6 +41,7 @@ export type Affiliate = {
   updatedAt?: Date; // ✅ Automatically added by Mongoose
   paymentHistory: PaymentRecord[];
   stripeAccountId?: String;
+  notifications?: Notification[];
 };
 
 export type GetAffiliateByRefIdData = {

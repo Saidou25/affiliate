@@ -219,8 +219,9 @@ export default function DetailedReportView({
                     <p>Loading status...</p>
                   )}
                 </th> */}
-
-                <th className="cell-style-top">Enrolled</th>
+                {me.role === "admin" && (
+                  <th className="cell-style-top">Enrolled</th>
+                )}
                 <th className="cell-style-top">
                   {me?.role === "admin" ? (
                     <span className="">Action</span>
@@ -251,13 +252,15 @@ export default function DetailedReportView({
                     <td className="cell-style">${sale.amount}</td>
                     <td className="cell-style">${sale.commissionEarned}</td>
                     {/* Update the cell to show status of enrollement */}
-                    <td className="cell-style">
-                      {stripeReadyArr.includes(sale.refId) ? (
-                        <span style={{ color: "green" }}>✅ Ready</span>
-                      ) : (
-                        <span style={{ color: "orange" }}>⚠️ Not ready</span>
-                      )}
-                    </td>
+                    {me.role === "admin" && (
+                      <td className="cell-style">
+                        {stripeReadyArr.includes(sale.refId) ? (
+                          <span style={{ color: "green" }}>✅ Ready</span>
+                        ) : (
+                          <span style={{ color: "orange" }}>⚠️ Not ready</span>
+                        )}
+                      </td>
+                    )}
 
                     <td className="cell-style">
                       <button

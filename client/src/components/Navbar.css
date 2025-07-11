@@ -1,4 +1,32 @@
-/* Navbar.css */
+.top-navbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.profile-nav {
+  display: flex;
+  align-items: center;
+  width: 80%;
+  justify-content: center;
+}
+
+.person-nav {
+  font-size: 32px;
+}
+.profile-div svg {
+  width: 100%;
+  height: auto;
+  max-width: 150px; /* Or adjust for your layout */
+}
+.log-out-nav {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.iomdlogout-nav {
+  height: 30px;
+  width: 30px;
+}
 .navbar {
   display: flex;
   gap: 20px;

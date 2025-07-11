@@ -19,6 +19,7 @@ import {
   getOnboardingLinkForExistingAccount,
 } from "../utils/stripe";
 import { checkStripeAccountStatus } from "../utils/checkStripeAccount";
+import { title } from "process";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -221,6 +222,14 @@ const resolvers = {
         password,
         refId,
         createdAt,
+        notifications: [
+      {
+        title: "Welcome to the Princeton Green's Affiliate Program!",
+        text: "Your account has been successfully created.",
+        date: new Date(),
+        read: false,
+      },
+    ],
       });
       await affiliate.save();
 
@@ -573,7 +582,7 @@ const resolvers = {
           throw new Error("Payment exceeds unpaid commissions.");
 
         // 💰 2. Add payment record to history
-        affiliate.paymentHistory.push(payment);
+        affiliate?.paymentHistory?.push(payment);
 
         await affiliate.save();
 
@@ -691,6 +700,39 @@ const resolvers = {
         url: onboardingUrl,
         resumed,
       };
+    },
+
+    createNotification: async (
+      _: unknown,
+      { refId, title, text }: { refId: string; title: string; text: string }
+    ) => {
+      console.log("💥 Creating notification for:", refId);
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate) throw new Error("Affiliate not found");
+      const newNotification = {
+        date: new Date(),
+        title: title,
+        text: text,
+        read: false,
+      };
+      affiliate.notifications = affiliate.notifications ?? [];
+      affiliate?.notifications?.push(newNotification);
+      await affiliate.save();
+
+      return affiliate;
+    },
+
+    markNotificationsRead: async (_: unknown, { refId }: { refId: string }) => {
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate) throw new Error("Affiliate not found");
+
+      // ✅ Update only unread notifications
+      affiliate.notifications = affiliate?.notifications?.map((n: any) =>
+        n.read ? n : { ...n.toJSON(), read: true }
+      );
+
+      await affiliate.save();
+      return affiliate;
     },
   },
 };

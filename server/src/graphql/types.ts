@@ -34,3 +34,9 @@ export type AffiliateSale = {
   amount: number;
   productId: string;
 };
+
+export type Notification = {
+  date: Date;
+  title: string;
+  text: string;
+}

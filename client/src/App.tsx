@@ -16,6 +16,7 @@ import AffiliatesLookUp from "./components/AffiliatesLookUp";
 import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 import StripeReturn from "./components/StripeReturn";
+import ViewAllNotifications from "./components/ViewAllNotifications";
 
 import "./index.css";
 
@@ -58,6 +59,7 @@ function App() {
         <Route path="data center" element={<DataCenter />} />
       </Route>
       <Route path="/affiliate" element={<AffiliateDashboard />}>
+        <Route path="notifications" element={<ViewAllNotifications />} />
         <Route path="products" element={<Products />} />
         <Route path="reports" element={<DetailedReport refId={refId} />} />
         <Route path="analytics" element={<Analytics />} />
