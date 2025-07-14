@@ -45,5 +45,6 @@ export default function useFetchStripeStatusByRefId(refIds: string[]) {
       getAffiliates(refIds);
     }
   }, [refIds]);
+  
   return stripeReadyArr;
 }

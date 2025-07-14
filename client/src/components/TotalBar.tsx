@@ -49,14 +49,14 @@ export default function TotalBar({
       <table style={{ borderCollapse: "collapse", width: "100%" }}>
         <thead>
           <tr>
-            <th className="cell-style">Month</th>
-            <th className="cell-style">Total Clicks</th>
-            <th className="cell-style">Total Sales</th>
-            <th className="cell-style">Total Sales Amount</th>
-            <th className="cell-style">Total Commissions</th>
-            <th className="cell-style">Unpaid Commissions</th>
-            <th className="cell-style">Paid Commissions</th>
-            <th className="cell-style">Earnings</th>
+            <th className="cell-style-top">Month</th>
+            <th className="cell-style-top">Total Sales</th>
+            <th className="cell-style-top">Total Clicks</th>
+            <th className="cell-style-top">Total Sales Amount</th>
+            <th className="cell-style-top">Total Commissions</th>
+            <th className="cell-style-top">Unpaid Commissions</th>
+            <th className="cell-style-top">Paid Commissions</th>
+            <th className="cell-style-top">Earnings</th>
           </tr>
         </thead>
         <tbody>

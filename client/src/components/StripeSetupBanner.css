@@ -1,20 +1,24 @@
-.stripe-banner {
-  background-color: #fff8e1;
-  border: 1px solid #ffecb3;
+.stripe-banner-div {
+  /* background-color: black; */
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #715a14;
   padding: 1rem 1.25rem;
   border-radius: 8px;
   margin-bottom: 1rem;
+  color: #a7867b;
+}
+.stripe-banner {
+  /* background-color: black; */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  animation: slideIn 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .stripe-text {
   margin: 0;
   font-size: 0.95rem;
-  color: #795548;
+  color: #a7867b;
   flex: 1;
 }
 
@@ -25,7 +29,8 @@
 }
 
 .stripe-button {
-  background-color: #673ab7;
+  /* background-color: #673ab7; */
+  background-color: rgb(72, 137, 223);
   color: white;
   border: none;
   padding: 0.5rem 0.9rem;
@@ -36,7 +41,8 @@
 }
 
 .stripe-button:hover {
-  background-color: #5e35b1;
+  /* background-color: #5e35b1; */
+   background-color: rgb(13, 83, 175);
 }
 
 .stripe-close {

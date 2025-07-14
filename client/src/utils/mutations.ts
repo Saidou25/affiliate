@@ -228,3 +228,27 @@ export const UPDATE_NOTIFICATION_READ_STATUS = gql`
     }
   }
 `;
+
+export const DISCONNECT_STRIPE_ACCOUNT = gql`
+  mutation DisconnectStripeAccount($affiliateId: ID!) {
+    disconnectStripeAccount(affiliateId: $affiliateId) {
+      success
+      deleted
+    }
+  }
+`;
+
+export const DELETE_NOTIFICATION = gql`
+  mutation DeleteNotification($refId: String!) {
+    deleteNotification(refId: $refId) {
+      id
+      refId
+      notifications {
+        title
+        read
+        date
+        text
+      }
+    }
+  }
+`;

@@ -10,12 +10,10 @@ type Props = {
 };
 
 export default function AdminDashboard({ data, loading, errorText }: Props) {
-
   return (
     <div className="admin-container">
-       <Navbar  />
-      <h1 className="">Admin Dashboard</h1>
-      <Outlet context={{ data, loading, errorText }} />
+      <Navbar />
+      <Outlet context={{ data, loading, errorText }} /> {/* AffiliateList */}
     </div>
   );
 }

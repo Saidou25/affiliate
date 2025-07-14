@@ -20,6 +20,8 @@ import {
 } from "../utils/stripe";
 import { checkStripeAccountStatus } from "../utils/checkStripeAccount";
 import { title } from "process";
+import Stripe from "stripe";
+import GraphQLJSON from "graphql-type-json";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -47,6 +49,7 @@ interface PaymentInput {
 
 const resolvers = {
   Date: dateScalar,
+  JSON: GraphQLJSON,
 
   Query: {
     getAffiliates: async () => {
@@ -722,6 +725,26 @@ const resolvers = {
       return affiliate;
     },
 
+    deleteNotification: async (_: unknown, { refId }: { refId: string }) => {
+      console.log("🗑️ Deleting notification:", title, "for:", refId);
+
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate) throw new Error("Affiliate not found");
+
+      const titlesToDelete = [
+        "Stripe account not connected",
+        "Finish your Stripe onboarding",
+        "Success, Stripe onBoarding complete",
+      ];
+      // Remove notifications matching the given title
+      affiliate.notifications = affiliate.notifications?.filter(
+        (note: any) => !titlesToDelete.includes(note.title)
+      );
+
+      await affiliate.save();
+      return affiliate;
+    },
+
     markNotificationsRead: async (_: unknown, { refId }: { refId: string }) => {
       const affiliate = await Affiliate.findOne({ refId });
       if (!affiliate) throw new Error("Affiliate not found");
@@ -751,6 +774,30 @@ const resolvers = {
       }
 
       return affiliate;
+    },
+
+    disconnectStripeAccount: async (
+      _: any,
+      { affiliateId }: { affiliateId: string }
+    ) => {
+      const affiliate = await Affiliate.findById(affiliateId);
+      if (!affiliate || !affiliate.stripeAccountId) {
+        throw new Error("Stripe account not found.");
+      }
+
+      try {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+        const deleted = await stripe.accounts.del(affiliate.stripeAccountId);
+
+        affiliate.stripeAccountId = undefined;
+        await affiliate.save();
+
+        return { success: true, deleted };
+      } catch (err) {
+        console.error("Error disconnecting Stripe:", err);
+        throw new Error("Stripe disconnection failed.");
+      }
     },
   },
 };

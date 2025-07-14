@@ -26,6 +26,7 @@ export default function NotificationMenu() {
   const unreadCount = notifications?.filter((n: any) => !n.read).length;
 
   const handleClick = () => {
+    setOpen(false);
     navigate("notifications ", { state: { openedFromMenu: true } });
   };
 

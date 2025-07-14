@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Auth from "./utils/auth";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Home from "./components/Home";
@@ -18,10 +19,15 @@ import AdminDashboard from "./components/AdminDashboard";
 import StripeReturn from "./components/StripeReturn";
 import ViewAllNotifications from "./components/ViewAllNotifications";
 import Settings from "./components/Settings";
+import { useEffect } from "react";
 
-import "./index.css";
+import 'bootswatch/dist/lux/bootstrap.min.css';
+
+// import "./index.css";
 
 function App() {
+  const navigate = useNavigate();
+
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || {};
 
@@ -31,45 +37,53 @@ function App() {
     GET_AFFILIATES
   );
 
+  useEffect(() => {
+    if (!Auth.loggedIn()) {
+      navigate("/");
+    }
+  }, []);
+
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
-      <Route
-        path="/admin"
-        element={
-          <AdminDashboard
-            data={data}
-            loading={loading}
-            errorText={error?.message}
-          />
-        }
-      >
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
         <Route
-          path="affiliates"
+          path="/admin"
           element={
-            <AffiliatesList
+            <AdminDashboard
               data={data}
               loading={loading}
               errorText={error?.message}
             />
           }
-        />
-        <Route path="look up" element={<AffiliatesLookUp />} />
-        <Route path="sales report" element={<AffiliatesSalesReport />} />
-        <Route path="data center" element={<DataCenter />} />
-      </Route>
-      <Route path="/affiliate" element={<AffiliateDashboard />}>
-        <Route path="notifications" element={<ViewAllNotifications />} />
-        <Route path="products" element={<Products />} />
-        <Route path="reports" element={<DetailedReport refId={refId} />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-    </Routes>
+        >
+          <Route
+            path="affiliates"
+            element={
+              <AffiliatesList
+                data={data}
+                loading={loading}
+                errorText={error?.message}
+              />
+            }
+          />
+          <Route path="look up" element={<AffiliatesLookUp />} />
+          <Route path="sales report" element={<AffiliatesSalesReport />} />
+          <Route path="data center" element={<DataCenter />} />
+        </Route>
+        <Route path="/affiliate" element={<AffiliateDashboard />}>
+          <Route path="notifications" element={<ViewAllNotifications />} />
+          <Route path="products" element={<Products />} />
+          <Route path="reports" element={<DetailedReport refId={refId} />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </>
   );
 }
 

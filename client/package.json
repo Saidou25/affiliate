@@ -17,6 +17,8 @@
     "@nivo/bar": "^0.98.0",
     "@nivo/core": "^0.98.0",
     "@nivo/line": "^0.98.0",
+    "bootstrap": "^5.3.7",
+    "bootswatch": "^5.3.7",
     "date-fns": "^4.1.0",
     "graphql": "^16.10.0",
     "html2canvas": "^1.4.1",

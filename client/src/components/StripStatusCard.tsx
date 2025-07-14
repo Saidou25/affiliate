@@ -1,25 +1,35 @@
-import { useMutation } from "@apollo/client";
-import { CREATE_AFFILIATE_STRIPE_ACCOUNT } from "../utils/mutations";
-
-interface StripeStatus {
-  id: string;
-  charges_enabled: boolean;
-  payouts_enabled: boolean;
-  details_submitted: boolean;
-}
+import { useMutation, useQuery } from "@apollo/client";
+import { useState } from "react";
+import {
+  CREATE_AFFILIATE_STRIPE_ACCOUNT,
+  DELETE_NOTIFICATION,
+  DISCONNECT_STRIPE_ACCOUNT,
+} from "../utils/mutations";
+import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
+import { QUERY_ME } from "../utils/queries";
+import Spinner from "./Spinner";
 
 interface Props {
-  affiliateId: string;
-  stripeStatusData: StripeStatus | null;
-  loading: boolean;
+  affiliateId?: string;
 }
 
-export default function StripeStatusCard({
-  affiliateId,
-  stripeStatusData,
-  loading,
-}: Props) {
-  const [createStripeAccount] = useMutation(CREATE_AFFILIATE_STRIPE_ACCOUNT);
+export default function StripeStatusCard({ affiliateId }: Props) {
+  const [showStripeMessage, setShowStripeMessage] = useState(false);
+  const [stripeMessage, setStripeMessage] = useState("");
+
+  const { onboardingStatusMessage, onboardingStatusButtonMessage, loading } =
+    useCheckOnboardingStatus(affiliateId);
+
+  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
+
+  const [disconnectStripeAccount, { loading: loadingDisconnect }] = useMutation(
+    DISCONNECT_STRIPE_ACCOUNT
+  );
+  const [createStripeAccount, { loading: creatStripeAccountLoading }] =
+    useMutation(CREATE_AFFILIATE_STRIPE_ACCOUNT);
+
+  const { data } = useQuery(QUERY_ME);
+  const me = data?.me || {};
 
   const handleResumeOnboarding = async () => {
     try {
@@ -27,50 +37,88 @@ export default function StripeStatusCard({
         variables: { affiliateId },
       });
 
-      const url = data?.createAffiliateStripeAccount?.url;
+      const { url, resumed } = data?.createAffiliateStripeAccount || {};
       if (url) {
-        window.location.href = url;
+        setStripeMessage(
+          resumed
+            ? "Resuming your Stripe onboarding process..."
+            : "You're about to start your Stripe onboarding process..."
+        );
+        setShowStripeMessage(true);
+        setTimeout(() => {
+          window.location.href = url;
+        }, 3000);
       }
     } catch (err: any) {
       console.error("⚠️ Failed to resume onboarding:", err.message);
     }
   };
 
+  const closeConnection = async () => {
+    if (!me.stripeAccountId) return;
+
+    try {
+      const { data } = await disconnectStripeAccount({
+        variables: { affiliateId: me.id },
+      });
+
+      if (data?.disconnectStripeAccount?.success) {
+        console.log("✅ Stripe account successfully disconnected.");
+        setStripeMessage("Your Stripe connection has been closed.");
+        setShowStripeMessage(true);
+
+        await deleteNotification({ variables: { refId: me.refId } });
+        console.log("🧹 Onboarding notifications removed.");
+      } else {
+        console.warn("⚠️ Stripe disconnection did not complete.");
+      }
+    } catch (error) {
+      console.error("❌ Error disconnecting Stripe account:", error);
+    }
+  };
+
   if (loading) return <p>Loading Stripe status...</p>;
-  if (!stripeStatusData) return null;
 
   return (
-    <div
-      style={{
-        backgroundColor: "#0b0b0b",
-        // border: "1px solid #3511c7",
-        padding: "1rem",
-        borderRadius: "8px",
-        color: "white",
-        marginTop: "1rem",
-      }}
-    >
-      {!stripeStatusData.details_submitted ? (
-        <>
-          <p>You haven’t completed onboarding yet.</p>
+    <div style={{ borderRadius: "8px", color: "white" }}>
+      <h3>Stripe Payment Setup</h3>
+      <p>{onboardingStatusMessage}</p>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <button
+          onClick={handleResumeOnboarding}
+          style={{
+            padding: "0.5rem 1rem",
+            background: "#4f46e5",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          {creatStripeAccountLoading ? (
+            <Spinner />
+          ) : (
+            <span>{onboardingStatusButtonMessage}</span>
+          )}
+        </button>
+        {me.stripeAccountId && (
           <button
-            onClick={handleResumeOnboarding}
+            onClick={closeConnection}
             style={{
               padding: "0.5rem 1rem",
-              background: "#0070f3",
+              background: "#4f46e5",
               color: "#fff",
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
             }}
           >
-            Finish Onboarding
+            {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
           </button>
-        </>
-      ) : stripeStatusData.payouts_enabled ? (
-        <p>✅ Stripe connected and ready for payouts.</p>
-      ) : (
-        <p>⚠️ Onboarding submitted, but payouts are not yet enabled.</p>
+        )}
+      </div>
+      {showStripeMessage && (
+        <p style={{ marginTop: "1rem", color: "green" }}>{stripeMessage}</p>
       )}
     </div>
   );

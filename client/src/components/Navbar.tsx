@@ -1,11 +1,10 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import AuthService from "../utils/auth";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
 import { affiliateLinks, adminLinks } from "../data/navData";
-import { IoPersonCircleOutline } from "react-icons/io5";
 import NotificationMenu from "./NotificationMenu";
 import ProfileMenu from "./ProfileMenu";
 
@@ -14,14 +13,14 @@ import "./Navbar.css";
 export default function Navbar() {
   const [links, setLinks] = useState<string[]>([]);
   const [group, setGroup] = useState("");
-  
+
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
   };
   const { data } = useQuery(QUERY_ME);
+  const me = data?.me;
 
   useEffect(() => {
-    const me = data?.me;
     if (me?.role === "affiliate") {
       setGroup(affiliateLinks.group);
       setLinks(affiliateLinks.links);
@@ -29,26 +28,36 @@ export default function Navbar() {
       setGroup(adminLinks.group);
       setLinks(adminLinks.links);
     }
-  }, [data]);
+  }, [me]);
 
   return (
     <>
-      <div className="top-navbar">
-        {/* <NavLink to="/affiliate/profile">
+      <div className="top-nav-div">
+        <Link className="logo-nav" to="/">
+          <img
+            className="img-fluid"
+            src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pg-favicon-logo-2025-dWxyk9E0zkszO79q.png"
+            alt="pg logo"
+          />
+        </Link>
+        <div className="top-navbar">
+          {/* <NavLink to="/affiliate/profile">
         <IoPersonCircleOutline className="person-nav" />
         </NavLink> */}
-        <ProfileMenu  />
-        <NotificationMenu />
-        <RiLogoutCircleRLine
-          className="iomdlogout-nav"
-          onClick={handleLogout}
-        />
+          {me?.role !== "admin" && (
+            <>
+              <ProfileMenu />
+              <NotificationMenu />
+            </>
+          )}
+          <RiLogoutCircleRLine
+            className="iomdlogout-nav"
+            onClick={handleLogout}
+          />
+        </div>
       </div>
       <br />
-      <nav
-        className="navbar"
-        style={{ display: "flex", justifyContent: "flex-end" }}
-      >
+      <nav className="navbar">
         {links &&
           links.map((link, index) => (
             <NavLink

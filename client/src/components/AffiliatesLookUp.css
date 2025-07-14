@@ -1,4 +1,4 @@
-.card {
+/* .card {
   width: 40%;
   border: solid 1px white;
   padding: 2px !important;
@@ -16,7 +16,40 @@
 .card-footer {
   padding: 2% 2%;
   background-color: rgb(32, 32, 32);
+} */
+
+.form-container-lookup {
+  width: 40%;
+  margin: auto;
+  border: 1px solid white;
+  display: flex;
+  flex-direction: column;
+  padding: 3%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease !important;
 }
+.form-container-lookup:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  margin: auto;
+}
+ .loolkup-button {
+  padding: 4px 10px;
+  background-color: rgb(62, 113, 222);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+/* .input {
+  height: 30px !important;
+  font-style: italic;
+  padding-left: 7px;
+} */
+/* title {
+  line-height: 1;
+  margin: 0;
+  padding: 0 !important;
+} */
+
 .profile {
   display: flex;
   align-items: center;

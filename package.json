@@ -17,5 +17,8 @@
   "description": "",
   "devDependencies": {
     "concurrently": "^9.1.2"
+  },
+  "dependencies": {
+    "graphql": "^16.11.0"
   }
 }

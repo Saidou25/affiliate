@@ -16,9 +16,9 @@ import useAddMonthSales from "../hooks/useAddMonthSales";
 import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
+import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 
 import "./DetailedReport.css";
-import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 // import { useGetOneAffiliate } from "../hooks/useGetOneAffiliate";
 
 type Props = {
@@ -193,10 +193,12 @@ export default function DetailedReportView({
           style={{
             padding: "2%",
             borderRadius: "10px",
-            backgroundColor: "rgb(243, 238, 220)",
+            // backgroundColor: "#f4f4f4",
           }}
         >
           <h3 style={{ color: "black" }}>Detailed Report for {currentMonth}</h3>
+          <br />
+          <br />
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>

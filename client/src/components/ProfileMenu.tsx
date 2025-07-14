@@ -32,6 +32,7 @@ export default function ProfileMenu() {
   ];
 
   const handleNavigate = (route: string) => {
+    setOpen(false);
     navigate(`${route}`);
     document.removeEventListener("mousedown", handleClickOutside);
   };
@@ -49,7 +50,7 @@ export default function ProfileMenu() {
 
   return (
     <div className="notification-container" ref={menuRef}>
-      <button className="notification-button" onClick={() => setOpen(!open)}>
+      <button className="notification-button" onClick={() => setOpen(true)}>
         <IoPersonCircleOutline className="person-nav" />
       </button>
 

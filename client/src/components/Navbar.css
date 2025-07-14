@@ -1,8 +1,25 @@
+.top-nav-div {
+    padding-top: 2% !important;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
 .top-navbar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  padding-right: 2%;
 }
+.logo-nav {
+  margin-left: 2%;
+  width: 7%;
+  height: 7%; 
+}
+/* .pg-logo {
+  margin-left: 2%;
+  width: 7%;
+  height: 7%;
+} */
 .profile-nav {
   display: flex;
   align-items: center;
@@ -24,14 +41,16 @@
   align-items: center;
 }
 .iomdlogout-nav {
+  padding-left: 7px;
   height: 30px;
   width: 30px;
 }
 .navbar {
   display: flex;
+  justify-content: flex-end !important;
   gap: 20px;
   background: #f4f4f4;
-  padding: 1rem;
+  padding: 2rem !important;
 }
 
 .navbar a {

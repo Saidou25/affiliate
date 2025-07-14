@@ -1,10 +1,12 @@
 // import { DELETE_AFFILIATE } from "../utils/mutations";
-import "./DetailedReport.css";
 // import Spinner from "./Spinner";
 // import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 import { Affiliate } from "../types";
 import { useEffect, useState } from "react";
 import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
+import { useNavigate } from "react-router-dom";
+
+import "./DetailedReport.css";
 
 type Props = {
   data: any;
@@ -16,6 +18,11 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
   const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
   // const refIds = data?.getAffiliates?.map((a: Affiliate) => a.refId) || [];
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
+  const navigate = useNavigate();
+
+  const handleNavigetToAffiliateLookUp = (refId: string) => {
+    navigate("/admin/look up", { state: { refId } });
+  };
 
   useEffect(() => {
     let idsArr: string[] = [];
@@ -78,8 +85,12 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
 
   return (
     <>
-      <h2>Affiliates</h2>
-      <div className="res">
+      {/* <h2>Affiliates</h2> */}
+      <br />
+      <br />
+      <br />
+      <br />
+      <div className="">
         <h2>
           {data?.getAffiliates?.length ? (
             <>
@@ -88,7 +99,6 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
             </>
           ) : null}
         </h2>
-        <strong style={{ color: "white" }}></strong>
         {loading && <p>Loading users...</p>}
         {errorText && <p>Error fetching users: {errorText}</p>}
         {data && (
@@ -96,7 +106,6 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
             style={{
               padding: "2%",
               borderRadius: "10px",
-              backgroundColor: "rgb(243, 238, 220)",
             }}
           >
             <table
@@ -116,53 +125,58 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
                   </th>
                   <th className="cell-style-top">Commission Rate</th>
                   <th className="cell-style-top">Commissions Earned(yearly)</th>
-                  <th className="cell-style">Ready for Payments</th>
+                  <th className="cell-style-top">Ready for Payments</th>
+                  <th className="cell-style-top">Affiliate Lookup</th>
                 </tr>
               </thead>
               <tbody>
-                {data?.getAffiliates?.map((affiliate: any) => (
-                  <tr key={affiliate.id}>
-                    {affiliate.role === "affiliate" && (
-                      <>
-                        <td className="cell-style">{affiliate.email}</td>
-                        {/* <td className="cell-style">{affiliate.id}</td> */}
-                        <td className="cell-style">{affiliate.refId}</td>
-                        <td className="cell-style">
-                          {new Date(affiliate.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              timeZone: "America/New_York",
-                            }
-                          )}
-                        </td>
-                        <td className="cell-style">{affiliate.totalClicks}</td>
-                        <td className="cell-style"></td>
-                        <td className="cell-style">${affiliate.totalSales}</td>
-                        <td className="cell-style">
-                          {affiliate.commissionRate * 100}%
-                        </td>
-                        <td className="cell-style">
-                          ${affiliate.totalCommissions.toFixed(2)}
-                        </td>
-                        <td className="cell-style">
-                          {stripeReadyArr.includes(affiliate.refId) ? (
-                            <span style={{ color: "green" }}>✅ Ready</span>
-                          ) : (
-                            <span style={{ color: "orange" }}>
-                              ⚠️ Not ready
-                            </span>
-                          )}
-                        </td>
-                      </>
-                    )}
-                    {/* <td
-                    className="cell-style"
-                    onClick={() => removeAffiliate(affiliate.id)}
-                  >
-                    remove
-                  </td> */}
-                  </tr>
-                ))}
+                {data?.getAffiliates
+                  ?.filter(
+                    (affiliate: Affiliate) => affiliate.role === "affiliate"
+                  )
+                  .map((affiliate: Affiliate) => (
+                    <tr key={affiliate.id}>
+                      <td className="cell-style">{affiliate.email}</td>
+                      <td className="cell-style">{affiliate.refId}</td>
+                      <td className="cell-style">
+                        {affiliate.createdAt
+                          ? new Date(affiliate.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                timeZone: "America/New_York",
+                              }
+                            )
+                          : "—"}
+                      </td>
+                      <td className="cell-style">{affiliate.totalClicks}</td>
+                      <td className="cell-style"></td>
+                      <td className="cell-style">${affiliate.totalSales}</td>
+                      <td className="cell-style">
+                        {affiliate.commissionRate * 100}%
+                      </td>
+                      <td className="cell-style">
+                        ${affiliate.totalCommissions.toFixed(2)}
+                      </td>
+                      <td className="cell-style">
+                        {stripeReadyArr.includes(affiliate.refId) ? (
+                          <span style={{ color: "green" }}>✅ Ready</span>
+                        ) : (
+                          <span style={{ color: "orange" }}>⚠️ Not ready</span>
+                        )}
+                      </td>
+                      <td className="cell-style">
+                        <button
+                          className="handle-lookup"
+                          onClick={() =>
+                            handleNavigetToAffiliateLookUp(affiliate.refId)
+                          }
+                          style={{ marginLeft: "0.5rem" }}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

@@ -1,0 +1,21 @@
+
+.card-profile-lookup {
+  /* width: 40%; */
+  border: solid 1px white;
+}
+.card-title-profile-lookup {
+  background: #f4f4f4;
+  padding: 2% 0 2% 0;
+  text-align: center;
+}
+.card-body-profile-lookup {
+  width: auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 2%;
+}
+.card-footer-profile-lookup {
+  padding: 2% 2%;
+  background: #f4f4f4;
+  text-align: center;
+}

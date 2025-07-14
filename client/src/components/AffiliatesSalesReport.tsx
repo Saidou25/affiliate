@@ -7,7 +7,7 @@ import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
 import { AffiliateSale } from "../types";
-import PaymentsReports from "./PaymentsReports";
+// import PaymentsReports from "./PaymentsReports";
 // import PaidCommissions from "./PaidCommissions";
 // import UnpaidCommissions from "./UnpaidCommissions";
 

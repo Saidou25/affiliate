@@ -1,41 +1,26 @@
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
-import OnboardStripeButton from "./OnboardStripeButton";
-import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
-import { useEffect } from "react";
-import StripeStatusCard from "./StripStatusCard";
-import StripeSetupBanner from "./StripeSetupBanner";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Profile() {
+  const [settings, setSettings] = useState(false);
+  const location = useLocation();
+
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
 
-  const { stripeStatusData, loading } = useCheckOnboardingStatus(me.id);
-  // console.log(stripeStatusData, loading, error);
-
   useEffect(() => {
-    if (stripeStatusData) {
-      // console.log("✅ Stripe status:", stripeStatusData);
-      if (
-        !stripeStatusData.charges_enabled ||
-        !stripeStatusData.payouts_enabled
-      ) {
-        console.log("Affiliate is not fully onboarded.");
-      }
+    if (location.pathname.includes("settings")) {
+      setSettings(true);
+    } else {
+      setSettings(false);
     }
-  }, [stripeStatusData]);
+  }, [location.pathname]);
 
-  return (
-    <>
-      <h2>My Profile</h2>
-      <div
-        className="profile-container"
-        style={{
-          backgroundColor: "black",
-          padding: "2%",
-          borderRadius: "10px",
-        }}
-      >
+  if (settings) {
+    return (
+      <p>
         {me.name && (
           <>
             <strong>Name - </strong>
@@ -62,16 +47,44 @@ export default function Profile() {
             {me.commissionRate * 100}%<br />
           </>
         )}
-        <br />
-        {!me.stripeAccountId && !stripeStatusData?.payouts_enabled && (
-          <OnboardStripeButton />
-        )}
-        <StripeStatusCard
-          affiliateId={me.id}
-          stripeStatusData={stripeStatusData}
-          loading={loading}
-        />
-      </div>
-    </>
+      </p>
+    );
+  }
+  return (
+    <div
+      className="profile-container"
+      style={{
+        backgroundColor: "#ddd",
+        padding: "2%",
+        borderRadius: "10px",
+      }}
+    >
+      {me.name && (
+        <>
+          <strong>Name - </strong>
+          {me.name}
+          <br />
+        </>
+      )}
+      {me.email && (
+        <>
+          <strong>Email - </strong>
+          {me.email}
+          <br />
+        </>
+      )}
+      {me.refId && (
+        <>
+          <strong>My reference id - </strong>
+          {me.refId} <br />
+        </>
+      )}
+      {me.commissionRate && (
+        <>
+          <strong>Commission rate - </strong>
+          {me.commissionRate * 100}%<br />
+        </>
+      )}
+    </div>
   );
 }

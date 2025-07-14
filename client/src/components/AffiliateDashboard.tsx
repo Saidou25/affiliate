@@ -41,7 +41,7 @@ export default function AffiliateDashboard() {
   if (!refId) return <p>Loading affiliate info...</p>;
 
   return (
-    <div className="my-profile">
+    <div className="">
       <Navbar />
       <br />
       <br />
@@ -49,11 +49,7 @@ export default function AffiliateDashboard() {
         <Spinner />
       ) : (
         <div>
-          <StripeSetupBanner
-            stripeAccountId={me?.stripeAccountId}
-            message={message}
-            buttonMessage={buttonMessage}
-          />
+          <StripeSetupBanner affiliateId={me?.id} />
         </div>
       )}
       {/* Renders nested routes here */}

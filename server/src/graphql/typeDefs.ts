@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 
 const typeDefs = gql`
   scalar Date
+  scalar JSON
 
   enum Role {
     admin
@@ -53,6 +54,11 @@ const typeDefs = gql`
     method: String!
     transactionId: String
     notes: String
+  }
+
+  type StripeDeletionResponse {
+    success: Boolean!
+    deleted: JSON
   }
 
   type Notification {
@@ -223,6 +229,8 @@ const typeDefs = gql`
       text: String!
     ): Affiliate!
 
+    deleteNotification(refId: String!): Affiliate!
+
     markNotificationsRead(refId: String!): Affiliate!
 
     updateNotificationReadStatus(
@@ -230,6 +238,8 @@ const typeDefs = gql`
       title: String!
       read: Boolean!
     ): Affiliate!
+
+    disconnectStripeAccount(affiliateId: ID!): StripeDeletionResponse
   }
 `;
 export default typeDefs;

@@ -34,7 +34,6 @@ export default function DetailedReport({ refId }: Props) {
   const { salesPerMonth } = useSalesTracker(refId);
   const { clicksPerMonth } = useClicksTracker();
 
-
   const findEmail = () => {
     if (affiliatesData) {
       const foundAffiliate = affiliatesData.getAffiliates.filter(
@@ -95,7 +94,7 @@ export default function DetailedReport({ refId }: Props) {
       ) : (
         <h2>Reports</h2>
       )}
-      <div className="res">
+      <div className="">
         {monthlySales &&
           monthlySales.map((monthSales, index) => (
             <div className="" key={monthSales.month}>
@@ -113,14 +112,12 @@ export default function DetailedReport({ refId }: Props) {
                   className="view-line"
                   onClick={() => setShowReport(index)}
                 >
-                 📄 {monthSales.month} detailed report
+                  📄 {monthSales.month} detailed report
                 </span>
               )}
             </div>
           ))}
       </div>
-      {/* <h2>New Report reuse</h2>
-      <DetailedReportReuse /> */}
     </>
   );
 }
