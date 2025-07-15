@@ -1,36 +1,36 @@
 import { useMutation, useQuery } from "@apollo/client";
 import {
   GET_ALL_PAYMENTS,
-  GET_ALLAFFILIATESALES,
-  GET_ALLAFFILIATESCLICKLOGS,
+  // GET_ALLAFFILIATESALES,
+  // GET_ALLAFFILIATESCLICKLOGS,
 } from "../utils/queries";
-import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
-import { IoMdClose } from "react-icons/io";
-import useAddMonthSales from "../hooks/useAddMonthSales";
-import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
-import useSalesReport from "../hooks/useSalesReport";
-import { AffiliateSale } from "../types";
+// import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
+// import { IoMdClose } from "react-icons/io";
+// import useAddMonthSales from "../hooks/useAddMonthSales";
+// import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
+// import useSalesReport from "../hooks/useSalesReport";
+// import { AffiliateSale } from "../types";
 import { useEffect, useState } from "react";
 import { SAVE_HTML_REPORT } from "../utils/mutations";
 
 export default function SalesReport() {
-  const [monthSales, setMonthSales] = useState<AffiliateSale[]>([]);
+  // const [monthSales, setMonthSales] = useState<AffiliateSale[]>([]);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [enableSaveReport, setEnableSaveReport] = useState(false);
+  // const [enableSaveReport, setEnableSaveReport] = useState(false);
 
   const { data, error: paymentError } = useQuery(GET_ALL_PAYMENTS);
 
-  const {
-    data: salesData,
-    // loading: loadingAffiliateSales,
-    // error: errorAffiliateSales,
-  } = useQuery<{ getAllAffiliateSales: AffiliateSale[] }>(
-    GET_ALLAFFILIATESALES
-  );
+  // const {
+  //   data: salesData,
+  //   // loading: loadingAffiliateSales,
+  //   // error: errorAffiliateSales,
+  // } = useQuery<{ getAllAffiliateSales: AffiliateSale[] }>(
+  //   GET_ALLAFFILIATESALES
+  // );
 
-  const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
+  // const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
 
   const [saveHtmlReport] = useMutation(SAVE_HTML_REPORT);
 
@@ -40,35 +40,35 @@ export default function SalesReport() {
     year: "numeric",
   });
 
-  const { monthlySales } = useSalesReport(salesData);
+  // const { monthlySales } = useSalesReport(salesData);
   // console.log(monthlySales);
-  const addedSales = useAddMonthSales(monthSales);
-  const { addedCommissions, calculateCommissionsByStatus } =
-    useAddMonthCommissions(monthSales);
+  // const addedSales = useAddMonthSales(monthSales);
+  // const { addedCommissions, calculateCommissionsByStatus } =
+  //   useAddMonthCommissions(monthSales);
 
-  const findClicks = () => {
-    const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
-      (data: any) =>
-        new Date(data.createdAt).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        }) === currentMonth
-    );
-    return monthClicksArrAdmin?.length;
-  };
+  // const findClicks = () => {
+  //   const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
+  //     (data: any) =>
+  //       new Date(data.createdAt).toLocaleDateString("en-US", {
+  //         month: "long",
+  //         year: "numeric",
+  //       }) === currentMonth
+  //   );
+  //   return monthClicksArrAdmin?.length;
+  // };
 
-  useEffect(() => {
-    if (monthlySales) {
-      for (let m of monthlySales) {
-        if (m.month === currentMonth) {
-          // console.log("current month: ", m.sales);
-          const sales = m.sales;
-          setMonthSales(sales as AffiliateSale[]);
-        }
-      }
-    }
-    // setMonthSales()
-  }, [monthlySales, currentMonth, setMonthSales]);
+  // useEffect(() => {
+  //   if (monthlySales) {
+  //     for (let m of monthlySales) {
+  //       if (m.month === currentMonth) {
+  //         // console.log("current month: ", m.sales);
+  //         const sales = m.sales;
+  //         setMonthSales(sales as AffiliateSale[]);
+  //       }
+  //     }
+  //   }
+  //   // setMonthSales()
+  // }, [monthlySales, currentMonth, setMonthSales]);
 
   useEffect(() => {
     // console.log(data);
@@ -111,7 +111,8 @@ export default function SalesReport() {
           </h3>
           <button
             onClick={() => SaveHtmlReport()}
-            disabled={loading || !enableSaveReport}
+            // disabled={loading || !enableSaveReport}
+             disabled={loading}
           >
             {loading && <span>Loading...</span>}
             {error && <span>{error}</span>}

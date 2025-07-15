@@ -26,7 +26,6 @@ export function useOnBoardingNotifications() {
   const {
     isStripeMissing,
     isOnboardingIncomplete,
-    isFullyOnboarded,
     onboardingStatusMessage,
     onboardingNotificationTitle,
   } = useCheckOnboardingStatus(me.id);
@@ -42,7 +41,7 @@ export function useOnBoardingNotifications() {
     }
     const processNotifications = async () => {
       if (
-        (isStripeMissing || isOnboardingIncomplete || isFullyOnboarded) &&
+        (isStripeMissing || isOnboardingIncomplete) &&
         onboardingNotificationTitle
       ) {
         const existingNotification = notifications.find(
@@ -76,7 +75,6 @@ export function useOnBoardingNotifications() {
   }, [
     me?.refId,
     isStripeMissing,
-    isOnboardingIncomplete,
     onboardingNotificationTitle,
     onboardingStatusMessage,
     notifications,

@@ -2,12 +2,15 @@
   font-family: "Inter", sans-serif;
   border: 1px solid #ddd;
   border-radius: 12px;
-  /* max-width: 600px; */
   width: 90%;
   margin: 0 auto;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  /* background-color: white; */
+  transition: box-shadow 0.2s ease !important;
+}
+.tabbed-nav:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  margin: auto;
 }
 
 .tab-buttons {

@@ -27,7 +27,7 @@ export default function AffiliatesLookUp() {
     setAffiliateRefId(e);
   };
 
-  console.log(affiliateData)
+  console.log(affiliateData);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!affiliateRefId.trim()) {
@@ -69,17 +69,17 @@ export default function AffiliatesLookUp() {
 
   return (
     <>
-    
-      {/* <h2>Affiliate Lookup</h2> */}
-      <br />
-      <br />
       <br />
       <br />
       <div className="">
-        <div
-          className="form-container-lookup"
-          style={{ borderRadius: "10px", width: "40%" }}
-        >
+        <span style={{ fontSize: "2rem", fontWeight: "400" }}>
+          Lookup affiliate
+        </span>
+        <p className="p-text">Search affiliate by reference id or email.</p>
+        <br />
+        <div className="form-container-lookup">
+          {/* <h3>Lookup affiliate</h3> */}
+          <br />
           <form
             className="form-lookup"
             style={{
@@ -89,7 +89,11 @@ export default function AffiliatesLookUp() {
             }}
             onSubmit={handleSubmit}
           >
-            <label className="" htmlFor="refId-input" style={{ width: "100%" }}>
+            <label
+              className=""
+              htmlFor="refId-input"
+              style={{ width: "100%", fontWeight: "600" }}
+            >
               Search Affiliate
             </label>
             <input
@@ -106,7 +110,11 @@ export default function AffiliatesLookUp() {
               onChange={(e) => handleChange(e.target.value)}
             />
             <div className="" style={{ paddingLeft: "4%", width: "100%" }}>
-              <button className="loolkup-button" type="submit" disabled={!affiliateRefId}>
+              <button
+                className="loolkup-button"
+                type="submit"
+                disabled={!affiliateRefId}
+              >
                 Find Affiliate
               </button>
             </div>
@@ -122,15 +130,18 @@ export default function AffiliatesLookUp() {
             <NotificationForm affiliateData={affiliateData} />
           </AffiliateLookUpNav>
         )}
+        <br />
+        <br />
+        <br />
 
         {!affiliateData?.totalCommissions ||
           !affiliateData?.totalClicks ||
-          !affiliateData?.totalSales && (
+          (!affiliateData?.totalSales && (
             <>
               <h2>Report</h2>
               <span>No activity so far.</span>
             </>
-          )}
+          ))}
         {show && <DetailedReport refId={submittedRefId} />}
       </div>
     </>

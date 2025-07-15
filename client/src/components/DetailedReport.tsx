@@ -12,10 +12,10 @@ interface MonthlySalesGroup {
   month: string;
   sales: AffiliateSale[];
 }
-
 type Props = {
   refId: string;
 };
+
 export default function DetailedReport({ refId }: Props) {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
@@ -88,36 +88,40 @@ export default function DetailedReport({ refId }: Props) {
   }, [sortedDates]);
 
   return (
-    <>
+    <div className="detailed-report-container">
       {me.role === "admin" ? (
         <h3>Report for {findEmail()}</h3>
       ) : (
-        <h2>Reports</h2>
+        // <h2>Monthly Reports</h2>
+        <span style={{ fontSize: "2rem", fontWeight: 600, color: "black", marginBottom: "2%" }}>
+          Monthly Reports
+        </span>
       )}
-      <div className="">
-        {monthlySales &&
-          monthlySales.map((monthSales, index) => (
-            <div className="" key={monthSales.month}>
-              {showReport === index && (
-                <DetailedReportView
-                  monthSales={monthSales.sales}
-                  currentMonth={monthSales.month}
-                  setShowReport={setShowReport}
-                  salesPerMonth={salesPerMonth}
-                  clicksPerMonth={clicksPerMonth}
-                />
-              )}
-              {showReport === null && (
+      {monthlySales &&
+        monthlySales.map((monthSales, index) => (
+          <div className="" key={monthSales.month}>
+            {showReport === index && (
+              <DetailedReportView
+                monthSales={monthSales.sales}
+                currentMonth={monthSales.month}
+                setShowReport={setShowReport}
+                salesPerMonth={salesPerMonth}
+                clicksPerMonth={clicksPerMonth}
+              />
+            )}
+            {showReport === null && (
+              <div className="view-line-div">
+                📄
                 <span
                   className="view-line"
                   onClick={() => setShowReport(index)}
                 >
-                  📄 {monthSales.month} detailed report
+                  {monthSales.month} detailed report
                 </span>
-              )}
-            </div>
-          ))}
-      </div>
-    </>
+              </div>
+            )}
+          </div>
+        ))}
+    </div>
   );
 }

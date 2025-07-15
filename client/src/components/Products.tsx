@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { products } from "../data/products";
-
 import RefferalLink from "./RefferalLink";
 
 import "./Products.css";
 
 export type ProductLink = {
-    productTitle: string;
-    productUrl: string;
-  };
+  productTitle: string;
+  productUrl: string;
+};
 
 export default function Products() {
-  const [productsLinks, setProducstLinks] = useState<ProductLink[]
-  >([]);
+  const [productsLinks, setProducstLinks] = useState<ProductLink[]>([]);
 
   const selectUrl = (url: string, productTitle: string) => {
     setProducstLinks((prev) => [...prev, { productTitle, productUrl: url }]);
@@ -40,29 +38,27 @@ export default function Products() {
                 <span>{product.subtitle}</span>
                 <span>{product.description}</span>
                 <span>{product.price}</span>
-                {productsLinks?.some((prod) => prod.productTitle === product.title) &&
-                <RefferalLink productUrl={product.url} />
-                }
-               
+                {productsLinks?.some(
+                  (prod) => prod.productTitle === product.title
+                ) && <RefferalLink productUrl={product.url} />}
               </div>
-             
-                {productsLinks.some((prod) =>
-                  prod.productTitle === product.title) ? (
-                    <button
-                      className=""
-                      onClick={() => removeUrl(product.title)}
-                    >
-                      Remove
-                    </button>
-                  ) : (
-                    <button
-                      className=""
-                      onClick={() => selectUrl(product.url, product.title)}
-                    >
-                      Select
-                    </button>
-                  )
-                }
+                {productsLinks.some(
+                  (prod) => prod.productTitle === product.title
+                ) ? (
+                  <button
+                    className="product-button"
+                    onClick={() => removeUrl(product.title)}
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    className="product-button"
+                    onClick={() => selectUrl(product.url, product.title)}
+                  >
+                    Select
+                  </button>
+                )}
             </li>
           ))}
       </ul>

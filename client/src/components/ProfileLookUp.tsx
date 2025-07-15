@@ -14,7 +14,6 @@ export default function ProfileLookUp({ affiliateData }: Props) {
   return (
     <div className="card-profile-lookup">
       <div className="card-title-profile-lookup">
-        {/* <strong className="">Reference id:&nbsp;</strong> */}
         {affiliateData?.refId}
       </div>
       <div className="row card-body-profile-lookup">
@@ -43,7 +42,7 @@ export default function ProfileLookUp({ affiliateData }: Props) {
           </div>
           <div className="">
             <strong className="">Commission rate:&nbsp;</strong>
-            {(affiliateData?.commissionRate) * 100}%
+            {affiliateData?.commissionRate && (affiliateData?.commissionRate) * 100}%
           </div>
           <div className="">
             <strong className="">Total clicks:&nbsp;</strong>

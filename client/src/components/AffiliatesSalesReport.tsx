@@ -31,7 +31,7 @@ export default function AffiliatesSalesReport() {
 
   return (
     <div className="">
-      <h2>Reports</h2>
+      <h2>Monthly Reports</h2>
       <div className="res">
         {monthlySales &&
           monthlySales.map((monthSales, index) => (

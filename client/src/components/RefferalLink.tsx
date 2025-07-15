@@ -15,10 +15,12 @@ export default function RefferalLink({ productUrl }: Props) {
   return (
     <div>
       <br />
-      <strong>Product link</strong>
+      <strong className="product-link-title">Product link</strong>
       <br />
       <div className="product-link">
-        {productUrl}/?ref={refId}
+        <span>
+          {productUrl}/?ref={refId}
+        </span>
         <CopyToClipboard productUrl={productUrl} refId={refId} />
       </div>
     </div>

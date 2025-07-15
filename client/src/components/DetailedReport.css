@@ -1,18 +1,15 @@
-/* table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  overflow: hidden;
-} */
+.detailed-report-container {
+  padding: 2%;
+}
+.view-line-div {
+  padding-left: 2%;
+  padding-top: 1%;
+}
 .view-line {
   cursor: pointer;
-  color: rgb(103, 167, 213);
+  color: rgb(14, 142, 234);
   text-decoration: underline;
+  padding-left: 1%;
 }
 .pis-container {
   display: flex;

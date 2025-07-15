@@ -85,15 +85,8 @@ export default function StripeStatusCard({ affiliateId }: Props) {
       <p>{onboardingStatusMessage}</p>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <button
+          className="stripe-status-button"
           onClick={handleResumeOnboarding}
-          style={{
-            padding: "0.5rem 1rem",
-            background: "#4f46e5",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
         >
           {creatStripeAccountLoading ? (
             <Spinner />
@@ -102,17 +95,7 @@ export default function StripeStatusCard({ affiliateId }: Props) {
           )}
         </button>
         {me.stripeAccountId && (
-          <button
-            onClick={closeConnection}
-            style={{
-              padding: "0.5rem 1rem",
-              background: "#4f46e5",
-              color: "#fff",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
+          <button className="stripe-status-button" onClick={closeConnection}>
             {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
           </button>
         )}

@@ -7,9 +7,9 @@ import { useState } from "react";
 import { AffiliateSale } from "../types";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
-import PaymentsReports from "./PaymentsReports";
-import PaidCommissions from "./PaidCommissions";
-import UnpaidCommissions from "./UnpaidCommissions";
+// import PaymentsReports from "./PaymentsReports";
+// import PaidCommissions from "./PaidCommissions";
+// import UnpaidCommissions from "./UnpaidCommissions";
 
 export default function PDFReport() {
   const [showReport, setShowReport] = useState<number | null>(null);

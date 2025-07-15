@@ -1,6 +1,7 @@
 .stripe-banner-div {
-  /* background-color: black; */
-  animation: slideIn 0.3s ease;
+  /* width: 90%;
+  margin: auto; */
+  animation: slideIn 0.3s ease 0.1s;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #715a14;
   padding: 1rem 1.25rem;
@@ -9,47 +10,45 @@
   color: #a7867b;
 }
 .stripe-banner {
-  /* background-color: black; */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
+.title-close-div {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 .stripe-text {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #a7867b;
   flex: 1;
 }
-
 .stripe-actions {
   display: flex;
   gap: 0.75rem;
   margin-left: 1rem;
 }
-
-.stripe-button {
-  /* background-color: #673ab7; */
+.stripe-button,
+.stripe-status-button {
   background-color: rgb(72, 137, 223);
   color: white;
   border: none;
   padding: 0.5rem 0.9rem;
-  border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.2s ease;
 }
-
-.stripe-button:hover {
-  /* background-color: #5e35b1; */
-   background-color: rgb(13, 83, 175);
+.stripe-button:hover,
+.stripe-status-button:hover {
+  background-color: rgb(13, 83, 175);
 }
-
 .stripe-close {
   background: none;
   border: none;
-  font-size: 1.2rem;
-  color: #795548;
+  font-size: 2rem;
+  color: #797c7c;
   cursor: pointer;
 }
 

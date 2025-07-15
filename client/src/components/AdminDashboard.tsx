@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 
-import "./Admin.css";
+import "./Admindashboard.css";
 
 type Props = {
   data: any;
@@ -11,9 +11,13 @@ type Props = {
 
 export default function AdminDashboard({ data, loading, errorText }: Props) {
   return (
-    <div className="admin-container">
+    <>
       <Navbar />
-      <Outlet context={{ data, loading, errorText }} /> {/* AffiliateList */}
-    </div>
+      <br />
+      <br />
+      <div className="admin-dashboard">
+        <Outlet context={{ data, loading, errorText }} /> {/* AffiliateList */}
+      </div>
+    </>
   );
 }
