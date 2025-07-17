@@ -252,3 +252,9 @@ export const DELETE_NOTIFICATION = gql`
     }
   }
 `;
+
+export const SEND_EMAIL = gql`
+  mutation SendEmail($input: SendEmailInput!) {
+    sendEmail(input: $input)
+  }
+`;

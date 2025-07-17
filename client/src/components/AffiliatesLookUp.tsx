@@ -10,6 +10,7 @@ import AffiliateLookUpNav from "./AffiliateLookUpNav";
 import ProfileLookUp from "./ProfileLookUp";
 
 import "./AffiliatesLookUp.css";
+import EmailForm from "./EmailForm";
 
 export default function AffiliatesLookUp() {
   const [affiliateData, setAffiliateData] = useState<Affiliate | null>(null);
@@ -27,7 +28,6 @@ export default function AffiliatesLookUp() {
     setAffiliateRefId(e);
   };
 
-  console.log(affiliateData);
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!affiliateRefId.trim()) {
@@ -128,6 +128,7 @@ export default function AffiliatesLookUp() {
           <AffiliateLookUpNav>
             <ProfileLookUp affiliateData={affiliateData} />
             <NotificationForm affiliateData={affiliateData} />
+            <EmailForm affiliateData={affiliateData} />
           </AffiliateLookUpNav>
         )}
         <br />

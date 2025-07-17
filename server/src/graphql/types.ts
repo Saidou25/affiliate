@@ -39,4 +39,15 @@ export type Notification = {
   date: Date;
   title: string;
   text: string;
+};
+
+export interface SendEmailArgs {
+  refId?: string;
+  buyerEmail?: string;
+  affiliateEmail?: string;
+  event?: string;
+  title?: string;
+  amount?: number;
+  commission?: number;
+  text?: string;
 }

@@ -22,6 +22,8 @@ import { checkStripeAccountStatus } from "../utils/checkStripeAccount";
 import { title } from "process";
 import Stripe from "stripe";
 import GraphQLJSON from "graphql-type-json";
+import { SendEmailArgs } from "./types";
+import { sendEmailMessage } from "../utils/sendEmailMessage";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -798,6 +800,20 @@ const resolvers = {
         console.error("Error disconnecting Stripe:", err);
         throw new Error("Stripe disconnection failed.");
       }
+    },
+
+    sendEmail: async (
+      _: any,
+      { input }: { input: SendEmailArgs }
+    ): Promise<string> => {
+      console.log("SMTP user:", process.env.EMAIL_USER);
+      console.log("SMTP pass length:", process.env.EMAIL_PASS?.length); // Don't print full password!
+
+      await sendEmailMessage({
+        ...input,
+        type: "generic", // or "sale", "confirmation"
+      });
+      return "Email sent successfully.";
     },
   },
 };

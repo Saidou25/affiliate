@@ -27,7 +27,7 @@ export default function AffiliateLookUpNav({ children }: Props) {
         ))}
       </nav>
       <div className="tab-content fade-in">
-        {children[activeIndex]}
+        {children[activeIndex]}  {/* Renders tabLabes'components */}
       </div>
     </div>
   );

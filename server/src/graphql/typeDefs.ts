@@ -145,6 +145,21 @@ const typeDefs = gql`
     resumed: Boolean!
   }
 
+  input SendEmailInput {
+    refId: String
+    buyerEmail: String
+    affiliateEmail: String
+    event: String
+    title: String
+    amount: Float
+    commission: Float
+    text: String
+  }
+
+  type Mutation {
+    sendEmail(input: SendEmailInput!): String!
+  }
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
@@ -240,6 +255,8 @@ const typeDefs = gql`
     ): Affiliate!
 
     disconnectStripeAccount(affiliateId: ID!): StripeDeletionResponse
+
+    sendEmail(input: SendEmailInput!): String!
   }
 `;
 export default typeDefs;

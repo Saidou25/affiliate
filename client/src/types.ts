@@ -25,7 +25,6 @@ export type Notification = {
   read?: boolean;
 };
 
-
 export type Affiliate = {
   id: string;
   name: string;
@@ -66,3 +65,14 @@ export type CheckStripeStatusData = {
 export type CheckStripeStatusVars = {
   affiliateId: string;
 };
+
+export interface SendEmailArgs {
+  refId?: string;
+  buyerEmail?: string;
+  affiliateEmail?: string;
+  event?: string;
+  title?: string;
+  amount?: number;
+  commission?: number;
+  text?: string;
+}
