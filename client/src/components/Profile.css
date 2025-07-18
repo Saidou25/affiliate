@@ -27,21 +27,6 @@
   display: none;
 }
 
-.upload-btn {
-  margin-top: 12px;
-  background-color: #f1f1f1;
-  color: #333;
-  font-size: 14px;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.upload-btn:hover {
-  background-color: #e0e0e0;
-}
-
 .profile-info {
   text-align: left;
 }

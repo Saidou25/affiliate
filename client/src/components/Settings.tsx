@@ -3,6 +3,7 @@ import { QUERY_ME } from "../utils/queries";
 import { useNavigate } from "react-router-dom";
 import StripeStatusCard from "./StripStatusCard";
 import Profile from "./Profile";
+import Button from "./Button";
 
 import "./Settings.css";
 
@@ -25,9 +26,9 @@ export default function Settings() {
       <div className="settings-section">
         <h3>Profile</h3>
         <Profile />
-        <button onClick={() => navigate("/affiliate/profile")} className="settings-btn">
+        <Button onClick={() => navigate("/affiliate/profile")} className="blue-btn">
           Edit Profile
-        </button>
+        </Button>
       </div>
 
       <div className="settings-section">
@@ -36,12 +37,12 @@ export default function Settings() {
           You’ll be notified here about your affiliate sales, commission
           payments, and system updates.
         </p>
-        <button
+        <Button
           onClick={() => navigate("/affiliate/notifications")}
-          className="settings-btn"
+          className="blue-btn"
         >
           View Notifications
-        </button>
+        </Button>
       </div>
     </div>
   );

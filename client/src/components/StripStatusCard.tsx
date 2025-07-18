@@ -8,6 +8,7 @@ import {
 import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import { QUERY_ME } from "../utils/queries";
 import Spinner from "./Spinner";
+import Button from "./Button";
 
 interface Props {
   affiliateId?: string;
@@ -84,20 +85,17 @@ export default function StripeStatusCard({ affiliateId }: Props) {
       <h3>Stripe Payment Setup</h3>
       <p>{onboardingStatusMessage}</p>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <button
-          className="stripe-status-button"
-          onClick={handleResumeOnboarding}
-        >
+        <Button className="blue-btn" onClick={handleResumeOnboarding}>
           {creatStripeAccountLoading ? (
             <Spinner />
           ) : (
             <span>{onboardingStatusButtonMessage}</span>
           )}
-        </button>
+        </Button>
         {me.stripeAccountId && (
-          <button className="stripe-status-button" onClick={closeConnection}>
+          <Button className="blue-btn" onClick={closeConnection}>
             {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
-          </button>
+          </Button>
         )}
       </div>
       {showStripeMessage && (

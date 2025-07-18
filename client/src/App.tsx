@@ -23,7 +23,7 @@ import { useEffect } from "react";
 
 import 'bootswatch/dist/lux/bootstrap.min.css';
 
-// import "./index.css";
+// import "./App.css";
 
 function App() {
   const navigate = useNavigate();

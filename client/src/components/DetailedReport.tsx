@@ -92,10 +92,7 @@ export default function DetailedReport({ refId }: Props) {
       {me.role === "admin" ? (
         <h3>Report for {findEmail()}</h3>
       ) : (
-        // <h2>Monthly Reports</h2>
-        <span style={{ fontSize: "2rem", fontWeight: 600, color: "black", marginBottom: "2%" }}>
-          Monthly Reports
-        </span>
+        <h2>Monthly Reports</h2>
       )}
       {monthlySales &&
         monthlySales.map((monthSales, index) => (

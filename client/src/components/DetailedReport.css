@@ -123,36 +123,6 @@ tbody tr:hover {
   cursor: default;
 } */
 
-.paid-button-admin {
-  padding: 4px 8px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: default;
-}
-.unpaid-button-admin,
-.handle-lookup {
-  padding: 4px 10px;
-  background-color: black;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-.paid-button-affiliate {
-  padding: 4px 20px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  cursor: default;
-}
-.unpaid-button-affiliate {
-  padding: 4px 10px;
-  background-color: #ffc107;
-  color: white;
-  border: none;
-  cursor: default;
-}
-
 /* Zebra effect */
 tbody tr:nth-child(even) {
   background-color: #fafafa;

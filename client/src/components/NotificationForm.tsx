@@ -5,6 +5,7 @@ import { Affiliate } from "../types";
 import Spinner from "./Spinner";
 
 import "./NotificationForm.css";
+import Button from "./Button";
 
 type Props = {
   affiliateData: Affiliate | null;
@@ -98,14 +99,16 @@ export default function NotificationForm({ affiliateData }: Props) {
       <br />
       <br />
       <div className="button-div-notification-form">
-        <button
+        <Button
+          className="blue-btn"
           type="submit"
           disabled={
             !formState.refId || !formState.text || !formState.title || loading
           }
+          style={{ width: "100%" }}
         >
           {loading ? <Spinner /> : "Send Notification"}
-        </button>
+        </Button>
       </div>
       {status === "success" && (
         <p className="success">✅ Notification sent successfully!</p>

@@ -36,7 +36,7 @@ export default function DataCenter() {
     <div>
       <SalesReport />
       <h2>🗂️ Archive of reports</h2>
-      <div className="res">
+      <div className="">
         <h3>Saved reports for the current year:</h3>
         {data?.getAllReports.length ? (
           data.getAllReports.map((report) => (

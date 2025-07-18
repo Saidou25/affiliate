@@ -3,6 +3,7 @@ import BarChart from "./BarChart";
 import { useClicksTracker } from "../hooks/useClicksTracker";
 import { QUERY_ME } from "../utils/queries";
 import { useQuery } from "@apollo/client";
+import Button from "./Button";
 
 export default function TotalClicks() {
   const { clicksPerDay, clicksPerWeek, clicksPerMonth } = useClicksTracker();
@@ -50,16 +51,31 @@ export default function TotalClicks() {
             {clicksRange[0]?.id || "Clicks Overview"}
           </h2>
           <div className="">
-            <button className="range-button" onClick={() => selectClicksRange("day")}>
+            <Button
+              className="blue-btn"
+              onClick={() => selectClicksRange("day")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+              type="button"
+            >
               day
-            </button>
-            <button className="range-button" onClick={() => selectClicksRange("week")}>
+            </Button>
+            <Button
+              className="blue-btn"
+              onClick={() => selectClicksRange("week")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+              type="button"
+            >
               week
-            </button>
-            <button className="range-button" onClick={() => selectClicksRange("month")}>
+            </Button>
+            <Button
+              className="blue-btn"
+              onClick={() => selectClicksRange("month")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+              type="button"
+            >
               {" "}
               month
-            </button>
+            </Button>
           </div>
         </div>
         {clicksRange.length === 0 ? (

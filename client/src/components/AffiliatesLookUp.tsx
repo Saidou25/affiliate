@@ -11,6 +11,7 @@ import ProfileLookUp from "./ProfileLookUp";
 
 import "./AffiliatesLookUp.css";
 import EmailForm from "./EmailForm";
+import Button from "./Button";
 
 export default function AffiliatesLookUp() {
   const [affiliateData, setAffiliateData] = useState<Affiliate | null>(null);
@@ -110,13 +111,13 @@ export default function AffiliatesLookUp() {
               onChange={(e) => handleChange(e.target.value)}
             />
             <div className="" style={{ paddingLeft: "4%", width: "100%" }}>
-              <button
-                className="loolkup-button"
+              <Button
+                className="blue-btn"
                 type="submit"
                 disabled={!affiliateRefId}
               >
                 Find Affiliate
-              </button>
+              </Button>
             </div>
           </form>
         </div>

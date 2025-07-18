@@ -8,6 +8,7 @@ import Spinner from "./Spinner";
 import useUpdateAffiliate from "../hooks/useUpdateAffiliate";
 
 import "./Profile.css";
+import Button from "./Button";
 
 type EditableProfile = {
   name?: string;
@@ -149,12 +150,13 @@ export default function Profile() {
               ref={fileInputRef}
               className="hidden-input"
             />
-            <button
+            <Button
               onClick={() => fileInputRef.current?.click()}
-              className="btn upload-btn"
+              className="blue-btn"
+              type="button"
             >
               Change Photo
-            </button>
+            </Button>
           </>
         )}
       </div>
@@ -196,17 +198,21 @@ export default function Profile() {
         <div className="btn-row">
           {editing ? (
             <>
-              <button className="btn save-btn" onClick={saveChanges}>
+              <Button className="blue-btn" onClick={saveChanges} type="button">
                 {updating ? <Spinner /> : <span>Save</span>}
-              </button>
-              <button className="btn cancel-btn" onClick={cancelEdit}>
+              </Button>
+              <Button className="orange-btn" onClick={cancelEdit} type="button">
                 Cancel
-              </button>
+              </Button>
             </>
           ) : (
-            <button className="btn edit-btn" onClick={() => setEditing(true)}>
+            <Button
+              className="blue-btn"
+              onClick={() => setEditing(true)}
+              type="button"
+            >
               Edit Profile
-            </button>
+            </Button>
           )}
         </div>
       </div>

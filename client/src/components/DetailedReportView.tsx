@@ -19,6 +19,7 @@ import Spinner from "./Spinner";
 import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 
 import "./DetailedReport.css";
+import Button from "./Button";
 // import { useGetOneAffiliate } from "../hooks/useGetOneAffiliate";
 
 type Props = {
@@ -265,7 +266,7 @@ export default function DetailedReportView({
                     )}
 
                     <td className="cell-style">
-                      <button
+                      <Button
                         className={
                           sale?.commissionStatus === "paid"
                             ? `paid-button-${me?.role}`
@@ -288,7 +289,7 @@ export default function DetailedReportView({
                         {me?.role === "affiliate" &&
                           sale.commissionStatus === "unpaid" &&
                           loadingId !== sale.id && <span>unpaid</span>}
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}

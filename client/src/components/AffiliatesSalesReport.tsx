@@ -32,7 +32,7 @@ export default function AffiliatesSalesReport() {
   return (
     <div className="">
       <h2>Monthly Reports</h2>
-      <div className="res">
+      <div className="">
         {monthlySales &&
           monthlySales.map((monthSales, index) => (
             <div className="" key={monthSales.month}>

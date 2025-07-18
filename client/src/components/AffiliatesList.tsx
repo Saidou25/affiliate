@@ -7,6 +7,7 @@ import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 import { useNavigate } from "react-router-dom";
 
 import "./DetailedReport.css";
+import Button from "./Button";
 
 type Props = {
   data: any;
@@ -165,15 +166,16 @@ export default function AffiliatesList({ data, loading, errorText }: Props) {
                         )}
                       </td>
                       <td className="cell-style">
-                        <button
-                          className="handle-lookup"
+                        <Button
+                          className="black-btn handle-lookup"
                           onClick={() =>
                             handleNavigetToAffiliateLookUp(affiliate.refId)
                           }
-                          style={{ marginLeft: "0.5rem" }}
+                          type="button"
+                          // style={{ marginLeft: "0.5rem" }}
                         >
                           View
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}

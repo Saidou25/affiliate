@@ -4,6 +4,7 @@ import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 
 import "./StripeSetupBanner.css";
 import { IoMdClose } from "react-icons/io";
+import Button from "./Button";
 
 type Props = {
   affiliateId: string;
@@ -38,12 +39,12 @@ export default function StripeSetupBanner({ affiliateId }: Props) {
       <div className="stripe-banner">
         <p className="stripe-text">{onboardingStatusMessage}</p>
         <div className="stripe-actions">
-          <button
-            className="stripe-button"
+          <Button
+            className="blue-btn"
             onClick={() => navigate("settings")}
           >
             {onboardingStatusButtonMessage}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

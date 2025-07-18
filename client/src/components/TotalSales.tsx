@@ -3,6 +3,7 @@ import { useSalesTracker } from "../hooks/useSalesTracker";
 import BarChart from "./BarChart";
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
+import Button from "./Button";
 
 export default function TotalSales() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -52,25 +53,28 @@ export default function TotalSales() {
             {salesRange[0]?.id || "Sales Overview"}
           </h2>
           <div className="">
-            <button
-              className="range-button"
+            <Button
+              className="blue-btn"
               onClick={() => selectSalesRange("day")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               day
-            </button>
-            <button
-              className="range-button"
+            </Button>
+            <Button
+              className="blue-btn"
               onClick={() => selectSalesRange("week")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               week
-            </button>
-            <button
-              className="range-button"
+            </Button>
+            <Button
+              className="blue-btn"
               onClick={() => selectSalesRange("month")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               {" "}
               month
-            </button>
+            </Button>
           </div>
         </div>
         {salesRange.length === 0 ? (

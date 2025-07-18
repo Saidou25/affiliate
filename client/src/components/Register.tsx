@@ -9,6 +9,7 @@ import AuthService from "../utils/auth";
 import { QUERY_ME } from "../utils/queries";
 
 import "./RegisterForm.css";
+import Button from "./Button";
 
 export default function RegisterForm() {
   const [formState, setFormState] = useState({
@@ -122,9 +123,13 @@ export default function RegisterForm() {
         />
         <br />
         <br />
-        <button type="submit" disabled={!buttonEnabled || loading}>
+        <Button
+          type="submit"
+          disabled={!buttonEnabled || loading}
+          className="blue-btn"
+        >
           Submit
-        </button>
+        </Button>
         <br />
         {error && <p style={{ color: "red" }}>{error.message}</p>}
         <br />

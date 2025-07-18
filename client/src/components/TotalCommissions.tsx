@@ -3,10 +3,11 @@ import { useCommissionsTracker } from "../hooks/useCommissionsTracker";
 import BarChart from "./BarChart";
 
 import "./Analytics.css";
+import Button from "./Button";
 
 export default function TotalCommissions() {
-   
-  const { me, commissionPerDay, commissionsPerWeek, commissionsPerMonth } = useCommissionsTracker();
+  const { me, commissionPerDay, commissionsPerWeek, commissionsPerMonth } =
+    useCommissionsTracker();
 
   const [commissionsRange, setCommissionsRange] = useState(commissionPerDay);
 
@@ -33,8 +34,8 @@ export default function TotalCommissions() {
       <h2>Total Commissions:</h2>
       {me?.totalCommissions && (
         <>
-          <strong>Your total comissions - </strong>
-          ${me?.totalCommissions.toFixed(2)}
+          <strong>Your total comissions - </strong>$
+          {me?.totalCommissions.toFixed(2)}
           <br />
           <br />
         </>
@@ -48,16 +49,28 @@ export default function TotalCommissions() {
             {commissionsRange[0]?.id || "Commissions Overview"}
           </h2>
           <div className="">
-            <button className="range-button" onClick={() => selectCommissionsRange("day")}>
+            <Button
+              className="blue-btn"
+              onClick={() => selectCommissionsRange("day")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+            >
               day
-            </button>
-            <button className="range-button" onClick={() => selectCommissionsRange("week")}>
+            </Button>
+            <Button
+              className="blue-btn"
+              onClick={() => selectCommissionsRange("week")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+            >
               week
-            </button>
-            <button className="range-button" onClick={() => selectCommissionsRange("month")}>
+            </Button>
+            <Button
+              className="blue-btn"
+              onClick={() => selectCommissionsRange("month")}
+              style={{ marginRight: "2px", marginLeft: "2px" }}
+            >
               {" "}
               month
-            </button>
+            </Button>
           </div>
         </div>
         {commissionsRange.length === 0 ? (

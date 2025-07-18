@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TriggerEmailButton from "./TriggerEmailButton";
 import { Affiliate } from "../types";
+import Button from "./Button";
 
 type Props = {
   affiliateData: Affiliate;
@@ -60,9 +61,14 @@ export default function EmailForm({ affiliateData }: Props) {
       />
 
       <div className="button-div-notification-form">
-        <button type="submit" disabled={!formState.text || !formState.title}>
+        <Button
+          className="blue-btn"
+          type="submit"
+          disabled={!formState.text || !formState.title}
+          style={{ width: "100%" }}
+        >
           Send Email
-        </button>
+        </Button>
       </div>
 
       {/* Email trigger component */}

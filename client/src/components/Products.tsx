@@ -3,6 +3,7 @@ import { products } from "../data/products";
 import RefferalLink from "./RefferalLink";
 
 import "./Products.css";
+import Button from "./Button";
 
 export type ProductLink = {
   productTitle: string;
@@ -45,19 +46,21 @@ export default function Products() {
                 {productsLinks.some(
                   (prod) => prod.productTitle === product.title
                 ) ? (
-                  <button
-                    className="product-button"
+                  <Button
+                    className="blue-btn"
                     onClick={() => removeUrl(product.title)}
+                    style={{ height: "40px", width: "90px" }}
                   >
                     Remove
-                  </button>
+                  </Button>
                 ) : (
-                  <button
-                    className="product-button"
+                  <Button
+                    className="blue-btn"
                     onClick={() => selectUrl(product.url, product.title)}
+                    style={{ height: "40px", width: "90px" }}
                   >
                     Select
-                  </button>
+                  </Button>
                 )}
             </li>
           ))}

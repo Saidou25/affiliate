@@ -5,6 +5,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { QUERY_ME } from "../utils/queries";
 import AuthService from "../utils/auth";
+import Button from "./Button";
 //
 export default function AffiliateLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -80,9 +81,9 @@ export default function AffiliateLogin() {
         />
         <br />
         <br />
-        <button type="submit" disabled={loading}>
+        <Button type="submit" disabled={loading} className="blue-btn">
           {loading ? "Logging in…" : "Log In"}
-        </button>
+        </Button>
         {error && <p style={{ color: "red" }}>{error.message}</p>}
       </form>
     </div>

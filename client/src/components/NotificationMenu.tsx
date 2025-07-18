@@ -58,7 +58,7 @@ export default function NotificationMenu() {
 
       {open && (
         <div className="notification-dropdown">
-          <div className="dropdown-header">Notifications</div>
+          <div className="dropdown-header p-3">Notifications</div>
           <ul className="notification-list">
             {notifications?.map((n: any, index: number) => (
               <li key={index} className="notification-item">

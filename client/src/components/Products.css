@@ -20,18 +20,4 @@
   padding-right: 5%;
   width: 60%;
 }
-.product-button {
-  background-color: rgb(72, 137, 223);
-  color: white;
-  border: none;
-  padding: 0.5rem 0.9rem;
-  /* border-radius: 6px; */
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
-  height: 40px;
-  width: 90px;
-}
-.product-button:hover {
-  background-color: rgb(13, 83, 175);
-}
+

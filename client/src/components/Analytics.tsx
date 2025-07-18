@@ -7,7 +7,7 @@ import "./Analytics.css";
 export default function Analytics() {
   return (
     <div className="">
-      <h2>Analytics</h2>
+      <h1>Analytics</h1>
       <TotalClick />
       <TotalSales />
       <TotalCommissions />

@@ -1,9 +1,33 @@
 #root {
   /* margin: 0 auto !important; */
   /* padding: 2rem; */
-  text-align: center;
-  background-color: black;
+  /* text-align: center; */
+  /* background-color: black; */
   width: 100vw;
   height: 100vh;
 }
 
+h1 {
+  text-transform: none;
+  font-weight: 800;
+  color: rgb(5, 5, 5);
+}
+h2 {
+  text-transform: none;
+  color: rgb(42, 42, 45);
+  font-weight: 600;
+}
+h3 {
+  color: rgb(77, 77, 81);
+  text-transform: none;
+  font-weight: 400;
+}
+h4 {
+  color: rgb(77, 77, 81);
+  text-transform: none;
+  font-weight: 100;
+}
+h5 {
+  color: rgb(77, 77, 81);
+  text-transform: none;
+}

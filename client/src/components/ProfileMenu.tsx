@@ -9,11 +9,15 @@ import { useNavigate } from "react-router-dom";
 import AuthService from "../utils/auth";
 
 import "./ProfileMenu.css";
+import { useQuery } from "@apollo/client";
+import { QUERY_ME } from "../utils/queries";
 
 export default function ProfileMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const { data } = useQuery(QUERY_ME);
+  const me = data?.me;
   const navigate = useNavigate();
 
   const handleLogout: React.MouseEventHandler<HTMLSpanElement> = () => {
@@ -51,7 +55,16 @@ export default function ProfileMenu() {
   return (
     <div className="notification-container" ref={menuRef}>
       <button className="notification-button" onClick={() => setOpen(true)}>
-        <IoPersonCircleOutline className="person-nav" />
+        {me?.avatar ? (
+          <img
+            className="img-fluid"
+            src={me.avatar}
+            alt="pg logo"
+            style={{ width: "30px", height: "30px", borderRadius: "50%" }}
+          />
+        ) : (
+          <IoPersonCircleOutline className="person-nav" />
+        )}
       </button>
 
       {open && (
