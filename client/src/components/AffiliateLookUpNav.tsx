@@ -8,7 +8,7 @@ type Props = {
     children: ReactElement[]; 
 };
 
-const tabLabels = ["Profile", "Send a Notification", "Send email", "Change Commission Rate"];
+const tabLabels = ["Profile", "Send a Notification", "Send email", "Manage Commission Rates"];
 
 export default function AffiliateLookUpNav({ children }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);

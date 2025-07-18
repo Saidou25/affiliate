@@ -83,6 +83,7 @@ const typeDefs = gql`
     role: Role
     paymentHistory: [PaymentRecord!]!
     notifications: [Notification]
+    avatar: String
   }
 
   type AuthPayload {
@@ -198,6 +199,7 @@ const typeDefs = gql`
       commissionRate: Float
       totalSales: Int
       updatedAt: Date
+      avatar: String
       createdAt: Date
     ): Affiliate!
 

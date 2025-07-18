@@ -41,6 +41,7 @@ export type Affiliate = {
   paymentHistory: PaymentRecord[];
   stripeAccountId?: String;
   notifications?: Notification[];
+  avatar?: string;
 };
 
 export type GetAffiliateByRefIdData = {

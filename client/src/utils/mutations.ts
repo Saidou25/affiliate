@@ -53,8 +53,9 @@ export const UPDATE_AFFILIATE = gql`
     $email: String
     $refId: String
     $totalClicks: Int
-    $totalCommissions: Int
-    $commissionRate: Int
+    $totalCommissions: Float
+    $commissionRate: Float
+    $avatar: String
   ) {
     updateAffiliate(
       id: $id
@@ -64,13 +65,16 @@ export const UPDATE_AFFILIATE = gql`
       totalClicks: $totalClicks
       totalCommissions: $totalCommissions
       commissionRate: $commissionRate
+      avatar: $avatar
     ) {
       id
-      email
       name
+      email
+      refId
       totalClicks
       totalCommissions
       commissionRate
+      avatar
       updatedAt
       totalSales
     }

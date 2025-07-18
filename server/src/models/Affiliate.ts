@@ -31,6 +31,7 @@ interface IAffiliate extends Document {
   updatedAt?: Date; // ✅ Automatically added by Mongoose
   paymentHistory?: IPaymentRecord[];
   notifications?: INotification[];
+  avatar?: string;
 }
 
 const AffiliateSchema = new Schema<IAffiliate>(
@@ -45,6 +46,7 @@ const AffiliateSchema = new Schema<IAffiliate>(
     commissionRate: { type: Number, default: 0.1 }, // 10 %
     totalSales: { type: Number, default: 0 },
     role: { type: String, enum: ["admin", "affiliate"], default: "affiliate" },
+    avatar: { type: String },
     paymentHistory: [
       {
         amount: { type: Number },

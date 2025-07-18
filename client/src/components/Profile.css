@@ -1,0 +1,116 @@
+.modern-profile-card {
+  max-width: 480px;
+  margin: 50px auto;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  text-align: center;
+  font-family: "Segoe UI", sans-serif;
+  transition: all 0.3s ease;
+}
+
+.avatar-section {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.avatar-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e0e0e0;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.upload-btn {
+  margin-top: 12px;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 14px;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.upload-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.profile-info {
+  text-align: left;
+}
+
+.field-group {
+  margin-bottom: 18px;
+}
+
+.field-group label {
+  display: block;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.field-group p {
+  font-size: 16px;
+  margin: 0;
+  color: #222;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.btn-row {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.edit-btn {
+  background-color: #1e88e5;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #1565c0;
+}
+
+.save-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.save-btn:hover {
+  background-color: #388e3c;
+}
+
+.cancel-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #cfcfcf;
+}

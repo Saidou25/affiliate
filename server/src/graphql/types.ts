@@ -17,7 +17,9 @@ export interface MyContext {
     totalSales: number;
     password: string;
     commissionRate: number;
+    stripeAccountId: string;
     role?: "admin" | "affiliate";
+    avatar?: string;
     createdAt?: Date; // ✅ Automatically added by Mongoose
     updatedAt?: Date; // ✅ Automatically added by Mongoose
     paymentHistory: PaymentRecord[];

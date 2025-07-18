@@ -266,6 +266,7 @@ const resolvers = {
         totalSales,
         updatedAt,
         createdAt,
+        avatar
       }: {
         id: string;
         name?: string;
@@ -276,6 +277,7 @@ const resolvers = {
         commissionRate?: number;
         totalSales?: number;
         updatedAt: Date;
+        avatar?: string;
         createdAt: Date; // just to add to already created affiliates
       }
     ) => {
@@ -292,6 +294,7 @@ const resolvers = {
             ...(totalSales !== undefined && { totalSales }),
             ...(updatedAt !== undefined && { updatedAt }),
             ...(createdAt !== undefined && { createdAt }),
+            ...(avatar !== undefined && { avatar }),
           },
           { new: true }
         );

@@ -13,6 +13,7 @@ export const GET_AFFILIATES = gql`
       totalSales
       createdAt
       role
+      avatar
       stripeAccountId
       # paymentHistory {
       #   date
@@ -44,6 +45,7 @@ export const GET_AFFILIATE = gql`
       totalSales
       createdAt
       role
+      avatar
       stripeAccountId
       # paymentHistory {
       #   date
@@ -75,6 +77,7 @@ export const GET_AFFILIATE_BY_REFID = gql`
       totalSales
       createdAt
       role
+      avatar
       stripeAccountId
       # paymentHistory {
       #   date
@@ -106,6 +109,7 @@ export const QUERY_ME = gql`
       totalSales
       createdAt
       role
+      avatar
       stripeAccountId
       # paymentHistory {
       #   date
