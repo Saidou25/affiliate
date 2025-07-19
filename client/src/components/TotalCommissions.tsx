@@ -31,6 +31,7 @@ export default function TotalCommissions() {
 
   return (
     <div className="">
+      <br />
       <h2>Total Commissions:</h2>
       {me?.totalCommissions && (
         <>

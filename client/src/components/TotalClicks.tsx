@@ -5,6 +5,8 @@ import { QUERY_ME } from "../utils/queries";
 import { useQuery } from "@apollo/client";
 import Button from "./Button";
 
+import "./Analytics.css";
+
 export default function TotalClicks() {
   const { clicksPerDay, clicksPerWeek, clicksPerMonth } = useClicksTracker();
 
@@ -33,6 +35,7 @@ export default function TotalClicks() {
 
   return (
     <div className="">
+      <br />
       <h2>Total Clicks:</h2>
       {me.totalClicks && (
         <>

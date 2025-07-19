@@ -13,7 +13,7 @@ export default function BarChart({ propsData }: Props) {
         margin={{ top: 50, right: 50, bottom: 80, left: 60 }}
         padding={0.3}
         layout="vertical"
-        colors={{ scheme: "category10" }} // Or a function for custom coloring
+        colors={{ scheme: "accent" }} // Or a function for custom coloring
         axisBottom={{
           tickSize: 5,
           tickPadding: 5,
@@ -34,14 +34,14 @@ export default function BarChart({ propsData }: Props) {
             domain: { line: { stroke: "#777777", strokeWidth: 1 } },
             ticks: {
               line: { stroke: "#777777", strokeWidth: 1 },
-              text: { fill: "#f3efef", fontSize: 12 },
+              text: { fill: "#393030", fontSize: 12 },
             },
           },
           labels: { text: { fill: "#000", fontSize: 16 } },
           tooltip: {
             container: {
-              background: "#f0da9c",
-              color: "#fff",
+              background: "#f7f5f1",
+              color: "#393030",
               fontSize: 13,
               borderRadius: 4,
               padding: 10,

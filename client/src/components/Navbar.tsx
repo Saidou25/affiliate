@@ -36,7 +36,7 @@ export default function Navbar() {
         <Link className="logo-nav" to="/">
           <img
             className="img-fluid"
-            src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pg-favicon-logo-2025-dWxyk9E0zkszO79q.png"
+            src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pgp-logo-favicon-2025-mnlvrQoloKTvJvO7.png"
             alt="pg logo"
           />
         </Link>

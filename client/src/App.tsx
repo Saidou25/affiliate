@@ -21,7 +21,9 @@ import ViewAllNotifications from "./components/ViewAllNotifications";
 import Settings from "./components/Settings";
 import { useEffect } from "react";
 
-import 'bootswatch/dist/lux/bootstrap.min.css';
+import "bootswatch/dist/lux/bootstrap.min.css";
+import Footer from "./components/Footer";
+// import LandingPageTitle from "./components/LandingPageTitle";
 
 // import "./App.css";
 
@@ -83,6 +85,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
+      <Footer />
     </>
   );
 }

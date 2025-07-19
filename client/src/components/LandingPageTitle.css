@@ -1,0 +1,86 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&family=Montserrat:wght@400;600&display=swap");
+
+.title-container {
+  /* background-image: linear-gradient(180deg, rgb(18, 91, 93), rgb(4, 4, 4)); */
+  /* background-image: linear-gradient(180deg, rgb(197, 245, 221), rgb(24, 44, 35)); */
+  /* border: 4px solid rgb(184, 179, 179); */
+  width: 30%;
+  margin: auto;
+  margin-top: 10%;
+  border-radius: 50px;
+  padding-top: 5%;
+  text-align: center;
+}
+.text-spans {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+}
+.princeton {
+  color: orange;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+.green {
+  color: green;
+}
+.affiliate-programm {
+  font-weight: 600;
+  text-align: center;
+  font-size: 1.25rem;
+}
+.image-row {
+  width: 100%;
+  padding: 2rem;
+}
+.image-div {
+  width: 30% !important;
+}
+.image-wrapper {
+  /* border: solid 1px; */
+  position: relative;
+  /* enough space to scroll */
+  height: 150vh;
+}
+
+.floating-image {
+  border: solid 1px blue;
+  position: absolute;
+  width: 30%;
+  transition: transform 0.3s ease-out;
+}
+
+.left-img {
+  border: solid 1px green;
+  left: 5%;
+  top: 5%;
+}
+
+.center-img {
+  border: solid 1px rgb(128, 0, 0);
+  left: 35%;
+  top: 35%;
+}
+
+.right-img {
+  right: 5%;
+  top: 55%;
+}
+
+.floating-text {
+  border: solid 1px rgb(128, 0, 0);
+  position: absolute;
+  width: 30%;
+  color: #000;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.text-block {
+  left: 40%; /* adjust this to match your left-img */
+  /* adjust to align vertically with the image */
+  /* top: 22%;   */
+}

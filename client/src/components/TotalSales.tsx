@@ -37,6 +37,7 @@ export default function TotalSales() {
 
   return (
     <div className="">
+      <br />
       <h2>Total Sales(Orders):</h2>
       <strong className="">
         Your total sales(orders) -{" "}
