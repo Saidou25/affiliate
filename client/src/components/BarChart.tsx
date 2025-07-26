@@ -20,7 +20,7 @@ export default function BarChart({ propsData }: Props) {
           tickRotation: -45,
           legend: "Date",
           legendPosition: "middle",
-          legendOffset: 50,
+          legendOffset: 70,
         }}
         axisLeft={{
           tickSize: 5,

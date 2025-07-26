@@ -43,7 +43,7 @@ export default function AffiliateLogin() {
 
   return (
     <div className="login-container">
-      <h2>Log in to your account</h2>
+      {/* <h2>Log in to your account</h2> */}
       <form className="form-container" onSubmit={handleSubmit}>
         <Link style={{ display: "flex", justifyContent: "flex-end" }} to="/">
           <AiOutlineClose

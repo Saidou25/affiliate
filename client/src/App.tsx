@@ -20,12 +20,12 @@ import StripeReturn from "./components/StripeReturn";
 import ViewAllNotifications from "./components/ViewAllNotifications";
 import Settings from "./components/Settings";
 import { useEffect } from "react";
+import Footer from "./components/Footer";
 
 import "bootswatch/dist/lux/bootstrap.min.css";
-import Footer from "./components/Footer";
 // import LandingPageTitle from "./components/LandingPageTitle";
 
-// import "./App.css";
+import "./App.css";
 
 function App() {
   const navigate = useNavigate();

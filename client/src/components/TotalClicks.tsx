@@ -17,8 +17,24 @@ export default function TotalClicks() {
 
   const selectClicksRange = (range: string) => {
     if (range === "day") {
-      setClicksRange(clicksPerDay);
+      // Showing clicks only for the actual month
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      const filtered = {
+        ...clicksPerDay[0],
+        data: clicksPerDay[0]?.data?.filter((entry: any) => {
+          const date = new Date(entry.x);
+          return (
+            date.getMonth() === currentMonth &&
+            date.getFullYear() === currentYear
+          );
+        }),
+      };
+
+      setClicksRange([filtered]);
     }
+
     if (range === "week") {
       setClicksRange(clicksPerWeek);
     }
@@ -29,9 +45,23 @@ export default function TotalClicks() {
 
   useEffect(() => {
     if (clicksPerDay) {
-      setClicksRange(clicksPerDay);
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      const filtered = {
+        ...clicksPerDay[0],
+        data: clicksPerDay[0]?.data?.filter((entry: any) => {
+          const date = new Date(entry.x);
+          return (
+            date.getMonth() === currentMonth &&
+            date.getFullYear() === currentYear
+          );
+        }),
+      };
+
+      setClicksRange([filtered]);
     }
-  }, [clicksPerDay, setClicksRange]);
+  }, [clicksPerDay]);
 
   return (
     <div className="">

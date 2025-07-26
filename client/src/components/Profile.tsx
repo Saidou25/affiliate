@@ -6,9 +6,9 @@ import { IoPersonCircleOutline } from "react-icons/io5";
 import axios from "axios";
 import Spinner from "./Spinner";
 import useUpdateAffiliate from "../hooks/useUpdateAffiliate";
+import Button from "./Button";
 
 import "./Profile.css";
-import Button from "./Button";
 
 type EditableProfile = {
   name?: string;

@@ -7,12 +7,15 @@ import { useEffect, useState } from "react";
 import { affiliateLinks, adminLinks } from "../data/navData";
 import NotificationMenu from "./NotificationMenu";
 import ProfileMenu from "./ProfileMenu";
+import LandingPageTitle from "./LandingPageTitle";
 
 import "./Navbar.css";
 
 export default function Navbar() {
   const [links, setLinks] = useState<string[]>([]);
   const [group, setGroup] = useState("");
+
+  const isLoggedIn = AuthService.loggedIn();
 
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
@@ -41,9 +44,6 @@ export default function Navbar() {
           />
         </Link>
         <div className="top-navbar">
-          {/* <NavLink to="/affiliate/profile">
-        <IoPersonCircleOutline className="person-nav" />
-        </NavLink> */}
           {me?.role !== "admin" && (
             <>
               <ProfileMenu />
@@ -56,19 +56,23 @@ export default function Navbar() {
           />
         </div>
       </div>
-      <br />
-      <nav className="navbar">
-        {links &&
-          links.map((link, index) => (
-            <NavLink
-              key={index}
-              to={`/${group}/${link.toLowerCase()}`}
-              // className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              {link}
-            </NavLink>
-          ))}
-      </nav>
+
+      {/* <br /> */}
+      <div className="navigation-bar-container bg-dark">
+        <nav className="navbar">
+          {links &&
+            links.map((link, index) => (
+              <NavLink
+                key={index}
+                to={`/${group}/${link.toLowerCase()}`}
+                // className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                {link}
+              </NavLink>
+            ))}
+        </nav>
+        <LandingPageTitle isLoggedIn={isLoggedIn} />
+      </div>
     </>
   );
 }
