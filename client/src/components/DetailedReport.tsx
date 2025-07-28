@@ -34,13 +34,23 @@ export default function DetailedReport({ refId }: Props) {
   const { salesPerMonth } = useSalesTracker(refId);
   const { clicksPerMonth } = useClicksTracker();
 
+  // const findEmail = () => {
+  //   if (affiliatesData) {
+  //     const foundAffiliate = affiliatesData.getAffiliates.filter(
+  //       (affiliate: Affiliate) => affiliate.refId === refId
+  //     );
+  //     return foundAffiliate[0].email;
+  //   }
+  // };
+
   const findEmail = () => {
     if (affiliatesData) {
-      const foundAffiliate = affiliatesData.getAffiliates.filter(
+      const foundAffiliate = affiliatesData.getAffiliates.find(
         (affiliate: Affiliate) => affiliate.refId === refId
       );
-      return foundAffiliate[0].email;
+      return foundAffiliate?.email ?? "Unknown email"; // Safe access
     }
+    return "Unknown email";
   };
 
   findEmail();
