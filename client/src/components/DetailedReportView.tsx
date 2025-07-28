@@ -29,7 +29,7 @@ type Props = {
   salesPerMonth?: any;
   clicksPerMonth?: any;
   clicksData?: any;
-  refetchSales: () => Promise<any>;
+  refetchSales?: () => Promise<any>;
 };
 
 export default function DetailedReportView({
@@ -91,7 +91,7 @@ export default function DetailedReportView({
         },
       });
 
-      if (data) {
+      if (data && refetchSales) {
         console.log("✅ Payment successful!");
         await refetchSales(); // ⬅️ Refreshes data
       }
