@@ -21,7 +21,7 @@ export default function DetailedReport({ refId }: Props) {
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
 
-  const { data: salesData } = useQuery(GET_AFFILIATESALES, {
+  const { data: salesData, refetch } = useQuery(GET_AFFILIATESALES, {
     variables: { refId },
     skip: !refId,
   });
@@ -96,7 +96,7 @@ export default function DetailedReport({ refId }: Props) {
       )}
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
-          <div className="" key={monthSales.month}>
+          <div className="" key={monthSales.month}>         
             {showReport === index && (
               <DetailedReportView
                 monthSales={monthSales.sales}
@@ -104,6 +104,7 @@ export default function DetailedReport({ refId }: Props) {
                 setShowReport={setShowReport}
                 salesPerMonth={salesPerMonth}
                 clicksPerMonth={clicksPerMonth}
+                refetchSales={refetch}
               />
             )}
             {showReport === null && (

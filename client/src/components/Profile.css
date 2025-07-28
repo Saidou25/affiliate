@@ -58,10 +58,9 @@
 }
 
 .btn-row {
-  margin-top: 20px;
+  margin-top: 5%;
   display: flex;
   gap: 10px;
-  justify-content: flex-end;
 }
 
 .btn {

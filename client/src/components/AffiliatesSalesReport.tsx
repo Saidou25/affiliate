@@ -15,6 +15,7 @@ export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
   const {
     data: salesData,
+    refetch,
     // loading: loadingAffiliateSales,
     // error: errorAffiliateSales,
   } = useQuery<{ getAllAffiliateSales: AffiliateSale[] }>(
@@ -42,6 +43,7 @@ export default function AffiliatesSalesReport() {
                   currentMonth={monthSales.month}
                   setShowReport={setShowReport}
                   clicksData={clicksData}
+                   refetchSales={refetch}
                 />
               )}
               {showReport === null && (

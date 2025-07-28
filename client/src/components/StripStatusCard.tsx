@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CREATE_AFFILIATE_STRIPE_ACCOUNT,
   DELETE_NOTIFICATION,
@@ -9,6 +9,7 @@ import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import { QUERY_ME } from "../utils/queries";
 import Spinner from "./Spinner";
 import Button from "./Button";
+import ConfirmCloseConnectionModal from "./ConfirmCloseConnectionModal";
 
 interface Props {
   affiliateId?: string;
@@ -17,6 +18,7 @@ interface Props {
 export default function StripeStatusCard({ affiliateId }: Props) {
   const [showStripeMessage, setShowStripeMessage] = useState(false);
   const [stripeMessage, setStripeMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const { onboardingStatusMessage, onboardingStatusButtonMessage, loading } =
     useCheckOnboardingStatus(affiliateId);
@@ -64,8 +66,7 @@ export default function StripeStatusCard({ affiliateId }: Props) {
       });
 
       if (data?.disconnectStripeAccount?.success) {
-        console.log("✅ Stripe account successfully disconnected.");
-        setStripeMessage("Your Stripe connection has been closed.");
+        setStripeMessage("Stripe account successfully disconnected.");
         setShowStripeMessage(true);
 
         await deleteNotification({ variables: { refId: me.refId } });
@@ -77,6 +78,16 @@ export default function StripeStatusCard({ affiliateId }: Props) {
       console.error("❌ Error disconnecting Stripe account:", error);
     }
   };
+
+  useEffect(() => {
+    if (stripeMessage === "Stripe account successfully disconnected.") {
+      const timer = setTimeout(() => {
+        setStripeMessage("");
+        setShowModal(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [stripeMessage]);
 
   if (loading) return <p>Loading Stripe status...</p>;
 
@@ -99,13 +110,25 @@ export default function StripeStatusCard({ affiliateId }: Props) {
         )}
 
         {me.stripeAccountId && (
-          <Button className="blue-btn-settings" onClick={closeConnection}>
+          <Button
+            className="blue-btn-settings"
+            onClick={() => setShowModal(true)}
+          >
             {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
           </Button>
         )}
       </div>
       {showStripeMessage && (
         <p style={{ marginTop: "1rem", color: "green" }}>{stripeMessage}</p>
+      )}
+      {showModal && (
+        <ConfirmCloseConnectionModal
+          setShowModal={setShowModal}
+          closeConnection={closeConnection}
+          closeConnectionMessage={stripeMessage}
+          loading={loadingDisconnect}
+          setStripeMessage={setStripeMessage}
+        />
       )}
     </div>
   );

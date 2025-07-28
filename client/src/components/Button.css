@@ -103,6 +103,13 @@
   border: none;
   cursor: pointer;
 }
+.unpaid-button-not-ready-admin {
+  padding: 4px 10px;
+  background-color: black;
+  color: white;
+  border: none;
+  cursor: not-allowed;
+}
 .paid-button-affiliate {
   padding: 4px 20px;
   background-color: #4caf50;

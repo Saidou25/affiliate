@@ -17,9 +17,9 @@ import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
+import Button from "./Button";
 
 import "./DetailedReport.css";
-import Button from "./Button";
 // import { useGetOneAffiliate } from "../hooks/useGetOneAffiliate";
 
 type Props = {
@@ -29,6 +29,7 @@ type Props = {
   salesPerMonth?: any;
   clicksPerMonth?: any;
   clicksData?: any;
+  refetchSales: () => Promise<any>;
 };
 
 export default function DetailedReportView({
@@ -38,6 +39,7 @@ export default function DetailedReportView({
   salesPerMonth,
   clicksPerMonth,
   clicksData,
+  refetchSales,
 }: Props) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
@@ -57,6 +59,7 @@ export default function DetailedReportView({
   const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
   const [getAffiliateByRefId] = useLazyQuery(GET_AFFILIATE_BY_REFID);
   const [checkStripeStatus] = useLazyQuery(CHECK_STRIPE_STATUS);
+
 
   const payNow = async (sale: AffiliateSale, affiliateId: string) => {
     setLoadingId(sale.id);
@@ -90,12 +93,13 @@ export default function DetailedReportView({
 
       if (data) {
         console.log("✅ Payment successful!");
-        setLoadingId(null);
-        // Optionally: refresh your sales list here!
+        await refetchSales(); // ⬅️ Refreshes data
       }
     } catch (error: any) {
       console.error("GraphQL error:", error.message);
       console.error("Full error object:", error);
+    } finally {
+      setLoadingId(null);
     }
   };
 
@@ -270,6 +274,8 @@ export default function DetailedReportView({
                         className={
                           sale?.commissionStatus === "paid"
                             ? `paid-button-${me?.role}`
+                            : !stripeReadyArr.includes(sale.refId) ?
+                            `unpaid-button-not-ready-${me?.role}`
                             : `unpaid-button-${me?.role}`
                         }
                         onClick={() => handleClick(sale)}
