@@ -26,6 +26,7 @@ import "bootswatch/dist/lux/bootstrap.min.css";
 // import LandingPageTitle from "./components/LandingPageTitle";
 
 import "./App.css";
+import Navbar from "./components/Navbar";
 
 function App() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ function App() {
 
   return (
     <>
+    <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stripe-onboarding/return" element={<StripeReturn />} />

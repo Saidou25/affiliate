@@ -93,7 +93,7 @@ export default function RegisterForm() {
             style={{ width: "5%", height: "auto" }}
           />
         </Link>
-        <h1 className="title">Register Affiliate</h1>
+        <h1 className="title">Create Your Affiliate Account</h1>
         <label className="" htmlFor="email">
           Email
         </label>

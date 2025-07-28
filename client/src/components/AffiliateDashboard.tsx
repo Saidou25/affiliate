@@ -2,7 +2,6 @@ import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import { Outlet } from "react-router-dom";
 // import SalesTaxPolicy from "./SalesTaxPolicy";
-import Navbar from "./Navbar";
 import StripeSetupBanner from "./StripeSetupBanner";
 import Spinner from "./Spinner";
 
@@ -17,7 +16,6 @@ export default function AffiliateDashboard() {
 
   return (
     <>
-      <Navbar />
       <br />
       <br />
     <div className="affiliate-dashboard">

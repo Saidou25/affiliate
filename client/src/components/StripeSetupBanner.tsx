@@ -17,12 +17,14 @@ export default function StripeSetupBanner({ affiliateId }: Props) {
   const { onboardingStatusMessage, onboardingStatusButtonMessage } =
     useCheckOnboardingStatus(affiliateId);
 
-  if (
-    onboardingStatusMessage ===
-      "✅ Your Stripe account is connected and ready for payouts." ||
-    !visible
-  )
-    return null;
+ if (
+  !onboardingStatusMessage || // don't render while it's falsy
+  onboardingStatusMessage === "✅ Your Stripe account is connected and ready for payouts." ||
+  !visible
+) {
+  return null;
+}
+
 
   return (
     <div className="stripe-banner-div">

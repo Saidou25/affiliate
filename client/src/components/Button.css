@@ -11,6 +11,22 @@
 .blue-btn:hover {
   background-color: rgb(13, 83, 175);
 }
+.blue-btn-settings,
+.blue-btn-profile {
+  width: 180px;
+  background-color: rgb(72, 137, 223);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.blue-btn-settings:hover,
+.bule-btn-profile:hover {
+  background-color: rgb(13, 83, 175);
+}
 
 .orange-btn {
   background-color: rgb(239, 153, 47);

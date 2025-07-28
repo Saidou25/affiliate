@@ -1,17 +1,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&family=Montserrat:wght@400;600&display=swap");
 
-.home-container {
+.header-container {
+  /* margin: 0; */
   height: 320px;
+  padding-top: 3%;
+  text-align: center;
+    margin: auto;
 }
-.title-container {
-  width: 30%;
+.header-not-loggedIn {
+  height: 380px;
   margin: auto;
-  /* margin-top: 2%; */
-  border-radius: 50px;
-  /* padding-top: 5%; */
+  padding-top: 5%;
   text-align: center;
 }
-
 .text-spans {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
@@ -101,7 +102,7 @@
   transition: opacity 1s ease, transform 1s ease;
   margin-top: -36vh;
 }
- 
+
 .ready-tojoin {
   color: white;
   margin-bottom: 2%;
@@ -153,4 +154,14 @@
   display: flex;
   justify-content: center;
   margin-top: 3%;
+}
+.logout-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  width: fit-content;
+  border-radius: 6px;
+  font-weight: 500;
 }

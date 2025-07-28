@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
 
 import "./Admindashboard.css";
 
@@ -12,7 +11,6 @@ type Props = {
 export default function AdminDashboard({ data, loading, errorText }: Props) {
   return (
     <>
-      <Navbar />
       <br />
       <br />
       <div className="admin-dashboard">

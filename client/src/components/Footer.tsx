@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="text-center mt-3">
-          <small>&copy; {new Date().getFullYear()} Your Company Name. All rights reserved.</small>
+          <small>&copy; {new Date().getFullYear()} Princetongreen, llc. All rights reserved.</small>
         </div>
       </div>
     </footer>

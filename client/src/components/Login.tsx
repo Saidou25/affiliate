@@ -52,7 +52,7 @@ export default function AffiliateLogin() {
             style={{ width: "5%", height: "auto" }}
           />
         </Link>
-        <h1 className="title">Login</h1>
+        <h1 className="title">Sign in to your account</h1>
         <label htmlFor="email1">Email</label>
         <br />
         <input

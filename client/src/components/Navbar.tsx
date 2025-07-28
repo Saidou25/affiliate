@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { affiliateLinks, adminLinks } from "../data/navData";
 import NotificationMenu from "./NotificationMenu";
 import ProfileMenu from "./ProfileMenu";
-import LandingPageTitle from "./LandingPageTitle";
+import Header from "./Header";
 
 import "./Navbar.css";
 
@@ -34,45 +34,48 @@ export default function Navbar() {
   }, [me]);
 
   return (
-    <>
-      <div className="top-nav-div">
-        <Link className="logo-nav" to="/">
-          <img
-            className="img-fluid"
-            src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pgp-logo-favicon-2025-mnlvrQoloKTvJvO7.png"
-            alt="pg logo"
-          />
-        </Link>
-        <div className="top-navbar">
-          {me?.role !== "admin" && (
-            <>
-              <ProfileMenu />
-              <NotificationMenu />
-            </>
-          )}
-          <RiLogoutCircleRLine
-            className="iomdlogout-nav"
-            onClick={handleLogout}
-          />
-        </div>
-      </div>
+    <div className="navigation-height">
+      {isLoggedIn && (
+        <>
+          <div className="top-nav-div">
+            <Link className="logo-nav" to="/">
+              <img
+                className="img-fluid"
+                src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pgp-logo-favicon-2025-mnlvrQoloKTvJvO7.png"
+                alt="pg logo"
+              />
+            </Link>
+            <div className="top-navbar">
+              {me?.role !== "admin" && (
+                <>
+                  <ProfileMenu />
+                  <NotificationMenu />
+                </>
+              )}
+              <RiLogoutCircleRLine
+                className="iomdlogout-nav"
+                onClick={handleLogout}
+              />
+            </div>
+          </div>
 
-      {/* <br /> */}
-      <div className="navigation-bar-container bg-dark">
-        <nav className="navbar">
-          {links &&
-            links.map((link, index) => (
-              <NavLink
-                key={index}
-                to={`/${group}/${link.toLowerCase()}`}
-                // className={({ isActive }) => (isActive ? "active" : "")}
-              >
-                {link}
-              </NavLink>
-            ))}
-        </nav>
-        <LandingPageTitle isLoggedIn={isLoggedIn} />
-      </div>
-    </>
+          <div className="navigation-bar-container bg-dark">
+            <nav className="navbar">
+              {links &&
+                links.map((link, index) => (
+                  <NavLink
+                    key={index}
+                    to={`/${group}/${link.toLowerCase()}`}
+                    // className={({ isActive }) => (isActive ? "active" : "")}
+                  >
+                    {link}
+                  </NavLink>
+                ))}
+            </nav>
+          </div>
+        </>
+      )}
+      <Header isLoggedIn={isLoggedIn} />
+    </div>
   );
 }

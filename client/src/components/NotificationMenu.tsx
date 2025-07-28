@@ -16,7 +16,7 @@ export default function NotificationMenu() {
 
   const { data, loading } = useQuery(QUERY_ME);
   // This avoids rendering before data is available.
-  if (loading) return null;
+
   const notifications = [...(data?.me?.notifications ?? [])].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -27,7 +27,7 @@ export default function NotificationMenu() {
 
   const handleClick = () => {
     setOpen(false);
-    navigate("notifications ", { state: { openedFromMenu: true } });
+    navigate("/affiliate/notifications ", { state: { openedFromMenu: true } });
   };
 
   const formatDate = (dateStr: string) =>
@@ -48,6 +48,8 @@ export default function NotificationMenu() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  if (loading) return null;
 
   return (
     <div className="notification-container" ref={menuRef}>

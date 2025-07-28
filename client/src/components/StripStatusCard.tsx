@@ -85,15 +85,21 @@ export default function StripeStatusCard({ affiliateId }: Props) {
       <h3>Stripe Payment Setup</h3>
       <p>{onboardingStatusMessage}</p>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
-        <Button className="blue-btn" onClick={handleResumeOnboarding}>
-          {creatStripeAccountLoading ? (
-            <Spinner />
-          ) : (
-            <span>{onboardingStatusButtonMessage}</span>
-          )}
-        </Button>
+        {!onboardingStatusMessage.includes("ready for payout") && (
+          <Button
+            className="blue-btn-settings"
+            onClick={handleResumeOnboarding}
+          >
+            {creatStripeAccountLoading ? (
+              <Spinner />
+            ) : (
+              <span>{onboardingStatusButtonMessage}</span>
+            )}
+          </Button>
+        )}
+
         {me.stripeAccountId && (
-          <Button className="blue-btn" onClick={closeConnection}>
+          <Button className="blue-btn-settings" onClick={closeConnection}>
             {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
           </Button>
         )}

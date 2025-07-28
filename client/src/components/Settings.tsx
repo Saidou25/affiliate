@@ -26,7 +26,7 @@ export default function Settings() {
       <div className="settings-section">
         <h3>Profile</h3>
         <Profile />
-        <Button onClick={() => navigate("/affiliate/profile")} className="blue-btn">
+        <Button onClick={() => navigate("/affiliate/profile")} className="blue-btn-profile">
           Edit Profile
         </Button>
       </div>

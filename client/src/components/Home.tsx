@@ -1,14 +1,13 @@
 import { Link } from "react-router-dom";
-import LandingPageTitle from "./LandingPageTitle";
+// import LandingPageTitle from "./LandingPageTitle";
 import clicks from "../assets/images/affiliateclicks.jpg";
 import commissions from "../assets/images/affiliatecommissions.jpg";
 import sales from "../assets/images/affiliatesales.jpg";
 import { useEffect, useState } from "react";
 import AuthService from "../utils/auth";
-import Navbar from "./Navbar";
 import Button from "./Button";
 
-import "./LandingPageTitle.css";
+import "./Header.css";
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -37,22 +36,7 @@ export default function Home() {
 
   return (
     <>
-      {isLoggedIn ? (
-        <Navbar />
-      ) : (
-        <div
-          className="home-container bg-dark"
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "center",
-            // marginTop: "5%",
-          }}
-        >
-          <LandingPageTitle isLoggedIn={isLoggedIn} />
-        </div>
-      )}
-
+      
       <div className="image-wrapper">
         {/* Text block 1 */}
         <div
@@ -137,7 +121,7 @@ export default function Home() {
         className="fade-in-section bg-dark"
         style={{
           opacity: fadeProgress,
-           transform: `translateY(${(1 - fadeProgress) * 50}px)`,
+          transform: `translateY(${(1 - fadeProgress) * 50}px)`,
         }}
       >
         <h2 className="ready-tojoin">Ready to Join?</h2>
@@ -155,15 +139,15 @@ export default function Home() {
               Logout
             </Button>
           ) : (
-            <>
-              <Link to="/register" className="register-link mt-2">
-                Become an Affiliate
-              </Link>
-              <Link to="/login" className="login-link mt-2">
-                Login
-              </Link>
-            </>
-          )}
+          <>
+            <Link to="/register" className="register-link mt-2">
+              Become an Affiliate
+            </Link>
+            <Link to="/login" className="login-link mt-2">
+              Login
+            </Link>
+          </>
+        )} 
         </div>
       </div>
       <div className="home-log">

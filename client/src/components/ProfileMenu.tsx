@@ -37,7 +37,7 @@ export default function ProfileMenu() {
 
   const handleNavigate = (route: string) => {
     setOpen(false);
-    navigate(`${route}`);
+    navigate(`/affiliate/${route}`);
     document.removeEventListener("mousedown", handleClickOutside);
   };
 
