@@ -64,6 +64,7 @@ export default function AffiliateLogin() {
           required
           placeholder="email@example.com"
           style={{ padding: "1%", fontStyle: "italic" }}
+           autoComplete="on" 
         />
         <br />
         <br />
@@ -78,6 +79,7 @@ export default function AffiliateLogin() {
           required
           placeholder="password"
           style={{ padding: "1%", fontStyle: "italic" }}
+           autoComplete="on" 
         />
         <br />
         <br />
