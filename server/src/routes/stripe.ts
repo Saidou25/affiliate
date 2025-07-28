@@ -16,8 +16,9 @@ export async function createStripeAccountAndOnboardingLink(
 
   const link = await stripe.accountLinks.create({
     account: account.id,
-    refresh_url: "http://localhost:5173/stripe-onboarding/refresh",
-    return_url: "http://localhost:5173/stripe-onboarding/return",
+    // refresh_url: "http://princetongreenpride.org/stripe-onboarding/refresh",
+    refresh_url: "http://princetongreenpride.org/stripe-onboarding/refresh",
+    return_url: "http://princetongreenpride.org/stripe-onboarding/return",
     type: "account_onboarding",
   });
 
