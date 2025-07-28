@@ -36,8 +36,13 @@ export default function AffiliateLogin() {
 
   useEffect(() => {
     if (me?.role) {
-      if (me.role === "admin") navigate("/admin/affiliates");
-      else if (me.role === "affiliate") navigate("/affiliate/products");
+      if (me.role === "admin") {
+        navigate("/admin/affiliates");
+        window.scrollTo(0, 0);
+      } else if (me.role === "affiliate") {
+        navigate("/affiliate/products");
+        window.scrollTo(0, 0);
+      }
     }
   }, [me, navigate]);
 
