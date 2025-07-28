@@ -51,7 +51,7 @@ function App() {
     <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
+        <Route path="https://princetongreenpride.org/stripe-onboarding/return" element={<StripeReturn />} />
         <Route
           path="/admin"
           element={
