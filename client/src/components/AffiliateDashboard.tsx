@@ -12,7 +12,7 @@ export default function AffiliateDashboard() {
   const me = meData?.me || {};
   const refId = me?.refId;
 
-  if (!refId) return <p>Loading affiliate info...</p>;
+  // if (!refId) return <p>Loading affiliate info...</p>;
 
   return (
     <>

@@ -32,7 +32,7 @@ export default function RegisterForm() {
       refetch().then((res) => {
         const role = res.data?.me?.role;
         if (role === "admin") navigate("/admin");
-        else if (role === "affiliate") navigate("/affiliate");
+        else if (role === "affiliate") navigate("/affiliate/products");
       });
     },
     onError: (error) => {

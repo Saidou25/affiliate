@@ -22,6 +22,7 @@ export default function NotificationForm({ affiliateData }: Props) {
   const [status, setStatus] = useState<"success" | "error" | "">("");
   const [loading, setLoading] = useState(false);
 
+  console.log(affiliateData)
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -60,17 +61,15 @@ export default function NotificationForm({ affiliateData }: Props) {
     <form className="notification-form" onSubmit={handleSubmit}>
       <h3>Create Notification</h3>
       <br />
-      <label htmlFor="refId">Affiliate Ref ID</label>
+      <label htmlFor="refId">Affiliate Reference ID</label>
       <br />
       <input
         type="text"
         id="refId"
         name="refId"
-        value={formState.refId}
-        onChange={handleChange}
-        required
-        style={{ fontStyle: "oblique" }}
-        placeholder={formState.refId}
+        value={affiliateData?.refId}
+        readOnly
+        style={{ fontStyle: "oblique", color: "grey" }}
       />
       <br />
       <br />

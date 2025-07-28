@@ -87,6 +87,17 @@ export default function DetailedReport({ refId }: Props) {
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 
+  if (!monthlySales.length) {
+    return (
+      <div className="empty-state">
+        {/* <img src="https://cdn.pixabay.com/photo/2016/03/31/20/53/analytics-1294847_1280.png"  alt="No reports" /> */}
+        <h3>No Reports Available</h3>
+        <p>
+          Once you start generating clicks and sales, reports will appear here.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="detailed-report-container">
       {me.role === "admin" ? (
@@ -96,7 +107,7 @@ export default function DetailedReport({ refId }: Props) {
       )}
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
-          <div className="" key={monthSales.month}>         
+          <div className="" key={monthSales.month}>
             {showReport === index && (
               <DetailedReportView
                 monthSales={monthSales.sales}

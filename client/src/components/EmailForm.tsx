@@ -40,6 +40,15 @@ export default function EmailForm({ affiliateData }: Props) {
     <form className="notification-form" onSubmit={handleSubmit}>
       <h3>Compose your Email</h3>
 
+      <label htmlFor="email">Email</label>
+      <input
+        type="text"
+        id="email"
+        name="email"
+        value={affiliateData?.email}
+         style={{ fontStyle: "oblique", color: "grey" }}
+        readOnly
+      />
       <label htmlFor="title">Title</label>
       <input
         type="text"
