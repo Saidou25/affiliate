@@ -62,9 +62,9 @@ export default function AffiliateLogin() {
           value={form.email}
           onChange={handleChange}
           required
+          autoComplete="username"
           placeholder="email@example.com"
           style={{ padding: "1%", fontStyle: "italic" }}
-           autoComplete="on" 
         />
         <br />
         <br />
@@ -79,7 +79,7 @@ export default function AffiliateLogin() {
           required
           placeholder="password"
           style={{ padding: "1%", fontStyle: "italic" }}
-           autoComplete="on" 
+          autoComplete="current-password"
         />
         <br />
         <br />
