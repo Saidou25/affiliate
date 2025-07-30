@@ -66,24 +66,10 @@ async function startApolloServer() {
 
   const app = express();
 
-  // ✅ CORS configuration
-  const allowedOrigins = [
-    "https://princetongreenpride.org",
-    "https://www.princetongreenpride.org",
-    "http://localhost:5173", // For local dev
-  ];
-
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`🚫 CORS blocked for origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
+      console.log("🌍 Incoming request origin:", origin); // 👈 Log every request's origin
+      callback(null, true); // ✅ Allow all origins
     },
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
@@ -91,6 +77,7 @@ async function startApolloServer() {
   };
 
   app.use(cors(corsOptions));
+  app.options("*", cors(corsOptions)); // ✅ Handle preflight
 
   // ✅ Stripe Webhook - raw body needed
   app.use("/api/stripe/webhook", stripeWebhook);
