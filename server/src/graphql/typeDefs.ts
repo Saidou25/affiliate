@@ -211,8 +211,9 @@ const typeDefs = gql`
       productId: String!
       refId: String!
       buyerEmail: String
-      amount: Int!
-      event: String!
+      amount: Int
+      event: String
+      title: String
       timestamp: Date
       commissionEarned: Float
       commissionStatus: String
@@ -222,6 +223,7 @@ const typeDefs = gql`
       id: ID!
       buyerEmail: String
       amount: Int
+      title: String
       event: String
       timestamp: Date
       commissionEarned: Float
@@ -259,6 +261,8 @@ const typeDefs = gql`
     disconnectStripeAccount(affiliateId: ID!): StripeDeletionResponse
 
     sendEmail(input: SendEmailInput!): String!
+
+    recordAffiliateSale(refId: String!, orderId: String!, amount: Float!): AffiliateSale
   }
 `;
 export default typeDefs;

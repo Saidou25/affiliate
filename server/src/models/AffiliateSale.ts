@@ -5,6 +5,7 @@ interface IAffiliateSale extends Document {
   refId: string;
   buyerEmail: string;
   amount: number;
+  title: "purchase";
   event: "purchase";
   timestamp: Date;
   commissionEarned: number;
@@ -16,10 +17,11 @@ interface IAffiliateSale extends Document {
 const AffiliateSaleSchema = new Schema<IAffiliateSale>({
   refId: { type: String, required: true },
   productId: { type: String },
-  event: { type: String, required: true },
+  event: { type: String },
+  title: { type: String },
   amount: { type: Number },
   timestamp: { type: Date, default: Date.now },
-  buyerEmail: { type: String, required: false },
+  buyerEmail: { type: String },
   commissionEarned: { type: Number },
   commissionStatus: {
     type: String,

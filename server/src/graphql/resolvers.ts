@@ -310,6 +310,7 @@ const resolvers = {
         refId,
         buyerEmail,
         amount,
+        title,
         event,
         timestamp,
       }: {
@@ -317,6 +318,7 @@ const resolvers = {
         refId: string;
         buyerEmail: string;
         amount: number;
+        title: string;
         event: string;
         timestamp?: Date;
       }
@@ -337,6 +339,7 @@ const resolvers = {
           buyerEmail,
           amount,
           event,
+          title,
           timestamp: timestamp || new Date(),
           commissionEarned: parseFloat(commission.toFixed(2)), // ✅ ensure it's a number
           commissionStatus: "unpaid", // ✅ explicitly set default
@@ -346,14 +349,14 @@ const resolvers = {
         // 📧 4. Send confirmation emails
         await sendConfirmationEmail({
           buyerEmail,
-          event,
+          event: title,
           amount,
           commission,
         });
         await sendTrackASaleConfEmail({
           buyerEmail,
           affiliateEmail: affiliate.email,
-          event,
+          event: title,
           amount,
           commission,
         });
@@ -818,6 +821,7 @@ const resolvers = {
       });
       return "Email sent successfully.";
     },
+    
   },
 };
 
