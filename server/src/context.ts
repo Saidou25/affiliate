@@ -42,14 +42,18 @@ export interface MyContext {
   affiliate?: Affiliate | null; // Allow null or undefined if no affiliate is found
 }
 
-const SECRET = process.env.JWT_SECRET;
-if (!SECRET) throw new Error("Missing JWT_SECRET in environment");
+const SECRET = process.env.JWT_SECRET || "";
+// if (!SECRET) throw new Error("Missing JWT_SECRET in environment");
 
 export const createContext = async ({
   req,
 }: {
   req: Request;
 }): Promise<MyContext> => {
+  if (!SECRET) {
+    console.warn("⚠️ JWT_SECRET missing – skipping token verification");
+    return { req, affiliate: null };
+  }
   const authHeader = req.headers.authorization || "";
   console.log("🧾 Auth header:", authHeader);
 
