@@ -40,8 +40,13 @@
 //   console.error("❌ Server failed to start:", err);
 // });
 
+
+
+
 import dotenv from "dotenv";
 import path from "path";
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 import express from "express";
 import bodyParser from "body-parser";
 import { ApolloServer } from "@apollo/server";
@@ -55,8 +60,6 @@ import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import stripeWebhook from "./routes/stripeWebhook";
 
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
-dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
