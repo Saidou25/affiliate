@@ -1,4 +1,3 @@
-
 // import dotenv from "dotenv";
 // import path from "path";
 
@@ -13,7 +12,6 @@
 // import { SECRET } from "./config/env";
 // import typeDefs from "./graphql/typeDefs";
 // import resolvers from "./graphql/resolvers";
-
 
 // if (!SECRET) {
 //   throw new Error("JWT SECRET is not defined in environment variables");
@@ -40,12 +38,10 @@
 //   console.error("❌ Server failed to start:", err);
 // });
 
-
-
-
 import dotenv from "dotenv";
 import path from "path";
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 import express from "express";
 import bodyParser from "body-parser";
@@ -60,7 +56,6 @@ import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import stripeWebhook from "./routes/stripeWebhook";
 
-
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
 }
@@ -70,6 +65,26 @@ async function startApolloServer() {
   await connectToDatabase();
 
   const app = express();
+
+  // ✅ CORS configuration
+  const allowedOrigins = [
+    "https://princetongreenpride.org",
+    "https://www.princetongreenpride.org",
+    "http://localhost:5173", // For local dev
+  ];
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true,
+    })
+  );
 
   // ✅ Stripe Webhook - raw body needed
   app.use("/api/stripe/webhook", stripeWebhook);
