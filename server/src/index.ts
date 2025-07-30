@@ -73,18 +73,24 @@ async function startApolloServer() {
     "http://localhost:5173", // For local dev
   ];
 
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      },
-      credentials: true,
-    })
-  );
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 CORS blocked for origin: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  };
+
+  app.use(cors(corsOptions));
 
   // ✅ Stripe Webhook - raw body needed
   app.use("/api/stripe/webhook", stripeWebhook);
@@ -95,7 +101,6 @@ async function startApolloServer() {
 
   app.use(
     "/graphql",
-    cors<cors.CorsRequest>(),
     bodyParser.json(),
     expressMiddleware(server, {
       context: createContext as any,
