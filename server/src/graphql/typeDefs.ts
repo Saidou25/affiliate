@@ -93,12 +93,12 @@ const typeDefs = gql`
 
   type AffiliateSale {
     id: ID!
-    productId: String!
-    refId: String!
+    productId: String
+    refId: String
     buyerEmail: String
-    amount: Int!
-    event: String!
-    timestamp: Date!
+    amount: Int
+    event: String
+    timestamp: Date
     commissionEarned: Float
     commissionStatus: String
   }
@@ -208,7 +208,7 @@ const typeDefs = gql`
     clickLog(refId: String, createdAt: Date): ClickLog
 
     trackAffiliateSale(
-      productId: String!
+      productId: String
       refId: String!
       buyerEmail: String
       amount: Int

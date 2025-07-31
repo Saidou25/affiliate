@@ -95,7 +95,8 @@ async function startServer() {
   // ✅ CORS for frontend
   app.use(
     cors({
-      origin: ["http://localhost:5173", "https://princetongreenpride.org",  "https://princetongreen.org"], // allow your client
+      origin: "*",
+      // origin: ["http://localhost:5173", "https://princetongreenpride.org",  "https://princetongreen.org"], // allow your client
       credentials: true,
     })
   );

@@ -138,6 +138,7 @@ export const GET_ALLAFFILIATESALES = gql`
       amount
       event
       timestamp
+      title
       commissionEarned
       commissionStatus
     }
@@ -153,6 +154,7 @@ export const GET_AFFILIATESALES = gql`
       buyerEmail
       amount
       event
+      title
       timestamp
       commissionEarned
       commissionStatus

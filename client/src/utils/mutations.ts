@@ -87,12 +87,14 @@ export const TRACK_AFFILIATESALES = gql`
     $refId: String
     $buyerEmail: String
     $amount: Float
+    $title: String
     $event: String
     $timestamp: Date
   ) {
     trackAffiliateSale(
       productId: $productId
       refId: $refId
+      title: $title
       buyerEmail: $buyerEmail
       amount: $amount
       event: $event
@@ -104,6 +106,7 @@ export const TRACK_AFFILIATESALES = gql`
       buyerEmail
       amount
       event
+      title
       timestamp
       commissionEarned
       commissionStatus
