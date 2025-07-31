@@ -22,6 +22,8 @@ export default function StripeStatusCard({ affiliateId }: Props) {
 
   const { onboardingStatusMessage, onboardingStatusButtonMessage, loading } =
     useCheckOnboardingStatus(affiliateId);
+  console.log("onboardingStatusMessage: ", onboardingStatusMessage);
+  console.log("onboardingStatusButtonMessage: ", onboardingStatusButtonMessage);
 
   const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
 
@@ -34,6 +36,17 @@ export default function StripeStatusCard({ affiliateId }: Props) {
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
 
+  const create = async () => {
+    console.log("in create");
+    try {
+ const { data } = await createStripeAccount({
+        variables: { affiliateId },
+      });
+      if (data) { console.log("success creating connection")}
+    } catch (error) {
+      console.log(error);
+    }
+  }
   const handleResumeOnboarding = async () => {
     try {
       const { data } = await createStripeAccount({
@@ -108,7 +121,7 @@ export default function StripeStatusCard({ affiliateId }: Props) {
             )}
           </Button>
         )}
-
+<Button type="button" className="btn-blue" onClick={create}>create</Button>
         {me.stripeAccountId && (
           <Button
             className="blue-btn-settings"

@@ -1,3 +1,4 @@
+
 // import dotenv from "dotenv";
 // import path from "path";
 
@@ -9,13 +10,35 @@
 // import { ApolloServer } from "@apollo/server";
 // import { startStandaloneServer } from "@apollo/server/standalone";
 // import { connectToDatabase } from "./database"; // Import  DB connection function
+// // import { IncomingMessage } from "http";
 // import { SECRET } from "./config/env";
 // import typeDefs from "./graphql/typeDefs";
 // import resolvers from "./graphql/resolvers";
+// // import Affiliate from "./models/Affiliate";
+
+// // Define your custom context type
+// // interface MyContext {
+// //   affiliate?: { id: string; name: string }; // Example: You can define user data in context
+// // }
+
+// // const SECRET = process.env.SECRET;
 
 // if (!SECRET) {
 //   throw new Error("JWT SECRET is not defined in environment variables");
 // }
+
+// // function verifyToken(token: string) {
+// //   try {
+// //     return jwt.verify(token, SECRET);
+// //   } catch (err: any) {
+// //     if (err.name === "TokenExpiredError") {
+// //       console.warn("⚠️ Token expired at:", err.expiredAt);
+// //       return null;
+// //     }
+// //     console.warn("⚠️ Invalid token:", err.message);
+// //     return null;
+// //   }
+// // }
 
 // // Define ApolloServer with your custom context type
 // const server = new ApolloServer<MyContext>({
@@ -38,17 +61,19 @@
 //   console.error("❌ Server failed to start:", err);
 // });
 
+
+
+
 import dotenv from "dotenv";
 import path from "path";
 const envFile =
   process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 import express from "express";
-import bodyParser from "body-parser";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
+import bodyParser from "body-parser";
 import cors from "cors";
-
 import { createContext, MyContext } from "./context";
 import { connectToDatabase } from "./database";
 import { SECRET } from "./config/env";
@@ -56,49 +81,40 @@ import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import stripeWebhook from "./routes/stripeWebhook";
 
+
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
 }
 
-async function startApolloServer() {
-  console.log("🟢 Starting Express + Apollo server...");
+async function startServer() {
+  console.log("🟢 Starting Apollo + Webhook server...");
   await connectToDatabase();
 
   const app = express();
 
-  // ✅ CORS configuration
-  const allowedOrigins = [
-    "https://princetongreenpride.org", 
-    "https://www.princetongreenpride.org",
-    "http://localhost:5173", // For local dev
-  ];
+  // ✅ CORS for frontend
+  app.use(
+    cors({
+      origin: ["http://localhost:5173"], // allow your client
+      credentials: true,
+    })
+  );
 
-  const corsOptions: cors.CorsOptions = {
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
+  // ✅ Stripe webhook (must use raw body)
+  app.post(
+    "/api/stripe/webhook",
+    bodyParser.raw({ type: "application/json" }),
+    stripeWebhook
+  );
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`🚫 CORS blocked for origin: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  };
-
-  app.use(cors(corsOptions));
-
-  // ✅ Stripe Webhook - raw body needed
-  app.use("/api/stripe/webhook", stripeWebhook);
-
-  // ✅ Apollo GraphQL middleware
-  const server = new ApolloServer<MyContext>({ typeDefs, resolvers });
+  // ✅ Apollo Server
+  const server = new ApolloServer<MyContext>({
+    typeDefs,
+    resolvers,
+  });
   await server.start();
 
+  // ✅ JSON middleware AFTER raw (important)
   app.use(
     "/graphql",
     bodyParser.json(),
@@ -109,10 +125,11 @@ async function startApolloServer() {
 
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}/graphql`);
+    console.log(`🚀 Server running on http://localhost:${PORT}/graphql`);
+    console.log(`✅ Webhook ready at http://localhost:${PORT}/api/stripe/webhook`);
   });
 }
 
-startApolloServer().catch((err) => {
+startServer().catch((err) => {
   console.error("❌ Server failed to start:", err);
 });
