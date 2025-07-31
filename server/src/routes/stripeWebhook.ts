@@ -128,66 +128,171 @@
 
 
 
+// import { Request, Response } from "express";
+// import Stripe from "stripe";
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+// export default async function stripeWebhook(req: Request, res: Response) {
+//   console.log("🔔 Incoming Stripe webhook...");
+
+//   const sig = req.headers["stripe-signature"] as string;
+//   let event: Stripe.Event;
+
+//   // ✅ 1. Verify signature
+//   try {
+//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+//     console.log(`✅ Webhook verified: ${event.type}`);
+//   } catch (err: any) {
+//     console.error("❌ Webhook signature verification failed.", err.message);
+//     return res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+
+//   // ✅ 2. Handle checkout completion
+//   if (event.type === "checkout.session.completed") {
+//     const session = event.data.object as Stripe.Checkout.Session;
+//     console.log("🟢 Checkout session completed:", session.id);
+
+//     try {
+//       // ✅ 3. Retrieve full session with line items
+//       const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+//         expand: ["line_items.data.price.product"],
+//       });
+
+//       console.log("🔎 Full session retrieved");
+
+//       if (fullSession.line_items) {
+//         console.log(
+//           `🛒 Total items purchased: ${fullSession.line_items.data.length}`
+//         );
+
+//         // ✅ 4. Loop through each purchased product
+//         fullSession.line_items.data.forEach((item, index) => {
+//           const product = item.price?.product as Stripe.Product;
+//           const title = product.name;
+//           const amountPaid = (item.amount_total || 0) / 100; // convert cents to dollars
+
+//           console.log(`📦 Item ${index + 1}: ${title}`);
+//           console.log(`💰 Amount Paid: $${amountPaid}`);
+//         });
+//       }
+
+//       // ✅ 5. You can now save to AffiliateSale model here
+//       console.log("✅ Successfully processed checkout session");
+//     } catch (error: any) {
+//       console.error("❌ Error retrieving full session:", error.message);
+//     }
+//   } else {
+//     console.log(`ℹ️ Event type not handled: ${event.type}`);
+//   }
+
+//   // ✅ 6. Send response to Stripe
+//   res.json({ received: true });
+// }
+
+
+
+
+
+
+// // server/routes/stripeWebhook.ts
+// import { Request, Response } from "express";
+// import Stripe from "stripe";
+
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+// export default async function stripeWebhook(req: Request, res: Response) {
+//   console.log("🔔 Received webhook call...");
+
+//   const sig = req.headers["stripe-signature"] as string;
+
+//   let event: Stripe.Event;
+//   try {
+//     console.log("🔑 Verifying Stripe signature...");
+//     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+//     console.log("✅ Signature verified successfully.");
+//   } catch (err: any) {
+//     console.error("❌ Webhook signature verification failed:", err.message);
+//     return res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+
+//   console.log(`📦 Event received: ${event.type}`);
+
+//   if (event.type === "checkout.session.completed") {
+//     const session = event.data.object as Stripe.Checkout.Session;
+//     console.log("✅ Checkout session completed:");
+//     console.log("🆔 Session ID:", session.id);
+//     console.log("💰 Amount total:", session.amount_total);
+//     console.log("💵 Currency:", session.currency);
+//     console.log("👤 Customer Email:", session.customer_details?.email);
+
+//     // If you expanded line_items when creating the session, you could also log:
+//     // console.log("🛒 Line items:", session.display_items);
+
+//     // ✅ TODO: Handle affiliate tracking, commission logic, etc.
+//   }
+
+//   res.json({ received: true });
+// }
+
+
+
+
+// server/routes/stripeWebhook.ts
 import { Request, Response } from "express";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
 export default async function stripeWebhook(req: Request, res: Response) {
-  console.log("🔔 Incoming Stripe webhook...");
+  console.log("🔔 Received webhook call...");
 
   const sig = req.headers["stripe-signature"] as string;
-  let event: Stripe.Event;
 
-  // ✅ 1. Verify signature
+  let event: Stripe.Event;
   try {
+    console.log("🔑 Verifying Stripe signature...");
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    console.log(`✅ Webhook verified: ${event.type}`);
+    console.log("✅ Signature verified successfully.");
   } catch (err: any) {
-    console.error("❌ Webhook signature verification failed.", err.message);
+    console.error("❌ Webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  // ✅ 2. Handle checkout completion
+  console.log(`📦 Event received: ${event.type}`);
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    console.log("🟢 Checkout session completed:", session.id);
+
+    console.log("✅ Checkout session completed:");
+    console.log("🆔 Session ID:", session.id);
+    console.log("💰 Amount total:", session.amount_total);
+    console.log("💵 Currency:", session.currency);
+    console.log("👤 Customer Email:", session.customer_details?.email);
 
     try {
-      // ✅ 3. Retrieve full session with line items
-      const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
-        expand: ["line_items.data.price.product"],
+      // 🔹 Retrieve line items for this session
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+      console.log("🛒 Line items retrieved:", lineItems.data.length);
+
+      lineItems.data.forEach((item, index) => {
+        console.log(`📦 Item ${index + 1}:`);
+        console.log("   🏷️ Name:", item.description);
+        console.log("   🔢 Quantity:", item.quantity);
+        console.log("   💵 Price (unit):", item.price?.unit_amount);
+        console.log("   💰 Total amount:", item.amount_total);
+        console.log("   💵 Currency:", item.currency);
       });
-
-      console.log("🔎 Full session retrieved");
-
-      if (fullSession.line_items) {
-        console.log(
-          `🛒 Total items purchased: ${fullSession.line_items.data.length}`
-        );
-
-        // ✅ 4. Loop through each purchased product
-        fullSession.line_items.data.forEach((item, index) => {
-          const product = item.price?.product as Stripe.Product;
-          const title = product.name;
-          const amountPaid = (item.amount_total || 0) / 100; // convert cents to dollars
-
-          console.log(`📦 Item ${index + 1}: ${title}`);
-          console.log(`💰 Amount Paid: $${amountPaid}`);
-        });
-      }
-
-      // ✅ 5. You can now save to AffiliateSale model here
-      console.log("✅ Successfully processed checkout session");
-    } catch (error: any) {
-      console.error("❌ Error retrieving full session:", error.message);
+    } catch (lineItemErr: any) {
+      console.error("❌ Failed to retrieve line items:", lineItemErr.message);
     }
-  } else {
-    console.log(`ℹ️ Event type not handled: ${event.type}`);
+
+    // ✅ TODO: Handle affiliate tracking, commission logic, etc.
   }
 
-  // ✅ 6. Send response to Stripe
   res.json({ received: true });
 }
