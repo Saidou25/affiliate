@@ -70,6 +70,7 @@ const envFile =
   process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 import express from "express";
+import ordersRoute from "./routes/orders";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import bodyParser from "body-parser";
@@ -101,6 +102,13 @@ async function startServer() {
     })
   );
 
+  // ✅ Stripe webhook (must use raw body)
+ 
+
+
+app.use("/api", ordersRoute);
+
+app.listen(4000, () => console.log("🚀 Server running on port 4000"));
   // ✅ Stripe webhook (must use raw body)
   app.post(
     "/api/stripe/webhook",
