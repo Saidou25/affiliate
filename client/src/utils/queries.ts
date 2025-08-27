@@ -260,3 +260,22 @@ export const CHECK_STRIPE_STATUS = gql`
     }
   }
 `;
+
+export const AFFILIATE_PRODUCTS = gql`
+  query AffiliateProducts($active: Boolean) {
+    affiliateProducts(active: $active) {
+      # id
+      wooId
+      name
+      permalink
+      primaryImage
+      price
+      currency
+      onSale
+      regularPrice
+      salePrice
+      stockStatus
+      hasOptions
+    }
+  }
+`;

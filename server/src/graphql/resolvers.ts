@@ -8,8 +8,8 @@ import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
 import { sendConfirmationEmail } from "../utils/sendConfirmationEmail";
 import { sendTrackASaleConfEmail } from "../utils/sendTrackASaleConfEmail";
-import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
+import Affiliate from "../models/Affiliate";
 import ClickLog from "../models/ClickLog";
 import ReportHistory, { IReportHistory } from "../models/ReportHistory";
 import Payment from "../models/Payment";
@@ -24,6 +24,8 @@ import Stripe from "stripe";
 import GraphQLJSON from "graphql-type-json";
 import { SendEmailArgs } from "./types";
 import { sendEmailMessage } from "../utils/sendEmailMessage";
+import { refreshWooProductsOnce } from "../services/wooStoreSync";
+import AffiliateProduct from "../models/AffiliateProduct";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -164,6 +166,16 @@ const resolvers = {
         details_submitted: result.details_submitted,
       };
     },
+
+    affiliateProducts: async (
+      _: any,
+      { active }: { active?: boolean },
+      context: MyContext
+    ) => {
+      const filter: any = {};
+      if (active !== undefined) filter.active = active;
+      return AffiliateProduct.find(filter).sort({ name: 1 }).lean();
+    },
   },
 
   Mutation: {
@@ -172,24 +184,15 @@ const resolvers = {
       { email, password }: { email: string; password: string }
     ) => {
       console.log("🔐 Login attempt:", email);
-      console.log("📥 Incoming password:", password);
       const affiliate = await Affiliate.findOne({
         email: email.toLowerCase().trim(),
       });
-      console.log("🔐 Hashed password in DB:", affiliate?.password);
       if (!affiliate) {
         console.warn("❌ No affiliate found for email:", email);
         throw new Error("Affiliate not found");
       }
 
-      const valid = await bcrypt.compare(
-        password.trim(),
-        affiliate.password.trim()
-      ); // ✅ check password
-      // const valid = password.trim() === affiliate.password.trim();
-
-      console.log("📥 Incoming password (trimmed):", password.trim());
-      console.log("🔐 Hashed password (trimmed):", affiliate.password.trim());
+      const valid = await bcrypt.compare(password, affiliate.password);
 
       console.log("🔍 Password valid?", valid);
       if (!valid) {
@@ -204,7 +207,6 @@ const resolvers = {
           expiresIn: "1h",
         }
       );
-      console.log("✅ Login success. Token:", token);
       return { token, affiliate };
     },
 
@@ -266,7 +268,7 @@ const resolvers = {
         totalSales,
         updatedAt,
         createdAt,
-        avatar
+        avatar,
       }: {
         id: string;
         name?: string;
@@ -544,36 +546,6 @@ const resolvers = {
       }
     },
 
-    // addMonthlyReport: async (
-    //   _: any,
-    //   { month, pdf }: { month: string; pdf: string }
-    // ) => {
-    //   const buffer = Buffer.from(pdf, "base64");
-
-    //   const updated = await ReportHistory.findOneAndUpdate(
-    //     { month },
-    //     {
-    //       pdf: buffer,
-    //       createdAt: new Date(),
-    //     },
-    //     { upsert: true, new: true }
-    //   );
-
-    //   if (!updated) {
-    //     throw new Error("Failed to create or update the report");
-    //   }
-
-    //   const reportId = (updated._id as Types.ObjectId).toString();
-
-    //   return {
-    //     id: reportId,
-    //     month: updated.month,
-    //     html: updated.html ?? null,
-    //     pdf: updated.pdf ? updated.pdf.toString("base64") : null,
-    //     createdAt: updated.createdAt?.toISOString() ?? null,
-    //   };
-    // },
-
     addAffiliatePayment: async (
       _: unknown,
       {
@@ -774,7 +746,7 @@ const resolvers = {
       if (!affiliate) throw new Error("Affiliate not found");
 
       const notification = affiliate.notifications?.find(
-        (n) => n.title === title
+        (n: any) => n.title === title
       );
       if (notification) {
         notification.read = read;
@@ -821,7 +793,18 @@ const resolvers = {
       });
       return "Email sent successfully.";
     },
-    
+
+    refreshWooProducts: async (_p: any, args: any, context: MyContext) => {
+      const isAdmin = context.affiliate?.role === "admin";
+      // const isServer = context.req.headers['x-api-key'] === process.env.WOO_SYNC_KEY; // optional
+
+      if (!isAdmin) {
+        throw new Error("Unauthorized (resolver)");
+      }
+
+      const { baseUrl, perPage } = args;
+      return await refreshWooProductsOnce({ baseUrl, perPage, notes: [] });
+    },
   },
 };
 

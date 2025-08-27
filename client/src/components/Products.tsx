@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { products } from "../data/products";
+import { useEffect, useState } from "react";
 import RefferalLink from "./RefferalLink";
+import Button from "./Button";
+import { AffiliateProduct } from "../types";
+import { useQuery } from "@apollo/client";
+import { AFFILIATE_PRODUCTS } from "../utils/queries";
 
 import "./Products.css";
-import Button from "./Button";
 
 export type ProductLink = {
   productTitle: string;
@@ -12,6 +14,15 @@ export type ProductLink = {
 
 export default function Products() {
   const [productsLinks, setProducstLinks] = useState<ProductLink[]>([]);
+  const [productsData, setProductsData] = useState<AffiliateProduct[]>([]);
+
+    const {
+      data: affiliateProductsData,
+      // loading: affiliateProductsDataLoading,
+      // error: affiliateProductsDataError,
+    } = useQuery(AFFILIATE_PRODUCTS, {
+      variables: { active: true }, // or rely on a schema default if you set one
+    });
 
   const selectUrl = (url: string, productTitle: string) => {
     setProducstLinks((prev) => [...prev, { productTitle, productUrl: url }]);
@@ -22,33 +33,43 @@ export default function Products() {
     );
   };
 
+  
+    useEffect(() => {
+      console.log(affiliateProductsData);
+      if (affiliateProductsData) {
+        console.log(affiliateProductsData);
+        setProductsData(affiliateProductsData.affiliateProducts);
+      }
+    }, [affiliateProductsData]);
+
   return (
     <div className="products-container">
       <h2>Products' List</h2>
       <br />
+      {/* Look into organizing per category */}
       <ul>
-        {products &&
-          products.map((product) => (
-            <li key={product.title} className="product-li">
+        {productsData &&
+          productsData.map((product) => (
+            <li key={product.name} className="product-li">
               <img
                 className="image-fluid"
                 alt="product image"
-                src={product.imageUrl ? product.imageUrl : undefined}
+                src={product.primaryImage ? product.primaryImage : undefined}
               />
               <div className="ps">
-                <span>{product.subtitle}</span>
-                <span>{product.description}</span>
-                <span>{product.price}</span>
+                <h4 className="affiliate-product-title">{product.name}</h4>
+                <span>Some descriptions (brief text) go here... Also an option to open unique detail page for that item.</span><br />
+                <span>${product.price}</span>
                 {productsLinks?.some(
-                  (prod) => prod.productTitle === product.title
-                ) && <RefferalLink productUrl={product.url} />}
+                  (prod) => prod.productTitle === product.name
+                ) && <RefferalLink productUrl={product.permalink} />}
               </div>
                 {productsLinks.some(
-                  (prod) => prod.productTitle === product.title
+                  (prod) => prod.productTitle === product.name
                 ) ? (
                   <Button
                     className="blue-btn"
-                    onClick={() => removeUrl(product.title)}
+                    onClick={() => removeUrl(product.name)}
                     style={{ height: "40px", width: "90px" }}
                   >
                     Remove
@@ -56,7 +77,7 @@ export default function Products() {
                 ) : (
                   <Button
                     className="blue-btn"
-                    onClick={() => selectUrl(product.url, product.title)}
+                    onClick={() => selectUrl(product.permalink, product.name)}
                     style={{ height: "40px", width: "90px" }}
                   >
                     Select

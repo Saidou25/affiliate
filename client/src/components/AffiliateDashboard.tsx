@@ -4,7 +4,7 @@ import { Outlet } from "react-router-dom";
 // import SalesTaxPolicy from "./SalesTaxPolicy";
 import StripeSetupBanner from "./StripeSetupBanner";
 import Spinner from "./Spinner";
-import Orders from "./Orders";
+// import Orders from "./Orders";
 
 import "./AffiliateDashboard.css";
 
@@ -24,7 +24,7 @@ export default function AffiliateDashboard() {
       {/* Renders nested routes here */}
       <Outlet context={{ refId }} />
     </div>
-    <Orders />
+    {/* <Orders /> */}
     </>
   );
 }

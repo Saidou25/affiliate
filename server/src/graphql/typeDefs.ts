@@ -157,8 +157,36 @@ const typeDefs = gql`
     text: String
   }
 
-  type Mutation {
-    sendEmail(input: SendEmailInput!): String!
+  "Public, shop-visible products (parents only) synced from Woo Store API"
+  type AffiliateProduct {
+    id: ID! # Mongo _id (string)
+    wooId: Int! # Store API product id
+    slug: String!
+    name: String!
+    permalink: String!
+    price: Float
+    currency: String
+    onSale: Boolean
+    regularPrice: Float
+    salePrice: Float
+    stockStatus: String! # "in_stock" | "out_of_stock"
+    primaryImage: String
+    categorySlugs: [String!]!
+    updatedAt: Date!
+    hasOptions: Boolean! # true if Woo type = "variable"
+    active: Boolean! # false if not seen in last sync
+    createdAt: Date!
+    modifiedAt: Date! # server-side last write
+  }
+
+  type WooSyncSummary {
+    ok: Boolean!
+    totalFetched: Int!
+    created: Int!
+    updated: Int!
+    inactivated: Int!
+    finishedAt: Date!
+    notes: [String!]!
   }
 
   type Query {
@@ -176,10 +204,13 @@ const typeDefs = gql`
     getAllAffiliatePayments: [PaymentRecord!]!
     getAllPayments: [Payment!]!
     checkStripeStatus(affiliateId: ID!): StripeStatus
+     affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
   }
 
   type Mutation {
     login(email: String!, password: String!): AuthPayload!
+
+    sendEmail(input: SendEmailInput!): String!
 
     registerAffiliate(
       password: String!
@@ -260,9 +291,14 @@ const typeDefs = gql`
 
     disconnectStripeAccount(affiliateId: ID!): StripeDeletionResponse
 
-    sendEmail(input: SendEmailInput!): String!
+    recordAffiliateSale(
+      refId: String!
+      orderId: String!
+      amount: Float!
+    ): AffiliateSale
 
-    recordAffiliateSale(refId: String!, orderId: String!, amount: Float!): AffiliateSale
+    "Manually refresh Woo public catalog (parents only)."
+    refreshWooProducts(baseUrl: String!, perPage: Int = 100): WooSyncSummary!
   }
 `;
 export default typeDefs;

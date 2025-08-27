@@ -37,7 +37,7 @@ interface IAffiliate extends Document {
 const AffiliateSchema = new Schema<IAffiliate>(
   {
     name: { type: String, trim: true },
-    email: { type: String, required: true, unique: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
     refId: { type: String, required: true },
     password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
     totalClicks: { type: Number, default: 0 },

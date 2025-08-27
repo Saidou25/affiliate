@@ -265,3 +265,17 @@ export const SEND_EMAIL = gql`
     sendEmail(input: $input)
   }
 `;
+
+export const REFRESH_WOO_PRODUCTS = gql`
+  mutation RefreshWooProducts($baseUrl: String!, $perPage: Int) {
+    refreshWooProducts(baseUrl: $baseUrl, perPage: $perPage) {
+      ok
+      totalFetched
+      created
+      updated
+      inactivated
+      finishedAt
+      notes
+    }
+  }
+`;

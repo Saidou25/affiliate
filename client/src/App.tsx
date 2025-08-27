@@ -21,12 +21,13 @@ import ViewAllNotifications from "./components/ViewAllNotifications";
 import Settings from "./components/Settings";
 import { useEffect } from "react";
 import Footer from "./components/Footer";
+import Navbar from "./components/Navbar";
 
 import "bootswatch/dist/lux/bootstrap.min.css";
 // import LandingPageTitle from "./components/LandingPageTitle";
 
 import "./App.css";
-import Navbar from "./components/Navbar";
+import WooSyncCard from "./components/WooSyncCard";
 
 function App() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ function App() {
 
   return (
     <>
-    <Navbar />
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
@@ -76,6 +77,7 @@ function App() {
           <Route path="look up" element={<AffiliatesLookUp />} />
           <Route path="sales report" element={<AffiliatesSalesReport />} />
           <Route path="data center" element={<DataCenter />} />
+          <Route path="/admin/wooproducts" element={<WooSyncCard />} />
         </Route>
         <Route path="/affiliate" element={<AffiliateDashboard />}>
           <Route path="notifications" element={<ViewAllNotifications />} />

@@ -51,7 +51,6 @@ export const createContext = async ({
   req: Request;
 }): Promise<MyContext> => {
   const authHeader = req.headers.authorization || "";
-  console.log("🧾 Auth header:", authHeader);
 
   // Handle missing or invalid authorization header
   if (!authHeader.startsWith("Bearer ")) {
@@ -60,11 +59,9 @@ export const createContext = async ({
   }
 
   const token = authHeader.slice(7); // Remove "Bearer "
-  console.log("🔑 Token received:", token); // 👈 ADD THIS
   try {
     // Decode and verify the token
     const payload = jwt.verify(token, SECRET) as { affiliateId: string };
-    console.log("🔓 Token verified. Payload:", payload);
 
     // Fetch the affiliate from the database using affiliateId
     const foundAffiliate = await Affiliate.findById(payload.affiliateId);
@@ -87,7 +84,7 @@ export const createContext = async ({
       stripeAccountId: foundAffiliate.stripeAccountId,
       paymentHistory: foundAffiliate.paymentHistory ?? [],
       notifications: foundAffiliate.notifications ?? [],
-      password: foundAffiliate.password
+      password: foundAffiliate.password,
     };
 
     console.log("👤 Context affiliate:", affiliate);

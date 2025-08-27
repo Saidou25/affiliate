@@ -77,3 +77,12 @@ export interface SendEmailArgs {
   commission?: number;
   text?: string;
 }
+
+export type AffiliateProduct = {
+  wooId: number;
+  name: string;
+  permalink: string;
+  primaryImage?: string | null;
+  price?: number | null;
+  currency?: string | null;
+};
