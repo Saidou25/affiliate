@@ -100,17 +100,17 @@ const typeDefs = gql`
     amount: Float
     title: String
     event: String
-    timestamp: DateTime
+    timestamp: Date
     commissionEarned: Float
     commissionStatus: String
-    paidAt: DateTime
+    paidAt: Date
     paymentId: ID
 
     # new
     source: String
     orderId: String
     orderNumber: String
-    orderDate: DateTime
+    orderDate: Date
     status: String
     currency: String
     subtotal: Float
@@ -122,8 +122,8 @@ const typeDefs = gql`
     items: [JSON!] # or a structured type if you know the shape
     product: JSON
 
-    createdAt: DateTime
-    updatedAt: DateTime
+    createdAt: Date
+    updatedAt: Date
   }
 
   input AffiliateSalesFilter {
@@ -131,8 +131,8 @@ const typeDefs = gql`
     source: String
     orderId: String
     status: String
-    from: DateTime
-    to: DateTime
+    from: Date
+    to: Date
   }
 
   type ClickLog {
