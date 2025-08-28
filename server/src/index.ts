@@ -65,7 +65,10 @@ async function startServer() {
       ],
     })
   );
-  app.options("*", cors());
+//   app.options("*", cors());
+//   app.options(/.*/, cors());          // OK with path-to-regexp v6
+// // or
+// app.options("(.*)", cors()); 
 
   // Simple healthcheck (useful for Render)
   app.get("/healthz", (_req, res) =>
