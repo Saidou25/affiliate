@@ -4,209 +4,269 @@ import Stripe from "stripe";
 import Affiliate from "../models/Affiliate";
 import AffiliateSale from "../models/AffiliateSale";
 
+/**
+ * ENV:
+ * - STRIPE_SECRET_KEY
+ * - STRIPE_WEBHOOK_SECRET
+ */
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
-export default async function stripeWebhook(req: Request, res: Response) {
-  console.log("🔔 Received webhook call...");
+// --------- tiny helpers ----------
+const safe = (v: any) => {
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
+};
 
+const iso = (secs?: number | null) =>
+  secs ? new Date(secs * 1000).toISOString() : "n/a";
+
+export default async function stripeWebhook(req: Request, res: Response) {
+  const startedAt = Date.now();
+  console.log("🧲 [WH] Entered stripeWebhook");
+  console.log("🧾 [WH] Headers:", safe(req.headers));
+  console.log(
+    "🧵 [WH] Raw body length:",
+    (req.body as Buffer)?.length ?? "n/a"
+  );
+
+  // 1) Verify signature
   const sig = req.headers["stripe-signature"] as string;
+  if (!sig) {
+    console.error("❌ [WH] Missing stripe-signature header");
+    return res.status(400).send("Missing Stripe signature");
+  }
 
   let event: Stripe.Event;
   try {
-    console.log("🔑 Verifying Stripe signature...");
+    console.log("🔑 [WH] Verifying Stripe signature...");
     event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    console.log("✅ Signature verified successfully.");
+    console.log(
+      "✅ [WH] Signature OK. event.id:",
+      event.id,
+      "type:",
+      event.type,
+      "created:",
+      iso(event.created)
+    );
   } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error("❌ [WH] Signature verification failed:", err?.message);
+    return res.status(400).send(`Webhook Error: ${err?.message}`);
   }
 
-  console.log(`📦 Event received: ${event.type}`);
-
-  // ————————————————————————————————————————————————————————————————
-  // A) Handle CHARGE path (your endpoint currently receives charge.succeeded)
-  // ————————————————————————————————————————————————————————————————
-  if (event.type === "charge.succeeded") {
-    const charge = event.data.object as Stripe.Charge;
-
-    const paymentIntentId =
-      (charge.payment_intent as string | null) ?? null;
-
-    // Prefer captured amount; fallback to amount
-    const amountCents =
-      typeof charge.amount_captured === "number" && charge.amount_captured > 0
-        ? charge.amount_captured
-        : (charge.amount as number);
-    const total = (amountCents || 0) / 100;
-    const currency = (charge.currency || "usd").toUpperCase();
-
-    // Try refId from charge.metadata first
-    let refId: string | null =
-      (charge.metadata && (charge.metadata as any).refId) ||
-      (charge.metadata && (charge.metadata as any).ref) ||
-      (charge.metadata && (charge.metadata as any).affiliateRef) ||
-      null;
-
-    // Optionally pull order number from charge metadata
-    const orderNumberRaw =
-      (charge.metadata && (charge.metadata as any).woo_order_number) ||
-      (charge.metadata && (charge.metadata as any).order_id) ||
-      (charge.metadata && (charge.metadata as any).orderNumber) ||
-      null;
-
-    // If refId missing but we have a PaymentIntent, fetch its metadata
-    if (!refId && paymentIntentId) {
-      try {
-        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-        refId =
-          (pi.metadata && (pi.metadata as any).refId) ||
-          (pi.metadata && (pi.metadata as any).ref) ||
-          (pi.metadata && (pi.metadata as any).affiliateRef) ||
-          null;
-      } catch (e: any) {
-        console.error("⚠️ Could not retrieve PaymentIntent:", e.message);
-      }
-    }
-
-    // Resolve affiliate & commission
-    let affiliateId: any = null;
-    let commissionRate = 0;
-    if (refId) {
-      const aff = await Affiliate.findOne({ refId })
-        .select("_id commissionRate")
-        .lean();
-      if (aff) {
-        affiliateId = aff._id;
-        commissionRate = Number(aff.commissionRate || 0);
-      }
-    }
-    const commissionEarned = Number((total * commissionRate).toFixed(2));
-
-    // Idempotent upsert keyed by paymentIntentId (fallback to charge.id)
-    const idKey = paymentIntentId ?? String(charge.id);
-
-    const sale = await AffiliateSale.findOneAndUpdate(
-      { source: "stripe", paymentIntentId: idKey },
-      {
-        $set: {
-          source: "stripe",
-          event: "purchase",
-          status: "succeeded",
-          paymentIntentId: idKey,
-          refId,
-          affiliateId,
-          orderNumber: orderNumberRaw ? String(orderNumberRaw) : null,
-          currency,
-          total,
-          commissionRate,
-          commissionEarned,
-          updatedAt: new Date(),
-        },
-        $setOnInsert: { createdAt: new Date() },
-      },
-      { new: true, upsert: true }
+  // 2) Log the whole event (trimmed for safety)
+  try {
+    console.log(
+      "📦 [WH] Event summary:",
+      safe({
+        id: event.id,
+        type: event.type,
+        created: iso(event.created),
+        livemode: (event as any).livemode,
+      })
     );
-
-    console.log("🧾 Sale upserted (charge.succeeded)", {
-      saleId: String(sale._id),
-      refId,
-      total,
-      commissionEarned,
-      paymentIntentId: idKey,
-    });
-
-    return res.status(200).json({ received: true });
+  } catch (e) {
+    console.log("ℹ️ [WH] Unable to summarize event:", e);
   }
 
-  // ————————————————————————————————————————————————————————————————
-  // B) Handle PAYMENT INTENT path (kept as-is)
-  // ————————————————————————————————————————————————————————————————
-  if (event.type === "payment_intent.succeeded") {
-    const pi = event.data.object as Stripe.PaymentIntent;
+  // 3) Handle interesting event types
+  try {
+    switch (event.type) {
+      case "payment_intent.succeeded": {
+        console.log("💰 [WH] Handling payment_intent.succeeded");
+        const pi = event.data.object as Stripe.PaymentIntent;
 
-    const refId =
-      (pi.metadata?.refId ||
-        (pi.metadata as any)?.ref ||
-        (pi.metadata as any)?.affiliateRef) ??
-      null;
+        // Dump key fields for debugging
+        console.log("🧩 [PI] id:", pi.id);
+        console.log(
+          "🧩 [PI] amount_received (cents):",
+          pi.amount_received,
+          "currency:",
+          pi.currency
+        );
+        console.log("🧩 [PI] customer:", safe(pi.customer));
+        console.log("🧩 [PI] latest_charge:", safe(pi.latest_charge));
+        console.log("🧩 [PI] metadata:", safe(pi.metadata));
 
-    const paymentIntentId = pi.id;
-    const amountReceivedCents =
-      typeof pi.amount_received === "number" ? pi.amount_received : 0;
-    const total = amountReceivedCents / 100;
-    const currency = (pi.currency || "usd").toUpperCase();
-    const orderNumber =
-      (pi.metadata?.woo_order_number ||
-        pi.metadata?.order_id ||
-        (pi.metadata as any)?.orderNumber) ??
-      null;
+        // Extract metadata (from Woo)
+        const refId = (pi.metadata?.refId || "").trim();
+        const wooOrderId = (
+          pi.metadata?.woo_order_id ||
+          pi.metadata?.order_id ||
+          ""
+        ).trim();
+        const wooOrderNumber = (pi.metadata?.woo_order_number || "").trim();
+        const customerEmail =
+          (
+            pi.metadata?.customer_email ||
+            (pi as any).receipt_email ||
+            ""
+          ).trim() || undefined;
+        const amountCents = pi.amount_received ?? 0;
+        const amountDollars = Number((amountCents / 100).toFixed(2));
+        const currency = (pi.currency || "usd").toLowerCase();
 
-    let affiliateId: any = null;
-    let commissionRate = 0;
-    if (refId) {
-      const aff = await Affiliate.findOne({ refId })
-        .select("_id commissionRate")
-        .lean();
-      if (aff) {
-        affiliateId = aff._id;
-        commissionRate = Number(aff.commissionRate || 0);
+        console.log("🏷️ [META] refId:", refId);
+        console.log(
+          "🏷️ [META] wooOrderId:",
+          wooOrderId,
+          "wooOrderNumber:",
+          wooOrderNumber
+        );
+        console.log("🏷️ [META] customerEmail:", customerEmail);
+        console.log(
+          "💵 [AMT] amountCents:",
+          amountCents,
+          "amountDollars:",
+          amountDollars,
+          "currency:",
+          currency
+        );
+
+        // Basic guards
+        if (!refId) {
+          console.error(
+            "❗ [WH] Missing refId in metadata. Cannot attribute sale. Aborting DB write."
+          );
+          break; // Exit switch but still 200 OK to Stripe to avoid retries
+        }
+
+        if (amountCents <= 0) {
+          console.error("❗ [WH] Non-positive amount. Aborting DB write.");
+          break;
+        }
+
+        // Fetch affiliate
+        console.log("🔎 [DB] Looking up Affiliate by refId:", refId);
+        const affiliate = await Affiliate.findOne({ refId }).lean();
+        console.log("🧾 [DB] Affiliate lookup result:", safe(affiliate));
+
+        if (!affiliate) {
+          console.error(
+            "❗ [DB] No Affiliate matched refId:",
+            refId,
+            "— cannot attribute commission."
+          );
+          // Still record the sale document (unattributed) so we can reconcile later
+          console.log(
+            "📝 [DB] Upserting unattributed AffiliateSale for audit trail"
+          );
+          const upsert = await AffiliateSale.findOneAndUpdate(
+            { externalPaymentIntentId: pi.id },
+            {
+              $setOnInsert: {
+                externalPaymentIntentId: pi.id,
+                status: "succeeded",
+                currency,
+                createdAt: new Date(),
+              },
+              $set: {
+                amount: amountDollars, // note: dollars
+                amountCents,
+                refId,
+                wooOrderId,
+                wooOrderNumber,
+                customerEmail,
+                description: pi.description,
+                eventId: event.id,
+              },
+            },
+            { new: true, upsert: true }
+          );
+          console.log("✅ [DB] Unattributed sale upserted:", safe(upsert));
+          break;
+        }
+
+        // Compute commission (defaults to 10% if missing)
+        const commissionRate: number = Number(affiliate.commissionRate ?? 0.1);
+        const commissionDollars = Number(
+          (amountDollars * commissionRate).toFixed(2)
+        );
+        const commissionCents = Math.round(amountCents * commissionRate);
+
+        console.log("📈 [CALC] commissionRate:", commissionRate);
+        console.log(
+          "📈 [CALC] commissionCents:",
+          commissionCents,
+          "commissionDollars:",
+          commissionDollars
+        );
+
+        // Idempotency: we upsert on payment_intent id so replays don’t duplicate
+        console.log(
+          "📝 [DB] Upserting AffiliateSale (by externalPaymentIntentId)..."
+        );
+        const saleDoc = await AffiliateSale.findOneAndUpdate(
+          { externalPaymentIntentId: pi.id },
+          {
+            $setOnInsert: {
+              externalPaymentIntentId: pi.id,
+              createdAt: new Date(),
+            },
+            $set: {
+              status: "succeeded",
+              currency,
+              amount: amountDollars,
+              amountCents,
+              commissionEarned: commissionDollars,
+              commissionEarnedCents: commissionCents,
+              refId,
+              affiliateId: affiliate._id, // if your schema uses affiliate or affiliateId, adjust name here
+              wooOrderId,
+              wooOrderNumber,
+              customerEmail,
+              description: pi.description,
+              eventId: event.id,
+            },
+          },
+          { new: true, upsert: true }
+        );
+        console.log("✅ [DB] AffiliateSale upserted:", safe(saleDoc));
+
+        // Update Affiliate totals (in dollars to match your model examples)
+        console.log("🔧 [DB] Updating Affiliate totals...");
+        const inc: Record<string, number> = {
+          totalSales: amountDollars,
+          totalCommissions: commissionDollars,
+        };
+        // If you also track counts:
+        // inc.totalOrders = 1;
+
+        const updatedAffiliate = await Affiliate.findByIdAndUpdate(
+          affiliate._id,
+          { $inc: inc },
+          { new: true }
+        );
+        console.log("✅ [DB] Affiliate updated:", safe(updatedAffiliate));
+
+        break;
+      }
+
+      default: {
+        // Not used right now, but keep a breadcrumb
+        console.log(
+          "↪️ [WH] Unhandled event type — no DB action taken:",
+          event.type
+        );
+        break;
       }
     }
-    const commissionEarned = Number((total * commissionRate).toFixed(2));
-
-    const sale = await AffiliateSale.findOneAndUpdate(
-      { source: "stripe", paymentIntentId },
-      {
-        $set: {
-          source: "stripe",
-          event: "purchase",
-          status: "succeeded",
-          paymentIntentId,
-          refId,
-          affiliateId,
-          orderNumber: orderNumber ? String(orderNumber) : null,
-          currency,
-          total,
-          commissionRate,
-          commissionEarned,
-          updatedAt: new Date(),
-        },
-        $setOnInsert: { createdAt: new Date() },
-      },
-      { new: true, upsert: true }
+  } catch (handlerErr: any) {
+    console.error(
+      "💥 [WH] Handler error:",
+      handlerErr?.message,
+      handlerErr?.stack
     );
-
-    console.log("🧾 Sale upserted (payment_intent.succeeded)", {
-      saleId: String(sale._id),
-      refId,
-      total,
-      commissionEarned,
-      paymentIntentId,
-    });
-
-    return res.status(200).json({ received: true });
+    // We still return 200 so Stripe does not hammer retries if the error is on our side,
+    // but during debugging you might temporarily return 500 to see replay behavior.
   }
 
-  // ————————————————————————————————————————————————————————————————
-  // C) Optional: keep Checkout Session logging (no sale write)
-  // ————————————————————————————————————————————————————————————————
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-    console.log("✅ Checkout session completed:", {
-      sessionId: session.id,
-      amount_total: session.amount_total,
-      currency: session.currency,
-      email: session.customer_details?.email,
-    });
-    try {
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-      console.log("🛒 Line items retrieved:", lineItems.data.length);
-    } catch (e: any) {
-      console.error("❌ Failed to retrieve line items:", e.message);
-    }
-  }
-
-  // Acknowledge all other events quickly
+  const ms = Date.now() - startedAt;
+  console.log(`🏁 [WH] Done. Ack to Stripe. Duration: ${ms}ms`);
+  // Always acknowledge so Stripe doesn't retry forever (we're idempotent anyway)
   return res.json({ received: true });
 }
