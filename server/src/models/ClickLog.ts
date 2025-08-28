@@ -4,8 +4,8 @@ interface IClickLog extends Document {
   refId: string;
   ipAddress: string;
   pageUrl: string;
-  createdAt?: Date; // ✅ Automatically added by Mongoose
-  updatedAt?: Date; // ✅ Automatically added by Mongoose
+  createdAt?: Date; // Automatically added by Mongoose
+  updatedAt?: Date; // Automatically added by Mongoose
   userAgent: string;
 }
 const ClickLogSchema = new Schema<IClickLog>(
