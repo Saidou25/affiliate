@@ -1,8 +1,10 @@
+// server.ts
 import dotenv from "dotenv";
 import path from "path";
 
 // Load env
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 
 import express from "express";
@@ -34,22 +36,45 @@ async function startServer() {
 
   const app = express();
 
-  // ⚠️ Stripe webhook MUST use raw body and be registered BEFORE any JSON parser
+  // Render / Cloudflare can be behind proxies
+  app.set("trust proxy", true);
+
+  // ——————————————————————————————————————————————————————————
+  // 1) STRIPE WEBHOOK — must receive RAW BODY and be mounted
+  //    BEFORE any JSON/body parser touches the request.
+  // ——————————————————————————————————————————————————————————
   app.post(
     "/api/stripe/webhook",
     bodyParser.raw({ type: "application/json" }),
     stripeWebhook
   );
 
-  // ✅ CORS for frontend
+  // ——————————————————————————————————————————————————————————
+  // 2) CORS (tight but permissive enough); handle preflight
+  // ——————————————————————————————————————————————————————————
   app.use(
     cors({
-      origin: "*",
+      origin: "*", // adjust to your frontend origin(s) if you want to lock down
       credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "x-api-key",
+        "Stripe-Signature",
+      ],
     })
   );
+  app.options("*", cors());
 
-  // 🔐 Woo ingest: JSON parser + API key guard (scoped to /api/woo/*)
+  // Simple healthcheck (useful for Render)
+  app.get("/healthz", (_req, res) =>
+    res.status(200).json({ ok: true, uptime: process.uptime() })
+  );
+
+  // ——————————————————————————————————————————————————————————
+  // 3) WOO INGEST — scoped JSON parser and API key guard
+  // ——————————————————————————————————————————————————————————
   app.use(
     "/api/woo",
     express.json({ limit: "1mb" }),
@@ -68,7 +93,12 @@ async function startServer() {
       const p = req.body as any;
 
       // minimal validation
-      if (!p?.orderId || !p?.orderNumber || !p?.orderDate || typeof p.total !== "number") {
+      if (
+        !p?.orderId ||
+        !p?.orderNumber ||
+        !p?.orderDate ||
+        typeof p.total !== "number"
+      ) {
         return res.status(400).json({ ok: false, error: "Bad payload" });
       }
 
@@ -83,6 +113,8 @@ async function startServer() {
         { source: "woocommerce", orderId: String(p.orderId) },
         {
           $set: {
+            source: "woocommerce",
+            orderId: String(p.orderId),
             refId: p.refId ?? null,
             affiliateId,
             orderNumber: String(p.orderNumber),
@@ -111,24 +143,28 @@ async function startServer() {
     }
   });
 
-  // Other REST routes
+  // Other REST routes (mounted after Woo guard)
   app.use("/api", ordersRoute);
 
-  // ✅ Apollo Server (GraphQL)
+  // ——————————————————————————————————————————————————————————
+  // 4) GRAPHQL — JSON parser AFTER the Stripe raw route
+  // ——————————————————————————————————————————————————————————
   const server = new ApolloServer<MyContext>({ typeDefs, resolvers });
   await server.start();
 
-  // JSON parser AFTER the Stripe raw route
   app.use(
     "/graphql",
     bodyParser.json(),
     expressMiddleware(server, { context: createContext as any })
   );
 
+  // ——————————————————————————————————————————————————————————
+  // 5) START
+  // ——————————————————————————————————————————————————————————
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}/graphql`);
-    console.log(`✅ Webhook ready at http://localhost:${PORT}/api/stripe/webhook`);
+    console.log(`🚀 GraphQL ready at http://localhost:${PORT}/graphql`);
+    console.log(`✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`);
     console.log(`📥 Woo ingest at http://localhost:${PORT}/api/woo/order`);
   });
 }
