@@ -93,14 +93,46 @@ const typeDefs = gql`
 
   type AffiliateSale {
     id: ID!
-    productId: String
+    # legacy
     refId: String
+    productId: String
     buyerEmail: String
-    amount: Int
+    amount: Float
+    title: String
     event: String
-    timestamp: Date
+    timestamp: DateTime
     commissionEarned: Float
     commissionStatus: String
+    paidAt: DateTime
+    paymentId: ID
+
+    # new
+    source: String
+    orderId: String
+    orderNumber: String
+    orderDate: DateTime
+    status: String
+    currency: String
+    subtotal: Float
+    discount: Float
+    tax: Float
+    shipping: Float
+    total: Float
+    paymentIntentId: String
+    items: [JSON!] # or a structured type if you know the shape
+    product: JSON
+
+    createdAt: DateTime
+    updatedAt: DateTime
+  }
+
+  input AffiliateSalesFilter {
+    refId: String
+    source: String
+    orderId: String
+    status: String
+    from: DateTime
+    to: DateTime
   }
 
   type ClickLog {
@@ -196,6 +228,11 @@ const typeDefs = gql`
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
     getAffiliateSales(refId: ID!): [AffiliateSale!]!
+    affiliateSales(
+      filter: AffiliateSalesFilter
+      limit: Int = 50
+      offset: Int = 0
+    ): [AffiliateSale!]!
     getAffiliateClickLogs(refId: ID): [ClickLog]
     getAllAffiliatesClickLogs: [ClickLog!]!
     getReportByMonth(month: String!): ReportHistory
@@ -204,7 +241,7 @@ const typeDefs = gql`
     getAllAffiliatePayments: [PaymentRecord!]!
     getAllPayments: [Payment!]!
     checkStripeStatus(affiliateId: ID!): StripeStatus
-     affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
+    affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
   }
 
   type Mutation {

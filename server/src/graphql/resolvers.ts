@@ -87,6 +87,22 @@ const resolvers = {
     getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
       return await AffiliateSale.find({ refId }); // likely multiple sales per affiliate
     },
+    affiliateSales: async (_: any, { filter, limit = 50, offset = 0 }: any) => {
+      const q: any = {};
+      if (filter?.refId) q.refId = filter.refId;
+      if (filter?.source) q.source = filter.source;
+      if (filter?.orderId) q.orderId = filter.orderId;
+      if (filter?.status) q.status = filter.status;
+      if (filter?.from || filter?.to) {
+        q.orderDate = {};
+        if (filter.from) q.orderDate.$gte = new Date(filter.from);
+        if (filter.to) q.orderDate.$lte = new Date(filter.to);
+      }
+      return AffiliateSale.find(q)
+        .sort({ orderDate: -1, createdAt: -1 })
+        .skip(offset)
+        .limit(Math.min(limit, 200));
+    },
     getAffiliateClickLogs: async (_: any, { refId }: { refId: string }) => {
       return await ClickLog.find({ refId }); // likely multiple sales per affiliate
     },

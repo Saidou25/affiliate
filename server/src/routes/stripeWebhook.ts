@@ -1,8 +1,8 @@
 // src/routes/stripeWebhook.ts
 import { Request, Response } from "express";
 import Stripe from "stripe";
-import Affiliate from "../models/Affiliate";
-import AffiliateSale from "../models/AffiliateSale";
+// import Affiliate from "../models/Affiliate";
+// import AffiliateSale from "../models/AffiliateSale";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;

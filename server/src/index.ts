@@ -65,10 +65,10 @@ async function startServer() {
       ],
     })
   );
-//   app.options("*", cors());
-//   app.options(/.*/, cors());          // OK with path-to-regexp v6
-// // or
-// app.options("(.*)", cors()); 
+  //   app.options("*", cors());
+  //   app.options(/.*/, cors());          // OK with path-to-regexp v6
+  // // or
+  // app.options("(.*)", cors());
 
   // Simple healthcheck (useful for Render)
   app.get("/healthz", (_req, res) =>
@@ -78,17 +78,13 @@ async function startServer() {
   // ——————————————————————————————————————————————————————————
   // 3) WOO INGEST — scoped JSON parser and API key guard
   // ——————————————————————————————————————————————————————————
-  app.use(
-    "/api/woo",
-    express.json({ limit: "1mb" }),
-    (req, res, next) => {
-      const apiKey = req.header("x-api-key");
-      if (!apiKey || apiKey !== process.env.WOO_INGEST_KEY) {
-        return res.status(401).json({ ok: false, error: "Unauthorized" });
-      }
-      next();
+  app.use("/api/woo", express.json({ limit: "1mb" }), (req, res, next) => {
+    const apiKey = req.header("x-api-key");
+    if (!apiKey || apiKey !== process.env.WOO_INGEST_KEY) {
+      return res.status(401).json({ ok: false, error: "Unauthorized" });
     }
-  );
+    next();
+  });
 
   // 📥 Woo → Affiliate ingest endpoint (idempotent upsert by source+orderId)
   app.post("/api/woo/order", async (req, res) => {
@@ -113,6 +109,7 @@ async function startServer() {
       }
 
       const sale = await AffiliateSale.findOneAndUpdate(
+        // ❗ filter contains "orderId" and "source" which your schema doesn't have yet
         { source: "woocommerce", orderId: String(p.orderId) },
         {
           $set: {
@@ -136,7 +133,14 @@ async function startServer() {
           },
           $setOnInsert: { createdAt: new Date() },
         },
-        { new: true, upsert: true }
+        {
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true,
+          // 👇 allow unknown keys in filter & update for this operation
+          strictQuery: false,
+          strict: false,
+        }
       );
 
       return res.json({ ok: true, saleId: String(sale._id) });
@@ -167,7 +171,9 @@ async function startServer() {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`🚀 GraphQL ready at http://localhost:${PORT}/graphql`);
-    console.log(`✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`);
+    console.log(
+      `✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`
+    );
     console.log(`📥 Woo ingest at http://localhost:${PORT}/api/woo/order`);
   });
 }
