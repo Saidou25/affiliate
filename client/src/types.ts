@@ -1,14 +1,14 @@
-export type AffiliateSale = {
-  id: string;
-  refId: string;
-  buyerEmail: string;
-  event: string;
-  commissionEarned: number;
-  commissionStatus: string;
-  timestamp: string | Date;
-  amount: number;
-  productId: string;
-};
+// export type AffiliateSale = {
+//   id: string;
+//   refId: string;
+//   buyerEmail: string;
+//   event: string;
+//   commissionEarned: number;
+//   commissionStatus: string;
+//   timestamp: string | Date;
+//   amount: number;
+//   productId: string;
+// };
 
 export type PaymentRecord = {
   amount: number;
@@ -86,3 +86,53 @@ export type AffiliateProduct = {
   price?: number | null;
   currency?: string | null;
 };
+
+export interface AffiliateSale {
+  id: string;
+  refId?: string | null;
+  source?: "woocommerce" | "stripe" | "manual" | (string & {}) | null;
+
+  // New model
+  orderId?: string | null;
+  orderNumber?: string | null;
+  orderDate?: string | null;
+  status?: string | null;
+  currency?: string | null;
+  subtotal?: number | null;
+  discount?: number | null;
+  tax?: number | null;
+  shipping?: number | null;
+  total?: number | null;
+  paymentIntentId?: string | null;
+  items?: any[] | null;
+  product?: any | null;
+  commissionEarned?: number | null;
+  commissionStatus?: "paid" | "unpaid" | (string & {}) | null;
+  createdAt: string;
+  updatedAt?: string | null;
+
+  // Legacy (optional; for backward compatibility)
+  timestamp?: string | Date; // prefer createdAt/orderDate
+  amount?: number;           // prefer total
+  productId?: string;        // prefer items/product
+  buyerEmail?: string;
+  event?: string;
+}
+
+
+export interface AffiliateSalesQueryData {
+  affiliateSales: AffiliateSale[];
+}
+
+export interface AffiliateSalesQueryVars {
+  filter?: {
+    refId?: string;
+    source?: string;
+    orderId?: string;
+    status?: string;
+    from?: string;   // ISO
+    to?: string;     // ISO
+  };
+  limit?: number;
+  offset?: number;
+}

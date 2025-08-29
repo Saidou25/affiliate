@@ -2,6 +2,8 @@ import { useQuery } from "@apollo/client";
 import {
   GET_ALLAFFILIATESALES,
   GET_ALLAFFILIATESCLICKLOGS,
+  // QUERY_ME,
+  // SINGLE_AFFILIATE_SALES,
 } from "../utils/queries";
 import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
@@ -24,11 +26,24 @@ export default function AffiliatesSalesReport() {
 
   // const { data } = useQuery(QUERY_ME);
   // const me = data?.me || {};
+// const refId = me.refId;
+//    const {
+//     data: salesResp,
+//     loading: salesLoading,
+//     error: salesError,
+//     refetch,
+//   } = useQuery(SINGLE_AFFILIATE_SALES, {
+//     variables: { filter: { refId }, limit: 200, offset: 0 },
+//     skip: !refId, // if refId is '', query won’t run
+//     fetchPolicy: "cache-and-network",
+//     onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+//     onError: (e) => console.error("[AFFILIATE_SALES error]", e),
+//   });
 
   const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
 
   const { monthlySales } = useSalesReport(salesData);
-  // console.log("monthly sales: ", monthlySales);
+  console.log("monthly sales: ", monthlySales);
 
   return (
     <div className="">

@@ -45,8 +45,8 @@ function App() {
     if (!Auth.loggedIn()) {
       navigate("/");
     }
-  }, []);
-
+  }, [navigate]);
+  
   return (
     <>
       <Navbar />

@@ -227,8 +227,8 @@ const typeDefs = gql`
     getAffiliateByRefId(refId: String!): Affiliate
     me: Affiliate
     getAllAffiliateSales: [AffiliateSale!]!
-    getAffiliateSales(refId: ID!): [AffiliateSale!]!
-    affiliateSales(
+    # getAffiliateSales(refId: ID!): [AffiliateSale!]!
+    getAffiliateSales(
       filter: AffiliateSalesFilter
       limit: Int = 50
       offset: Int = 0

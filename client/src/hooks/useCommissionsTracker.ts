@@ -31,9 +31,18 @@ export function useCommissionsTracker() {
   const [commissionsPerMonth, setCommissionsPerMonth] = useState<SaleObj[]>([]);
 
   const { data } = useQuery(QUERY_ME);
-  const { data: salesData } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId: me?.refId },
-    skip: !me?.refId,
+  const refId = me?.refId
+  const {
+    data: salesData,
+    // loading: salesLoading,
+    // error: salesError,
+    refetch,
+  } = useQuery(GET_AFFILIATESALES, {
+    variables: { filter: { refId }, limit: 200, offset: 0 },
+    skip: !refId, // if refId is '', query won’t run
+    fetchPolicy: "cache-and-network",
+    onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+    onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
 
   const toEasternDate = (isoDate: string) =>

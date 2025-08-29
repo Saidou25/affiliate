@@ -1,9 +1,10 @@
 import { Outlet } from "react-router-dom";
+import { Affiliate } from "../types";
 
 import "./Admindashboard.css";
 
 type Props = {
-  data: any;
+  data?: { getAffiliates: Affiliate[] };
   loading: boolean;
   errorText?: string;
 };

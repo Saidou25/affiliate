@@ -132,32 +132,25 @@ export const GET_ALLAFFILIATESALES = gql`
   query getAllAffiliateSales {
     getAllAffiliateSales {
       id
-      productId
       refId
-      buyerEmail
-      amount
-      event
-      timestamp
-      title
+      source
+      orderId
+      orderNumber
+      orderDate
+      status
+      currency
+      subtotal
+      discount
+      tax
+      shipping
+      total
+      paymentIntentId
       commissionEarned
       commissionStatus
-    }
-  }
-`;
-
-export const GET_AFFILIATESALES = gql`
-  query GetAffiliateSales($refId: ID!) {
-    getAffiliateSales(refId: $refId) {
-      id
-      productId
-      refId
-      buyerEmail
-      amount
-      event
-      title
-      timestamp
-      commissionEarned
-      commissionStatus
+      createdAt
+      updatedAt
+      items
+      product
     }
   }
 `;
@@ -276,6 +269,33 @@ export const AFFILIATE_PRODUCTS = gql`
       salePrice
       stockStatus
       hasOptions
+    }
+  }
+`;
+
+export const GET_AFFILIATESALES = gql`
+  query getAffiliateSales($filter: AffiliateSalesFilter, $limit: Int, $offset: Int) {
+    getAffiliateSales(filter: $filter, limit: $limit, offset: $offset) {
+      id
+      refId
+      source
+      orderId
+      orderNumber
+      orderDate
+      status
+      currency
+      subtotal
+      discount
+      tax
+      shipping
+      total
+      paymentIntentId
+      commissionEarned
+      commissionStatus
+      createdAt
+      updatedAt
+      items
+      product
     }
   }
 `;

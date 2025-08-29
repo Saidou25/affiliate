@@ -21,11 +21,24 @@ export default function DetailedReport({ refId }: Props) {
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
 
-  const { data: salesData, refetch } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId },
-    skip: !refId,
-  });
+  // const { data: salesData, refetch } = useQuery(GET_AFFILIATESALES, {
+  //   variables: { refId },
+  //   skip: !refId,
+  // });
 
+  const {
+    data: salesData,
+    // loading: salesLoading,
+    // error: salesError,
+    refetch,
+  } = useQuery(GET_AFFILIATESALES, {
+    variables: { filter: { refId }, limit: 200, offset: 0 },
+    skip: !refId, // if refId is '', query won’t run
+    fetchPolicy: "cache-and-network",
+    onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+    onError: (e) => console.error("[AFFILIATE_SALES error]", e),
+  });
+  console.log(salesData);
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
 
   const { data: meData } = useQuery(QUERY_ME);
@@ -59,7 +72,7 @@ export default function DetailedReport({ refId }: Props) {
     if (salesData?.getAffiliateSales) {
       const organizedDates = [...salesData?.getAffiliateSales].sort(
         (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setSortedDates(organizedDates);
     }
@@ -69,7 +82,7 @@ export default function DetailedReport({ refId }: Props) {
     const salesMap: { [key: string]: AffiliateSale[] } = {};
 
     sortedDates.forEach((sale) => {
-      const date = new Date(sale.timestamp);
+      const date = new Date(sale.createdAt);
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       const key = `${month} ${year}`;
@@ -89,15 +102,15 @@ export default function DetailedReport({ refId }: Props) {
 
     // sort by most recent month
     groupedArray.sort((a, b) => {
-      const dateA = new Date(a.sales[0].timestamp);
-      const dateB = new Date(b.sales[0].timestamp);
+      const dateA = new Date(a.sales[0].createdAt);
+      const dateB = new Date(b.sales[0].createdAt);
       return dateB.getTime() - dateA.getTime();
     });
-
+console.log("groupedArray: ", groupedArray);
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 
-  if (!monthlySales.length) {
+  if (!monthlySales?.length) {
     return (
       <div className="empty-state">
         {/* <img src="https://cdn.pixabay.com/photo/2016/03/31/20/53/analytics-1294847_1280.png"  alt="No reports" /> */}

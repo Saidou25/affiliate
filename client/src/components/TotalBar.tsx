@@ -29,17 +29,18 @@ export default function TotalBar({
       let month = clicksPerMonth[0]?.data.filter(
         (click: any) => click.x === currentMonth
       );
-      return month[0].y;
+      return month[0]?.y;
     }
   };
 
   // for affiliate's role
   const xtractTotalSales = () => {
     if (salesPerMonth?.length) {
+      console.log(salesPerMonth?.length)
       let month = salesPerMonth[0]?.data.filter(
         (sale: any) => sale.x === currentMonth
       );
-      return month[0]?.y;
+      return month[0].y;
     }
   };
 
@@ -50,8 +51,8 @@ export default function TotalBar({
         <thead>
           <tr>
             <th className="cell-style-top">Month</th>
-            <th className="cell-style-top">Total Sales</th>
             <th className="cell-style-top">Total Clicks</th>
+            <th className="cell-style-top">Total Sales</th>
             <th className="cell-style-top">Total Sales Amount</th>
             <th className="cell-style-top">Total Commissions</th>
             <th className="cell-style-top">Unpaid Commissions</th>

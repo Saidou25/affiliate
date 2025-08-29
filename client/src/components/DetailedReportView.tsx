@@ -14,9 +14,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
 import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
+import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
-import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 import Button from "./Button";
 
 import "./DetailedReport.css";
@@ -45,7 +45,7 @@ export default function DetailedReportView({
   const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
   // const [showStripeMessage, setShowStripeMessage] = useState(false);
   // const [redirectUrl, setRedirectUrl] = useState("");
-
+console.log("salesPerMonth: ", salesPerMonth);
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
 
   const addedSales = useAddMonthSales(monthSales);
@@ -208,13 +208,13 @@ export default function DetailedReportView({
             <thead>
               <tr>
                 <th className="cell-style-top">Purchase date</th>
-                {/* <th className="cell-style-top">Sale ID</th> */}
-                <th className="cell-style-top">Buyer's email</th>
-                <th className="cell-style-top">Product</th>
-                {/* <th className="cell-style-top">Product ID</th> */}
-                <th className="cell-style-top">Reference ID</th>
+                {/* <th className="cell-style-top">Woo Item id</th> */}
+                <th className="cell-style-top">Item</th>
+                <th className="cell-style-top"> Woo Product ID</th>
                 <th className="cell-style-top">Price</th>
-                <th className="cell-style-top">Commission</th>
+                <th className="cell-style-top">Order Id</th>
+                {/* <th className="cell-style-top">Reference ID</th> */}
+                <th className="cell-style-top">Commission Earned</th>
                 {/* <th className="cell-style-top">
                   {status ? (
                     status.charges_enabled && status.payouts_enabled ? (
@@ -243,21 +243,23 @@ export default function DetailedReportView({
                 monthSales?.map((sale: any, index: number) => (
                   <tr key={index}>
                     <td className="cell-style">
-                      {new Date(sale.timestamp).toLocaleDateString("en-US", {
+                      {new Date(sale.createdAt).toLocaleDateString("en-US", {
                         timeZone: "America/New_York",
                       })}
                     </td>
-                    {/* <td className="cell-style">{sale.id}</td> */}
-                    <td className="cell-style">{sale.buyerEmail}</td>
-                    <td className="cell-style">
-                      {sale.event.length <= 20
-                        ? sale.event
-                        : `${sale.event.slice(0, 20)}...`}
-                    </td>
-                    {/* <td className="cell-style">{sale.productId}</td> */}
-                    <td className="cell-style">{sale.refId}</td>
-                    <td className="cell-style">${sale.amount}</td>
+                    <td className="cell-style">{sale.product}</td>
+                    <td className="cell-style">{sale.items[0]?.wooProductId}</td>
+                    <td className="cell-style">${sale.items[0]?.unitPrice.toFixed(2)}</td>
+                    <td className="cell-style">{sale.orderId}</td>
                     <td className="cell-style">${sale.commissionEarned}</td>
+                    {/* <td className="cell-style">
+                      {sale.event?.length <= 20
+                        ? sale.event
+                        : `${sale.event?.slice(0, 20)}...`}
+                    </td> */}
+                    {/* <td className="cell-style">{sale.productId}</td> */}
+                    {/* <td className="cell-style">{sale.refId}</td> */}
+                    {/* <td className="cell-style">${sale.amount}</td> */}
                     {/* Update the cell to show status of enrollement */}
                     {me.role === "admin" && (
                       <td className="cell-style">

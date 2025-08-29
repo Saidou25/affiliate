@@ -161,7 +161,8 @@ async function startServer() {
 
   app.use(
     "/graphql",
-    bodyParser.json(),
+    // bodyParser.json(),
+    express.json(),
     expressMiddleware(server, { context: createContext as any })
   );
 

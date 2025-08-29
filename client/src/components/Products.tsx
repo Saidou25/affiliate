@@ -16,13 +16,13 @@ export default function Products() {
   const [productsLinks, setProducstLinks] = useState<ProductLink[]>([]);
   const [productsData, setProductsData] = useState<AffiliateProduct[]>([]);
 
-    const {
-      data: affiliateProductsData,
-      // loading: affiliateProductsDataLoading,
-      // error: affiliateProductsDataError,
-    } = useQuery(AFFILIATE_PRODUCTS, {
-      variables: { active: true }, // or rely on a schema default if you set one
-    });
+  const {
+    data: affiliateProductsData,
+    // loading: affiliateProductsDataLoading,
+    // error: affiliateProductsDataError,
+  } = useQuery(AFFILIATE_PRODUCTS, {
+    variables: { active: true }, // or rely on a schema default if you set one
+  });
 
   const selectUrl = (url: string, productTitle: string) => {
     setProducstLinks((prev) => [...prev, { productTitle, productUrl: url }]);
@@ -33,14 +33,11 @@ export default function Products() {
     );
   };
 
-  
-    useEffect(() => {
-      console.log(affiliateProductsData);
-      if (affiliateProductsData) {
-        console.log(affiliateProductsData);
-        setProductsData(affiliateProductsData.affiliateProducts);
-      }
-    }, [affiliateProductsData]);
+  useEffect(() => {
+    if (affiliateProductsData) {
+      setProductsData(affiliateProductsData.affiliateProducts);
+    }
+  }, [affiliateProductsData]);
 
   return (
     <div className="products-container">
@@ -58,31 +55,35 @@ export default function Products() {
               />
               <div className="ps">
                 <h4 className="affiliate-product-title">{product.name}</h4>
-                <span>Some descriptions (brief text) go here... Also an option to open unique detail page for that item.</span><br />
+                <span>
+                  Some descriptions (brief text) go here... Also an option to
+                  open unique detail page for that item.
+                </span>
+                <br />
                 <span>${product.price}</span>
                 {productsLinks?.some(
                   (prod) => prod.productTitle === product.name
                 ) && <RefferalLink productUrl={product.permalink} />}
               </div>
-                {productsLinks.some(
-                  (prod) => prod.productTitle === product.name
-                ) ? (
-                  <Button
-                    className="blue-btn"
-                    onClick={() => removeUrl(product.name)}
-                    style={{ height: "40px", width: "90px" }}
-                  >
-                    Remove
-                  </Button>
-                ) : (
-                  <Button
-                    className="blue-btn"
-                    onClick={() => selectUrl(product.permalink, product.name)}
-                    style={{ height: "40px", width: "90px" }}
-                  >
-                    Select
-                  </Button>
-                )}
+              {productsLinks.some(
+                (prod) => prod.productTitle === product.name
+              ) ? (
+                <Button
+                  className="blue-btn"
+                  onClick={() => removeUrl(product.name)}
+                  style={{ height: "40px", width: "90px" }}
+                >
+                  Remove
+                </Button>
+              ) : (
+                <Button
+                  className="blue-btn"
+                  onClick={() => selectUrl(product.permalink, product.name)}
+                  style={{ height: "40px", width: "90px" }}
+                >
+                  Select
+                </Button>
+              )}
             </li>
           ))}
       </ul>

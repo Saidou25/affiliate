@@ -84,10 +84,10 @@ const resolvers = {
       return await AffiliateSale.find();
     },
 
-    getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
-      return await AffiliateSale.find({ refId }); // likely multiple sales per affiliate
-    },
-    affiliateSales: async (_: any, { filter, limit = 50, offset = 0 }: any) => {
+    // getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
+    //   return await AffiliateSale.find({ refId }); // likely multiple sales per affiliate
+    // },
+    getAffiliateSales: async (_: any, { filter, limit = 50, offset = 0 }: any) => {
       const q: any = {};
       if (filter?.refId) q.refId = filter.refId;
       if (filter?.source) q.source = filter.source;

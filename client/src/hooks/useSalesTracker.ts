@@ -73,11 +73,11 @@ export function useSalesTracker(affiliateRefId: string) {
     if (salesData?.getAffiliateSales && referenceId) {
       const sortedSales = [...salesData.getAffiliateSales].sort(
         (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
 
       const dayLabels = sortedSales.map((sale: any) =>
-        toEasternDate(sale.timestamp)
+        toEasternDate(sale.createdAt)
       );
       const allDateObjs = dayLabels.map((d: string) => new Date(d));
       const min = new Date(
@@ -93,9 +93,9 @@ export function useSalesTracker(affiliateRefId: string) {
       const monthlyCount: Record<string, number> = {};
 
       for (const sale of sortedSales) {
-        const day = toEasternDate(sale.timestamp);
-        const week = toWeekLabel(sale.timestamp);
-        const month = toMonthLabel(sale.timestamp);
+        const day = toEasternDate(sale.createdAt);
+        const week = toWeekLabel(sale.createdAt);
+        const month = toMonthLabel(sale.createdAt);
 
         dailyCount[day] = (dailyCount[day] || 0) + 1;
         weeklyCount[week] = (weeklyCount[week] || 0) + 1;
