@@ -52,12 +52,42 @@
   padding: 0;
 }
 
+/* Keep li as a row for the dot bullet */
 .notification-item {
-  padding: 10px 12px;
-  font-size: 14px;
-  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
+/* Stack message over time inside the li */
+.notification-item .text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Optional polish */
+.notification-item .time {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  opacity: 0.7;            /* or use a muted color */
+}
+
+
+/* red dot for unread items */
+.notification-item.unread::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc3545; /* red */
+  margin-top: 6px; /* align with first line of text */
+  flex-shrink: 0;
+}
+
+/* optional: emphasize unread text a bit */
+.notification-item.unread .message {
+  font-weight: 600;
+}
 .notification-item:hover {
   background-color: #f9f9f9;
 }

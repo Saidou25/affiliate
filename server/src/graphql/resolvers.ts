@@ -87,7 +87,10 @@ const resolvers = {
     // getAffiliateSales: async (_: any, { refId }: { refId: string }) => {
     //   return await AffiliateSale.find({ refId }); // likely multiple sales per affiliate
     // },
-    getAffiliateSales: async (_: any, { filter, limit = 50, offset = 0 }: any) => {
+    getAffiliateSales: async (
+      _: any,
+      { filter, limit = 50, offset = 0 }: any
+    ) => {
       const q: any = {};
       if (filter?.refId) q.refId = filter.refId;
       if (filter?.source) q.source = filter.source;
@@ -248,7 +251,7 @@ const resolvers = {
         notifications: [
           {
             title: "Welcome to the Princeton Green's Affiliate Program!",
-            text: "Your account has been successfully created.",
+            text: "Your affiliate account has been successfully created.",
             date: new Date(),
             read: false,
           },
@@ -449,31 +452,40 @@ const resolvers = {
       }
     },
 
-    clickLog: async (_: unknown, { refId }: { refId: string }) => {
+    clickLog: async (
+      _: unknown,
+      { refId }: { refId: string },
+      { req }: { req: import("express").Request }
+    ) => {
       try {
-        if (!refId) {
-          throw new Error("refId is required");
-        }
-
+        if (!refId) throw new Error("refId is required");
         console.log("✅ clickLog called with:", refId);
 
         const updatedAffiliate = await Affiliate.findOneAndUpdate(
           { refId },
-          { $inc: { totalClicks: 1 } }, // Increment totalClicks by 1
-          { new: true } // Return the updated document
+          { $inc: { totalClicks: 1 } },
+          { new: true }
         );
+        if (!updatedAffiliate) throw new Error("Affiliate not found");
 
-        if (!updatedAffiliate) {
-          throw new Error("Affiliate not found");
-        }
+        const ip =
+          (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+          req.socket.remoteAddress ||
+          "";
+        const ua = req.get("user-agent") || "";
+        const referer = req.get("referer") || "";
 
-        const newClick = new ClickLog({ refId });
-        await newClick.save();
-        console.log("✅ newClick saved:", newClick);
+        const newClick = await ClickLog.create({
+          refId,
+          ipAddress: ip,
+          userAgent: ua,
+          pageUrl: referer,
+        });
 
+        console.log("✅ newClick saved:", newClick.id);
         return newClick;
-      } catch (error) {
-        console.error("Error logging click:", error);
+      } catch (err) {
+        console.error("Error logging click:", (err as Error).message);
         throw new Error("Failed to log click");
       }
     },

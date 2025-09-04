@@ -1,6 +1,5 @@
 import Button from "./Button";
 import Spinner from "./Spinner";
-// import { useState } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 
 import "./ConfirmCloseConnectionModal.css";

@@ -1,4 +1,3 @@
-// src/hooks/useFetchStripeStatusByRefId.ts
 import { useEffect, useState } from "react";
 import { useLazyQuery } from "@apollo/client";
 import { CHECK_STRIPE_STATUS, GET_AFFILIATE_BY_REFID } from "../utils/queries";

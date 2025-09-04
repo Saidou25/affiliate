@@ -1,6 +1,7 @@
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATECLICKLOGS, QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
+// import { toDate } from "date-fns";
 
 interface Affiliate {
   id: string;
@@ -35,11 +36,6 @@ export function useClicksTracker() {
     skip: !me?.refId,
   });
 
-  const toEasternDate = (date: Date | string) =>
-    new Date(date).toLocaleDateString("en-US", {
-      timeZone: "America/New_York",
-    });
-
   const getDateRange = (start: Date, end: Date) => {
     const range: string[] = [];
     const current = new Date(start);
@@ -64,46 +60,80 @@ export function useClicksTracker() {
     return grouped;
   };
 
+  // Safe date coercion
+  const toDate = (v: any): Date | null => {
+    if (!v) return null;
+    if (v instanceof Date) return v;
+    if (typeof v === "number") return new Date(v);
+    if (typeof v === "string") {
+      const s = v.trim();
+      if (/^\d+$/.test(s)) return new Date(Number(s)); // <- Unix ms string
+      return new Date(s); // ISO string
+    }
+    try {
+      return new Date(v);
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (clicksData?.getAffiliateClickLogs) {
-      const sortedClicks = [...clicksData.getAffiliateClickLogs].sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
+      const sortedClicks = [...(clicksData?.getAffiliateClickLogs ?? [])]
+  .filter((c: any) => c?.createdAt != null)
+  .sort(
+    (a: any, b: any) =>
+      toDate(a.createdAt)!.getTime() - toDate(b.createdAt)!.getTime()
+  );
+      // const allDateObjects = sortedClicks.map(
+      //   (click: any) =>
+      //     new Date(
+      //       new Date(click.createdAt).toLocaleString("en-US", {
+      //         timeZone: "America/New_York",
+      //       })
+      //     )
+      // );
 
-      const allDateObjects = sortedClicks.map(
-        (click: any) =>
-          new Date(
-            new Date(click.createdAt).toLocaleString("en-US", {
-              timeZone: "America/New_York",
-            })
-          )
-      );
+   const allDateObjects: Date[] = sortedClicks
+  .map((c: any) => toDate(c.createdAt))
+  .filter((d: Date | null): d is Date => !!d && !Number.isNaN(d.getTime()));
 
       // 1. Per Day
+      const toEasternDate = (date: Date | string) =>
+        new Date(date).toLocaleDateString("en-US", {
+          timeZone: "America/New_York",
+        });
+
       const allDates = allDateObjects.map(toEasternDate);
+
       const minDate = new Date(
         Math.min(...allDateObjects.map((d) => d.getTime()))
       );
+
       const maxDate = new Date(
         Math.max(...allDateObjects.map((d) => d.getTime()))
       );
+
       const fullDateRange = getDateRange(minDate, maxDate);
 
       const clicksCountPerDay: Record<string, number> = {};
       for (const date of allDates) {
         clicksCountPerDay[date] = (clicksCountPerDay[date] || 0) + 1;
       }
+
       const dayData: DataObj[] = fullDateRange.map((date) => ({
         x: date,
         y: clicksCountPerDay[date] || 0,
       }));
+
       setClicksPerDay([{ id: "Clicks per Day", data: dayData }]);
 
       // 2. Per Week (e.g. 2025-W20)
       const weekFormatter = (d: Date) => {
         const oneJan = new Date(d.getFullYear(), 0, 1);
         const week = Math.ceil(
-          ((d.getTime() - oneJan.getTime()) / 86400000 + oneJan.getDay() + 1) / 7
+          ((d.getTime() - oneJan.getTime()) / 86400000 + oneJan.getDay() + 1) /
+            7
         );
         return `${d.getFullYear()}-W${week}`;
       };
@@ -115,6 +145,7 @@ export function useClicksTracker() {
           const [yearB, weekB] = b.x.split("-W").map(Number);
           return yearA !== yearB ? yearA - yearB : weekA - weekB;
         });
+     
       setClicksPerWeek([{ id: "Clicks per Week", data: weekData }]);
 
       // 3. Per Month (e.g. May 2025)

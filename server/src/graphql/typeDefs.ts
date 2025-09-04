@@ -138,11 +138,10 @@ const typeDefs = gql`
   type ClickLog {
     id: ID
     refId: String
-    # pageUrl: String
-    # userAgent: String
-    # createdAt: String
-    # ipAddress: String
-    createdAt: Date
+    pageUrl: String
+    userAgent: String
+    createdAt: String
+    ipAddress: String
     updatedAt: Date
   }
 
@@ -273,7 +272,7 @@ const typeDefs = gql`
 
     deleteAffiliate(id: ID!): Affiliate
 
-    clickLog(refId: String, createdAt: Date): ClickLog
+    clickLog(refId: String): ClickLog
 
     trackAffiliateSale(
       productId: String

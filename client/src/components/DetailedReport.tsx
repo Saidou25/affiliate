@@ -35,10 +35,10 @@ export default function DetailedReport({ refId }: Props) {
     variables: { filter: { refId }, limit: 200, offset: 0 },
     skip: !refId, // if refId is '', query won’t run
     fetchPolicy: "cache-and-network",
-    onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
-    onError: (e) => console.error("[AFFILIATE_SALES error]", e),
+    // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+    // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
-  console.log(salesData);
+
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
 
   const { data: meData } = useQuery(QUERY_ME);
@@ -106,7 +106,7 @@ export default function DetailedReport({ refId }: Props) {
       const dateB = new Date(b.sales[0].createdAt);
       return dateB.getTime() - dateA.getTime();
     });
-console.log("groupedArray: ", groupedArray);
+
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 

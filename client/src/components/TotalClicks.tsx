@@ -9,6 +9,9 @@ import "./Analytics.css";
 
 export default function TotalClicks() {
   const { clicksPerDay, clicksPerWeek, clicksPerMonth } = useClicksTracker();
+// console.log("clicksPerDay: ", clicksPerDay);
+// console.log("clicksPerWeek: ", clicksPerWeek);
+// console.log("clicksPerMonth: ", clicksPerMonth);
 
   const { data } = useQuery(QUERY_ME);
   const me = data.me || {};

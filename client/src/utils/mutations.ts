@@ -126,6 +126,7 @@ export const UPDATE_AFFILIATE_SALE = gql`
 export const CLICK_LOG = gql`
   mutation ClickLog($refId: String) {
     clickLog(refId: $refId) {
+      id
       refId
       createdAt
       updatedAt

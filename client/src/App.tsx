@@ -1,5 +1,4 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
-import Auth from "./utils/auth";
+import { Routes, Route } from "react-router-dom";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Home from "./components/Home";
@@ -19,19 +18,15 @@ import AdminDashboard from "./components/AdminDashboard";
 import StripeReturn from "./components/StripeReturn";
 import ViewAllNotifications from "./components/ViewAllNotifications";
 import Settings from "./components/Settings";
-import { useEffect } from "react";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-
-import "bootswatch/dist/lux/bootstrap.min.css";
-// import LandingPageTitle from "./components/LandingPageTitle";
-
-import "./App.css";
 import WooSyncCard from "./components/WooSyncCard";
 
-function App() {
-  const navigate = useNavigate();
+import "bootswatch/dist/lux/bootstrap.min.css";
 
+import "./App.css";
+
+function App() {
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || {};
 
@@ -41,19 +36,12 @@ function App() {
     GET_AFFILIATES
   );
 
-  useEffect(() => {
-    if (!Auth.loggedIn()) {
-      navigate("/");
-    }
-  }, [navigate]);
-  
   return (
     <>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
-        {/* <Route path="/stripe-onboarding/refresh" element={<StripeRefresh />} /> */}
         <Route
           path="/admin"
           element={
@@ -79,6 +67,7 @@ function App() {
           <Route path="data center" element={<DataCenter />} />
           <Route path="/admin/wooproducts" element={<WooSyncCard />} />
         </Route>
+
         <Route path="/affiliate" element={<AffiliateDashboard />}>
           <Route path="notifications" element={<ViewAllNotifications />} />
           <Route path="products" element={<Products />} />
@@ -87,6 +76,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

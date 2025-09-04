@@ -36,13 +36,13 @@ export function useCommissionsTracker() {
     data: salesData,
     // loading: salesLoading,
     // error: salesError,
-    refetch,
+    // refetch,
   } = useQuery(GET_AFFILIATESALES, {
     variables: { filter: { refId }, limit: 200, offset: 0 },
     skip: !refId, // if refId is '', query won’t run
     fetchPolicy: "cache-and-network",
-    onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
-    onError: (e) => console.error("[AFFILIATE_SALES error]", e),
+    // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+    // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
 
   const toEasternDate = (isoDate: string) =>

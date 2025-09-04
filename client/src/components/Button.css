@@ -87,6 +87,15 @@
   background-color: #e0e0e0;
 } */
 
+.danger-btn {
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+.danger-btn:hover {
+  background-color: #bb2d3b;
+  border-color: #b02a37;
+}
+
 /* Reports */
 .paid-button-admin {
   padding: 4px 8px;

@@ -55,18 +55,19 @@ async function startServer() {
   app.use(
     cors({
       origin: "*", // adjust to your frontend origin(s) if you want to lock down
-      credentials: true,
+      credentials: false,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: [
         "Content-Type",
         "Authorization",
         "x-api-key",
         "Stripe-Signature",
+        "x-site-key",
       ],
     })
   );
-  //   app.options("*", cors());
-  //   app.options(/.*/, cors());          // OK with path-to-regexp v6
+  // app.options("*", cors());
+    app.options(/.*/, cors());          // OK with path-to-regexp v6
   // // or
   // app.options("(.*)", cors());
 

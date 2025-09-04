@@ -1,8 +1,8 @@
-import {  useQuery } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useQuery } from "@apollo/client";
+import { useMemo } from "react";
 import { CHECK_STRIPE_STATUS, QUERY_ME } from "../utils/queries";
 
-type StripeStatus = {
+export type StripeStatus = {
   id: string;
   charges_enabled: boolean;
   payouts_enabled: boolean;
@@ -11,68 +11,88 @@ type StripeStatus = {
   message?: string;
 };
 
+type OnboardingState = "not_started" | "in_progress" | "complete";
+
 const useCheckOnboardingStatus = (affiliateId?: string) => {
-  const [stripeStatusData, setStripeStatusData] = useState<StripeStatus | null>(
-    null
-  );
-  const [onboardingStatusMessage, setOnboardingStatusMessage] = useState("");
-  const [onboardingStatusButtonMessage, setOnboardingStatusButtonMessage] =
-    useState("");
-  const [onboardingNotificationTitle, setOnboardingNotificationTitle] =
-    useState("");
-
+  // Who am I?
   const { data: meData } = useQuery(QUERY_ME);
-  const me = meData?.me || {};
+  const me = meData?.me ?? {};
 
-  const { data, loading, error } = useQuery(CHECK_STRIPE_STATUS, {
-    variables: { affiliateId },
-    skip: !affiliateId, // only runs when affiliateId exists
+  // Decide which id to use for the status query
+  const effectiveAffiliateId = affiliateId ?? me?.id;
+
+  const { data, loading, error, refetch } = useQuery<{
+    checkStripeStatus: StripeStatus;
+  }>(CHECK_STRIPE_STATUS, {
+    variables: { affiliateId: effectiveAffiliateId },
+    skip: !effectiveAffiliateId, // only if we truly have no id
+    fetchPolicy: "network-only", // status is volatile
   });
 
-  useEffect(() => {
-    if (data?.checkStripeStatus) {
-      setStripeStatusData(data.checkStripeStatus);
-    }
-  }, [data]);
+  const stripeStatus = data?.checkStripeStatus;
 
-  // Defines onboarding messages after stripeStatusData is updated
-  useEffect(() => {
-    if (!me?.stripeAccountId) {
-      setOnboardingStatusMessage(
-        "💸 You haven’t connected a payment method yet. To receive your commissions, please link your Stripe account."
-      );
-      setOnboardingStatusButtonMessage("Connect Stripe");
-      setOnboardingNotificationTitle("Stripe account not connected");
-    } else if (stripeStatusData && !stripeStatusData.payouts_enabled) {
-      setOnboardingStatusMessage(
-        "Almost there! Please finish setting up your Stripe account to start receiving payouts."
-      );
-      setOnboardingStatusButtonMessage("Finish Onboarding");
-      setOnboardingNotificationTitle("Finish your Stripe onboarding");
-    } else if (stripeStatusData?.payouts_enabled) {
-      setOnboardingStatusMessage(
-        "✅ Your Stripe account is connected and ready for payouts."
-      );
-      setOnboardingStatusButtonMessage("Stripe Connected");
-      setOnboardingNotificationTitle("Success, Stripe onBoarding complete");
-    }
-  }, [me?.stripeAccountId, stripeStatusData]);
+  // Derive canonical state
+  const state: OnboardingState = useMemo(() => {
+    if (!me?.stripeAccountId) return "not_started";
+    if (!stripeStatus) return "in_progress"; // we have an account id but no flags yet
+    return stripeStatus.payouts_enabled ? "complete" : "in_progress";
+  }, [me?.stripeAccountId, stripeStatus]);
 
-  const isStripeMissing = !me?.stripeAccountId;
-  const isOnboardingIncomplete =
-    stripeStatusData && !stripeStatusData.payouts_enabled;
-  const isFullyOnboarded = stripeStatusData?.payouts_enabled;
+  // Optional: human-friendly copy & primary button label
+  const { message, buttonLabel, buttonDangerLabel } = useMemo(() => {
+    if (state === "not_started") {
+      return {
+        message:
+          "💸 You haven’t connected a payment method yet. To receive your commissions, please link your Stripe account.",
+        buttonLabel: "Create connection",
+        buttonDangerLabel: undefined,
+      };
+    }
+    if (state === "in_progress") {
+      // You can customize based on details_submitted for sharper guidance
+      const finishing =
+        stripeStatus && !stripeStatus.details_submitted ? "Resume" : "Finish";
+      return {
+        message:
+          "Almost there! Please finish setting up your Stripe account to start receiving payouts.",
+        buttonLabel: `${finishing} onboarding`,
+        buttonDangerLabel: "Close connection", // ← the cancel/close button label
+      };
+    }
+    return {
+      message: "✅ Your Stripe account is connected and ready for payouts.",
+      buttonLabel: "Close connection",
+    };
+  }, [state, stripeStatus]);
+
+  // Handy booleans for rendering
+  const isStripeMissing = state === "not_started";
+  const isOnboardingIncomplete = state === "in_progress";
+  const isFullyOnboarded = state === "complete";
 
   return {
-    stripeStatusData,
+    // raw
+    stripeStatus,
+    loading,
+    error,
+    refetch,
+
+    // derived
+    state, // "not_started" | "in_progress" | "complete"
     isStripeMissing,
     isOnboardingIncomplete,
     isFullyOnboarded,
-    onboardingNotificationTitle,
-    onboardingStatusMessage,
-    onboardingStatusButtonMessage,
-    loading,
-    error,
+
+    // UI helpers
+    onboardingStatusMessage: message,
+    onboardingStatusButtonMessage: buttonLabel,
+    onboardingDangerButtonMessage: buttonDangerLabel,
+    onboardingNotificationTitle:
+      state === "complete"
+        ? "Success, Stripe onboarding complete"
+        : state === "in_progress"
+        ? "Finish your Stripe onboarding"
+        : "Stripe account not connected",
   };
 };
 

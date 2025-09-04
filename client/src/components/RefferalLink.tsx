@@ -19,7 +19,7 @@ export default function RefferalLink({ productUrl }: Props) {
       <br />
       <div className="product-link">
         <span>
-          {productUrl}/?ref={refId}
+          {productUrl}/?refId={refId}
         </span>
         <CopyToClipboard productUrl={productUrl} refId={refId} />
       </div>

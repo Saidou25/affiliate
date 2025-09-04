@@ -5,8 +5,8 @@ import {
   DELETE_NOTIFICATION,
   DISCONNECT_STRIPE_ACCOUNT,
 } from "../utils/mutations";
-import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import { QUERY_ME } from "../utils/queries";
+import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import ConfirmCloseConnectionModal from "./ConfirmCloseConnectionModal";
@@ -20,39 +20,31 @@ export default function StripeStatusCard({ affiliateId }: Props) {
   const [stripeMessage, setStripeMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  const { onboardingStatusMessage, onboardingStatusButtonMessage, loading } =
-    useCheckOnboardingStatus(affiliateId);
-  console.log("onboardingStatusMessage: ", onboardingStatusMessage);
-  console.log("onboardingStatusButtonMessage: ", onboardingStatusButtonMessage);
+  const {
+    state, // "not_started" | "in_progress" | "complete"
+    onboardingStatusMessage,
+    onboardingStatusButtonMessage,
+    onboardingDangerButtonMessage,
+    loading,
+  } = useCheckOnboardingStatus(affiliateId);
 
-  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
-
-  const [disconnectStripeAccount, { loading: loadingDisconnect }] = useMutation(
+  const [createStripeAccount, { loading: createLoading }] = useMutation(
+    CREATE_AFFILIATE_STRIPE_ACCOUNT
+  );
+  const [disconnectStripeAccount, { loading: disconnectLoading }] = useMutation(
     DISCONNECT_STRIPE_ACCOUNT
   );
-  const [createStripeAccount, { loading: creatStripeAccountLoading }] =
-    useMutation(CREATE_AFFILIATE_STRIPE_ACCOUNT);
+  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
 
-  const { data } = useQuery(QUERY_ME);
-  const me = data?.me || {};
+  // Only needed for clearing notifications after disconnect
+  const { data: meData } = useQuery(QUERY_ME);
+  const me = meData?.me ?? {};
 
-  const create = async () => {
-    console.log("in create");
-    try {
- const { data } = await createStripeAccount({
-        variables: { affiliateId },
-      });
-      if (data) { console.log("success creating connection")}
-    } catch (error) {
-      console.log(error);
-    }
-  }
-  const handleResumeOnboarding = async () => {
+  const startOrResume = async () => {
     try {
       const { data } = await createStripeAccount({
         variables: { affiliateId },
       });
-
       const { url, resumed } = data?.createAffiliateStripeAccount || {};
       if (url) {
         setStripeMessage(
@@ -61,29 +53,30 @@ export default function StripeStatusCard({ affiliateId }: Props) {
             : "You're about to start your Stripe onboarding process..."
         );
         setShowStripeMessage(true);
-        setTimeout(() => {
-          window.location.href = url;
-        }, 3000);
+        setTimeout(() => (window.location.href = url), 3000);
       }
     } catch (err: any) {
-      console.error("⚠️ Failed to resume onboarding:", err.message);
+      console.error("⚠️ Failed to create/resume onboarding:", err.message);
     }
   };
 
   const closeConnection = async () => {
-    if (!me.stripeAccountId) return;
+    const idToUse = affiliateId ?? me?.id;
+    if (!idToUse) return;
 
     try {
       const { data } = await disconnectStripeAccount({
-        variables: { affiliateId: me.id },
+        variables: { affiliateId: idToUse },
       });
 
       if (data?.disconnectStripeAccount?.success) {
         setStripeMessage("Stripe account successfully disconnected.");
         setShowStripeMessage(true);
 
-        await deleteNotification({ variables: { refId: me.refId } });
-        console.log("🧹 Onboarding notifications removed.");
+        if (me?.refId) {
+          await deleteNotification({ variables: { refId: me.refId } });
+          console.log("🧹 Onboarding notifications removed.");
+        }
       } else {
         console.warn("⚠️ Stripe disconnection did not complete.");
       }
@@ -108,38 +101,64 @@ export default function StripeStatusCard({ affiliateId }: Props) {
     <div style={{ borderRadius: "8px", color: "white" }}>
       <h3>Stripe Payment Setup</h3>
       <p>{onboardingStatusMessage}</p>
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
-        {!onboardingStatusMessage.includes("ready for payout") && (
-          <Button
-            className="blue-btn-settings"
-            onClick={handleResumeOnboarding}
-          >
-            {creatStripeAccountLoading ? (
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        {state === "not_started" && (
+          <Button className="blue-btn-settings" onClick={startOrResume}>
+            {createLoading ? (
               <Spinner />
             ) : (
               <span>{onboardingStatusButtonMessage}</span>
             )}
           </Button>
         )}
-<Button type="button" className="btn-blue" onClick={create}>create</Button>
-        {me.stripeAccountId && (
+
+        {state === "in_progress" && (
+          <>
+            <Button className="blue-btn-settings" onClick={startOrResume}>
+              {createLoading ? (
+                <Spinner />
+              ) : (
+                <span>{onboardingStatusButtonMessage}</span>
+              )}
+            </Button>
+            <Button
+              className="blue-btn-settings danger-btn"
+              onClick={() => setShowModal(true)}
+            >
+              {disconnectLoading ? (
+                <Spinner />
+              ) : (
+                <span>{onboardingDangerButtonMessage}</span>
+              )}
+            </Button>
+          </>
+        )}
+
+        {state === "complete" && (
           <Button
-            className="blue-btn-settings"
+            className="blue-btn-settings danger-btn"
             onClick={() => setShowModal(true)}
           >
-            {loadingDisconnect ? <Spinner /> : <span>Close Connection</span>}
+            {disconnectLoading ? (
+              <Spinner />
+            ) : (
+              <span>{onboardingStatusButtonMessage}</span>
+            )}
           </Button>
         )}
       </div>
+
       {showStripeMessage && (
         <p style={{ marginTop: "1rem", color: "green" }}>{stripeMessage}</p>
       )}
+
       {showModal && (
         <ConfirmCloseConnectionModal
           setShowModal={setShowModal}
           closeConnection={closeConnection}
           closeConnectionMessage={stripeMessage}
-          loading={loadingDisconnect}
+          loading={disconnectLoading}
           setStripeMessage={setStripeMessage}
         />
       )}

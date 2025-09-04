@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { QUERY_ME } from "../utils/queries";
 import AuthService from "../utils/auth";
 import Button from "./Button";
-//
+
 export default function AffiliateLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();

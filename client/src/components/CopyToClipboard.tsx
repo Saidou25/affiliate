@@ -11,7 +11,7 @@ const CopyToClipboard = ({ productUrl, refId }: Props) => {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(`${productUrl}/?ref=${refId}`);
+      await navigator.clipboard.writeText(`${productUrl}/?refId=${refId}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (err) {
