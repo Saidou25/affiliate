@@ -2,7 +2,6 @@ import { useMutation, useQuery } from "@apollo/client";
 import { useEffect, useRef } from "react";
 import {
   CREATE_NOTIFICATION,
-  UPDATE_NOTIFICATION_READ_STATUS, // kept if you use elsewhere
 } from "../utils/mutations";
 import { QUERY_ME } from "../utils/queries";
 import useCheckOnboardingStatus from "./useCheckOnboardingStatus";
