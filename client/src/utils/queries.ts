@@ -202,6 +202,7 @@ export const GET_ALLREPORTS = gql`
 export const GET_AFFILIATE_PAYMENT_HISTORY = gql`
   query GetAffiliatePaymentHistory($refId: String!) {
     getAffiliatePaymentHistory(refId: $refId) {
+      id
       amount
       date
       method
@@ -218,7 +219,7 @@ export const GET_ALL_AFFILIATE_PAYMENTS = gql`
       email
       name
       paymentHistory {
-        amount
+        saleAmount
         date
         method
       }
@@ -239,6 +240,7 @@ export const GET_ALL_PAYMENTS = gql`
       method
       transactionId
       notes
+      createdAt
     }
   }
 `;

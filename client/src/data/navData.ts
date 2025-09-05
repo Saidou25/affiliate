@@ -9,7 +9,7 @@ const adminLinks = {
     "affiliates",
     "look up",
     "sales report",
-    "data center",
+    // "data center",
     "wooProducts"
   ],
 };

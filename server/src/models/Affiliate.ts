@@ -1,13 +1,6 @@
 import mongoose, { CallbackError, Document, Schema } from "mongoose";
 import * as bcrypt from "bcrypt";
-
-interface IPaymentRecord {
-  amount: number;
-  date: Date;
-  method: "paypal" | "bank" | "crypto" | string;
-  transactionId?: string;
-  notes?: string;
-}
+import { PaymentRecord } from "../graphql/types";
 
 interface INotification {
   date: Date;
@@ -29,7 +22,7 @@ interface IAffiliate extends Document {
   role?: "admin" | "affiliate";
   createdAt?: Date; // ✅ Automatically added by Mongoose
   updatedAt?: Date; // ✅ Automatically added by Mongoose
-  paymentHistory?: IPaymentRecord[];
+  paymentHistory?: PaymentRecord[];
   notifications?: INotification[];
   avatar?: string;
 }
@@ -37,7 +30,13 @@ interface IAffiliate extends Document {
 const AffiliateSchema = new Schema<IAffiliate>(
   {
     name: { type: String, trim: true },
-    email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
     refId: { type: String, required: true },
     password: { type: String, required: true, minlength: 6 }, // ✅ don't make it unique
     totalClicks: { type: Number, default: 0 },
@@ -49,7 +48,7 @@ const AffiliateSchema = new Schema<IAffiliate>(
     avatar: { type: String },
     paymentHistory: [
       {
-        amount: { type: Number },
+        saleAmount: { type: Number },
         date: { type: Date },
         method: { type: String },
         transactionId: { type: String },

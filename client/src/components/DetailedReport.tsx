@@ -16,20 +16,31 @@ type Props = {
   refId: string;
 };
 
+// put this above your component
+const formatDate = (value: any): Date | null => {
+  if (!value) return null;
+
+  // if it’s a number (stringified or not)
+  const num = Number(value);
+  if (!Number.isNaN(num)) {
+    const ms = num < 1e12 ? num * 1000 : num; // seconds → ms
+    return new Date(ms);
+  }
+
+  // otherwise assume ISO string
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export default function DetailedReport({ refId }: Props) {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
 
-  // const { data: salesData, refetch } = useQuery(GET_AFFILIATESALES, {
-  //   variables: { refId },
-  //   skip: !refId,
-  // });
-
   const {
     data: salesData,
     // loading: salesLoading,
-    // error: salesError,
+    error: salesError,
     refetch,
   } = useQuery(GET_AFFILIATESALES, {
     variables: { filter: { refId }, limit: 200, offset: 0 },
@@ -38,7 +49,7 @@ export default function DetailedReport({ refId }: Props) {
     // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
     // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
-
+  console.log(salesError);
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
 
   const { data: meData } = useQuery(QUERY_ME);
@@ -46,15 +57,6 @@ export default function DetailedReport({ refId }: Props) {
 
   const { salesPerMonth } = useSalesTracker(refId);
   const { clicksPerMonth } = useClicksTracker();
-
-  // const findEmail = () => {
-  //   if (affiliatesData) {
-  //     const foundAffiliate = affiliatesData.getAffiliates.filter(
-  //       (affiliate: Affiliate) => affiliate.refId === refId
-  //     );
-  //     return foundAffiliate[0].email;
-  //   }
-  // };
 
   const findEmail = () => {
     if (affiliatesData) {
@@ -69,10 +71,12 @@ export default function DetailedReport({ refId }: Props) {
   findEmail();
 
   useEffect(() => {
+    console.log(salesData);
     if (salesData?.getAffiliateSales) {
       const organizedDates = [...salesData?.getAffiliateSales].sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (formatDate(a.createdAt)?.getTime() ?? 0) -
+          (formatDate(b.createdAt)?.getTime() ?? 0)
       );
       setSortedDates(organizedDates);
     }
@@ -82,11 +86,12 @@ export default function DetailedReport({ refId }: Props) {
     const salesMap: { [key: string]: AffiliateSale[] } = {};
 
     sortedDates.forEach((sale) => {
-      const date = new Date(sale.createdAt);
+      const date = formatDate(sale.createdAt);
+      if (!date) return; // skip if invalid
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       const key = `${month} ${year}`;
-
+      console.log(date);
       if (!salesMap[key]) {
         salesMap[key] = [];
       }
@@ -102,11 +107,12 @@ export default function DetailedReport({ refId }: Props) {
 
     // sort by most recent month
     groupedArray.sort((a, b) => {
-      const dateA = new Date(a.sales[0].createdAt);
-      const dateB = new Date(b.sales[0].createdAt);
-      return dateB.getTime() - dateA.getTime();
+      const dateA = formatDate(a.sales[0].createdAt);
+      const dateB = formatDate(b.sales[0].createdAt);
+      return (dateB?.getTime() ?? 0) - (dateA?.getTime() ?? 0);
     });
 
+    console.log("hello");
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 
@@ -121,6 +127,7 @@ export default function DetailedReport({ refId }: Props) {
       </div>
     );
   }
+  console.log('monthly sales: ', monthlySales)
   return (
     <div className="detailed-report-container">
       {me.role === "admin" ? (

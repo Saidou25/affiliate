@@ -11,11 +11,13 @@
 // };
 
 export type PaymentRecord = {
-  amount: number;
-  date: Date;
-  method: "paypal" | "bank" | "crypto" | string;
-  transactionId?: string;
-  notes?: string;
+  saleAmount: number;
+  paidCommission?: number | null;
+  productName?: string | null;
+  date: string; // GraphQL Date -> string
+  method: string;
+  transactionId?: string | null;
+  notes?: string | null;
 };
 
 export type Notification = {
@@ -36,8 +38,8 @@ export type Affiliate = {
   password: string;
   commissionRate: number;
   role?: "admin" | "affiliate";
-  createdAt?: Date; // ✅ Automatically added by Mongoose
-  updatedAt?: Date; // ✅ Automatically added by Mongoose
+  createdAt?: string; // ✅ Automatically added by Mongoose
+  updatedAt?: string; // ✅ Automatically added by Mongoose
   paymentHistory: PaymentRecord[];
   stripeAccountId?: String;
   notifications?: Notification[];
@@ -113,12 +115,11 @@ export interface AffiliateSale {
 
   // Legacy (optional; for backward compatibility)
   timestamp?: string | Date; // prefer createdAt/orderDate
-  amount?: number;           // prefer total
-  productId?: string;        // prefer items/product
+  amount?: number; // prefer total
+  productId?: string; // prefer items/product
   buyerEmail?: string;
   event?: string;
 }
-
 
 export interface AffiliateSalesQueryData {
   affiliateSales: AffiliateSale[];
@@ -130,8 +131,8 @@ export interface AffiliateSalesQueryVars {
     source?: string;
     orderId?: string;
     status?: string;
-    from?: string;   // ISO
-    to?: string;     // ISO
+    from?: string; // ISO
+    to?: string; // ISO
   };
   limit?: number;
   offset?: number;

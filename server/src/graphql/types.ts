@@ -1,9 +1,11 @@
 export type PaymentRecord = {
-  amount: number;
-  date: Date;
-  method: "paypal" | "bank" | "crypto" | string;
-  transactionId?: string;
-  notes?: string;
+  saleAmount: number;
+  paidCommission?: number | null;
+  productName?: string | null;
+  date: string;              // GraphQL Date -> string
+  method: string;
+  transactionId?: string | null;
+  notes?: string | null;
 };
 
 export interface MyContext {

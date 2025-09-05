@@ -10,7 +10,7 @@ import { Affiliate } from "./types";
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATES, QUERY_ME } from "./utils/queries";
 import Products from "./components/Products";
-import DataCenter from "./components/DataCenter";
+// import DataCenter from "./components/DataCenter";
 import AffiliatesSalesReport from "./components/AffiliatesSalesReport";
 import AffiliatesLookUp from "./components/AffiliatesLookUp";
 import AffiliatesList from "./components/AffiliatesList";
@@ -64,7 +64,7 @@ function App() {
           />
           <Route path="look up" element={<AffiliatesLookUp />} />
           <Route path="sales report" element={<AffiliatesSalesReport />} />
-          <Route path="data center" element={<DataCenter />} />
+          {/* <Route path="data center" element={<DataCenter />} /> */}
           <Route path="/admin/wooproducts" element={<WooSyncCard />} />
         </Route>
 

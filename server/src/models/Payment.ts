@@ -7,10 +7,12 @@ export interface IPayment extends Document {
   saleAmount: number;
   paidCommission: number;
   productName: string;
-  date: Date;
+  date: string;
   method: "paypal" | "bank" | "crypto" | string;
   transactionId?: string;
   notes?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const PaymentSchema = new Schema<IPayment>(
@@ -25,7 +27,7 @@ const PaymentSchema = new Schema<IPayment>(
     saleAmount: { type: Number, required: true }, // total amount paid
     paidCommission: { type: Number }, // total amount paid
     productName: { type: String },
-    date: { type: Date, default: Date.now }, // payment date
+    date: { type: String }, // payment date
     method: { type: String, required: true }, //  "bank", "paypal", etc.
     transactionId: { type: String }, // for bank/PayPal tracking (optional)
     notes: { type: String }, // free text field for admin notes

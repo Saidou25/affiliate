@@ -10,7 +10,7 @@ const typeDefs = gql`
   }
 
   type PaymentRecord {
-    saleAmount: Float!
+    saleAmount: Float
     paidCommission: Float
     productName: String
     date: Date!
@@ -24,17 +24,18 @@ const typeDefs = gql`
     refId: String!
     affiliateId: String
     saleIds: [ID!]!
-    saleAmount: Float!
+    saleAmount: Float
     paidCommission: Float
     date: Date!
     productName: String
     method: String!
     transactionId: String
     notes: String
+    createdAt: String
   }
 
   input PaymentInput {
-    saleAmount: Float!
+    saleAmount: Float
     paidCommission: Float
     affiliateId: String
     date: Date!
@@ -48,7 +49,7 @@ const typeDefs = gql`
     refId: String!
     affiliateId: String
     saleIds: [ID!]!
-    saleAmount: Float!
+    saleAmount: Float
     paidCommission: Float
     productName: String
     method: String!
@@ -278,7 +279,7 @@ const typeDefs = gql`
       productId: String
       refId: String!
       buyerEmail: String
-      amount: Int
+      amount: Float
       event: String
       title: String
       timestamp: Date
@@ -289,7 +290,7 @@ const typeDefs = gql`
     updateAffiliateSale(
       id: ID!
       buyerEmail: String
-      amount: Int
+      amount: Float
       title: String
       event: String
       timestamp: Date
@@ -335,6 +336,15 @@ const typeDefs = gql`
 
     "Manually refresh Woo public catalog (parents only)."
     refreshWooProducts(baseUrl: String!, perPage: Int = 100): WooSyncSummary!
+
+    createAffiliateTransfer(
+      refId: String!
+      amount: Float! # dollars
+      currency: String = "usd"
+      productName: String
+      saleIds: [ID!]
+      notes: String
+    ): Payment!
   }
 `;
 export default typeDefs;

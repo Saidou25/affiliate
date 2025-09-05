@@ -48,6 +48,8 @@ async function startServer() {
     bodyParser.raw({ type: "application/json" }),
     stripeWebhook
   );
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   // ——————————————————————————————————————————————————————————
   // 2) CORS (tight but permissive enough); handle preflight
@@ -67,7 +69,7 @@ async function startServer() {
     })
   );
   // app.options("*", cors());
-    app.options(/.*/, cors());          // OK with path-to-regexp v6
+  app.options(/.*/, cors()); // OK with path-to-regexp v6
   // // or
   // app.options("(.*)", cors());
 

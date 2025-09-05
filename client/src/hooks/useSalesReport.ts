@@ -1,16 +1,5 @@
 import { useEffect, useState } from "react";
-
-interface AffiliateSale {
-  refId: string;
-  buyerEmail: string;
-  event: string;
-  commissionEarned: number;
-  commissionStatus: string;
-  timestamp: string;
-  amount: number;
-  productId: string;
-  __typename?: string;
-}
+import { AffiliateSale } from "../types";
 
 interface MonthlySalesGroup {
   month: string;
@@ -34,7 +23,7 @@ export default function useSalesReport(salesData: any) {
     const salesMap: { [key: string]: AffiliateSale[] } = {};
 
     sortedDates.forEach((sale) => {
-      const date = new Date(sale.timestamp);
+      const date = new Date(sale.createdAt);
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       const key = `${month} ${year}`;
@@ -54,13 +43,13 @@ export default function useSalesReport(salesData: any) {
 
     // Optional: sort by most recent month
     groupedArray.sort((a, b) => {
-      const dateA = new Date(a.sales[0].timestamp);
-      const dateB = new Date(b.sales[0].timestamp);
+      const dateA = new Date(a.sales[0].createdAt);
+      const dateB = new Date(b.sales[0].createdAt);
       return dateB.getTime() - dateA.getTime();
     });
 
     setMonthlySales(groupedArray);
   }, [sortedDates]);
-  // console.log("monthly sales: ", monthlySales);
+
   return { monthlySales };
 }

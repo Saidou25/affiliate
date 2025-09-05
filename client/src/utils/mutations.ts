@@ -162,6 +162,41 @@ export const RECORD_AFFILIATE_PAYMENT = gql`
       transactionId
       notes
       saleIds
+      createdAt
+    }
+  }
+`;
+
+export const ADD_AFFILIATE_PAYMENT = gql`
+  mutation AddAffiliatePayment($refId: String!, $payment: PaymentInput!) {
+    addAffiliatePayment(refId: $refId, payment: $payment) {
+      id
+      refId
+      totalCommissions
+      paymentHistory {
+        saleAmount
+        paidCommission
+        productName
+        date
+        method
+        transactionId
+        notes
+      }
+      updatedAt
+    }
+  }
+`;
+
+export const GET_AFFILIATE_PAYMENT_HISTORY = gql`
+  query GetAffiliatePaymentHistory($refId: String!) {
+    getAffiliatePaymentHistory(refId: $refId) {
+      saleAmount
+      paidCommission
+      productName
+      date
+      method
+      transactionId
+      notes
     }
   }
 `;

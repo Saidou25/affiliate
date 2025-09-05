@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
-import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
-import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
+import { useMutation, useQuery } from "@apollo/client";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
-import { Affiliate, AffiliateSale } from "../types";
-import {
-  CHECK_STRIPE_STATUS,
-  GET_AFFILIATE_BY_REFID,
-  GET_AFFILIATES,
-  QUERY_ME,
-} from "../utils/queries";
+import { AffiliateSale } from "../types";
+// import type { AffiliateSale } from "../types";
+import { QUERY_ME } from "../utils/queries";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
@@ -18,12 +13,13 @@ import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
 import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 import Button from "./Button";
+import useStripePayout from "../hooks/useStripePayout";
+import { ADD_AFFILIATE_PAYMENT } from "../utils/mutations";
 
 import "./DetailedReport.css";
-// import { useGetOneAffiliate } from "../hooks/useGetOneAffiliate";
 
 type Props = {
-  monthSales: any;
+  monthSales: AffiliateSale[];
   currentMonth: string;
   setShowReport: (item: number | null) => void;
   salesPerMonth?: any;
@@ -41,111 +37,69 @@ export default function DetailedReportView({
   clicksData,
   refetchSales,
 }: Props) {
-  const [loadingId, setLoadingId] = useState<string | null>(null);
   const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
-  // const [showStripeMessage, setShowStripeMessage] = useState(false);
-  // const [redirectUrl, setRedirectUrl] = useState("");
-console.log("salesPerMonth: ", salesPerMonth);
+
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
 
   const addedSales = useAddMonthSales(monthSales);
   const { addedCommissions, calculateCommissionsByStatus } =
     useAddMonthCommissions(monthSales);
 
+  const { processingId, paySale, error } = useStripePayout({
+    currentMonth,
+    onAfterSuccess: async () => {
+      if (refetchSales) await refetchSales();
+    },
+  });
+
+  const [addAffiliatePayment, { error: errorPayment }] = useMutation(
+    ADD_AFFILIATE_PAYMENT
+  );
+  console.log("error: ", errorPayment);
+
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
 
-  const { data: affiliatesData } = useQuery(GET_AFFILIATES);
-  const [recordAffiliatePayment] = useMutation(RECORD_AFFILIATE_PAYMENT);
-  const [getAffiliateByRefId] = useLazyQuery(GET_AFFILIATE_BY_REFID);
-  const [checkStripeStatus] = useLazyQuery(CHECK_STRIPE_STATUS);
-
-
-  const payNow = async (sale: AffiliateSale, affiliateId: string) => {
-    setLoadingId(sale.id);
-    const id = sale.id;
-    if (!id || typeof id !== "string") {
-      console.error("❌ Invalid saleId:", id);
-      return;
-    }
-
-    if (affiliatesData) {
-      const foundAffiliate = affiliatesData.getAffiliates.find(
-        (affiliate: Affiliate) => affiliate.refId === sale.refId
-      );
-      affiliateId = foundAffiliate.id;
-    }
-
-    try {
-      const { data } = await recordAffiliatePayment({
-        variables: {
-          input: {
-            refId: sale.refId,
-            saleIds: sale.id,
-            affiliateId,
-            saleAmount: sale.amount,
-            method: "bank",
-            transactionId: "BANK-TRX-123",
-            notes: `${currentMonth} payout for ${sale.refId}`,
-          },
-        },
-      });
-
-      if (data && refetchSales) {
-        console.log("✅ Payment successful!");
-        await refetchSales(); // ⬅️ Refreshes data
-      }
-    } catch (error: any) {
-      console.error("GraphQL error:", error.message);
-      console.error("Full error object:", error);
-    } finally {
-      setLoadingId(null);
-    }
-  };
-
   const handleClick = async (sale: AffiliateSale) => {
+    const refId = sale?.refId;
+    const payment = {
+      saleAmount: 1.0,
+      paidCommission: 2.0,
+      date: new Date().toISOString(),
+      method: "bank",
+      productName: "August commissions",
+      transactionId: "BANK-12345",
+      notes: "Manual payout one",
+    };
     try {
-      const { data } = await getAffiliateByRefId({
-        variables: { refId: sale.refId },
+      await paySale(sale);
+      await addAffiliatePayment({
+        variables: { refId, payment },
       });
-      const affiliateId = data?.getAffiliateByRefId?.id;
-      if (!affiliateId) return;
+    } catch (error) {
+      const msg =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+          ? error
+          : JSON.stringify(error);
 
-      const { data: stripeData } = await checkStripeStatus({
-        variables: { affiliateId },
-      });
-      const isReady =
-        stripeData?.checkStripeStatus?.charges_enabled &&
-        stripeData?.checkStripeStatus?.payouts_enabled;
-
-      if (!isReady) {
-        alert("Affiliate not ready for payouts.");
-        return;
-      }
-
-      payNow(sale, affiliateId);
-    } catch (err: any) {
-      console.error("❌ Failed to process payout:", err.message);
+      console.log("Affiliate not ready for payouts or payment failed:", msg);
     }
   };
 
   useEffect(() => {
-    let idsArr: string[] = [];
-    if (monthSales) {
-      const refIds = monthSales.map((sale: AffiliateSale) => sale.refId);
-      for (let refId of refIds) {
-        if (!idsArr.includes(refId)) {
-          idsArr.push(refId);
-        }
-      }
-      setRefIdsArr(idsArr);
-    }
+    if (!monthSales) return;
+    const unique = Array.from(
+      new Set(monthSales.map((s) => s?.refId).filter(Boolean) as string[])
+    );
+    setRefIdsArr(unique);
   }, [monthSales]);
 
   const findClicks = () => {
     const monthClicksArrAdmin = clicksData?.getAllAffiliatesClickLogs?.filter(
-      (data: any) =>
-        new Date(data.createdAt).toLocaleDateString("en-US", {
+      (d: any) =>
+        new Date(d.createdAt).toLocaleDateString("en-US", {
           month: "long",
           year: "numeric",
         }) === currentMonth
@@ -193,12 +147,18 @@ console.log("salesPerMonth: ", salesPerMonth);
             />
           </div>
         </div>
+
+        {error && (
+          <div className="alert error no-print" style={{ margin: "8px 0" }}>
+            {error}
+          </div>
+        )}
+
         <div
           id="pdf-content"
           style={{
             padding: "2%",
             borderRadius: "10px",
-            // backgroundColor: "#f4f4f4",
           }}
         >
           <h3 style={{ color: "black" }}>Detailed Report for {currentMonth}</h3>
@@ -208,39 +168,28 @@ console.log("salesPerMonth: ", salesPerMonth);
             <thead>
               <tr>
                 <th className="cell-style-top">Purchase date</th>
-                {/* <th className="cell-style-top">Woo Item id</th> */}
                 <th className="cell-style-top">Item</th>
-                <th className="cell-style-top"> Woo Product ID</th>
+                <th className="cell-style-top">Woo Product ID</th>
                 <th className="cell-style-top">Price</th>
                 <th className="cell-style-top">Order Id</th>
-                {/* <th className="cell-style-top">Reference ID</th> */}
+                <th className="cell-style-top"> Affiliate ref Id</th>
                 <th className="cell-style-top">Commission Earned</th>
-                {/* <th className="cell-style-top">
-                  {status ? (
-                    status.charges_enabled && status.payouts_enabled ? (
-                      <p>✅ Ready for Payouts</p>
-                    ) : (
-                      <p>⚠️ Not payout-ready yet</p>
-                    )
-                  ) : (
-                    <p>Loading status...</p>
-                  )}
-                </th> */}
                 {me.role === "admin" && (
                   <th className="cell-style-top">Enrolled</th>
                 )}
                 <th className="cell-style-top">
-                  {me?.role === "admin" ? (
-                    <span className="">Action</span>
-                  ) : (
-                    <span className="">Status</span>
-                  )}
+                  {me?.role === "admin" ? "Action" : "Status"}
                 </th>
               </tr>
             </thead>
             <tbody>
-              {monthSales &&
-                monthSales?.map((sale: any, index: number) => (
+              {monthSales?.map((sale: any, index: number) => {
+                const unitPrice =
+                  typeof sale?.items?.[0]?.unitPrice === "number"
+                    ? sale.items[0].unitPrice
+                    : Number(sale?.items?.[0]?.unitPrice ?? 0);
+
+                return (
                   <tr key={index}>
                     <td className="cell-style">
                       {new Date(sale.createdAt).toLocaleDateString("en-US", {
@@ -248,19 +197,16 @@ console.log("salesPerMonth: ", salesPerMonth);
                       })}
                     </td>
                     <td className="cell-style">{sale.product}</td>
-                    <td className="cell-style">{sale.items[0]?.wooProductId}</td>
-                    <td className="cell-style">${sale.items[0]?.unitPrice.toFixed(2)}</td>
+                    <td className="cell-style">
+                      {sale.items?.[0]?.wooProductId ?? "—"}
+                    </td>
+                    <td className="cell-style">${unitPrice.toFixed(2)}</td>
                     <td className="cell-style">{sale.orderId}</td>
-                    <td className="cell-style">${sale.commissionEarned}</td>
-                    {/* <td className="cell-style">
-                      {sale.event?.length <= 20
-                        ? sale.event
-                        : `${sale.event?.slice(0, 20)}...`}
-                    </td> */}
-                    {/* <td className="cell-style">{sale.productId}</td> */}
-                    {/* <td className="cell-style">{sale.refId}</td> */}
-                    {/* <td className="cell-style">${sale.amount}</td> */}
-                    {/* Update the cell to show status of enrollement */}
+                    <td className="cell-style">{sale.refId}</td>
+                    <td className="cell-style">
+                      ${Number(sale.commissionEarned ?? 0).toFixed(2)}
+                    </td>
+
                     {me.role === "admin" && (
                       <td className="cell-style">
                         {stripeReadyArr.includes(sale.refId) ? (
@@ -276,47 +222,47 @@ console.log("salesPerMonth: ", salesPerMonth);
                         className={
                           sale?.commissionStatus === "paid"
                             ? `paid-button-${me?.role}`
-                            : !stripeReadyArr.includes(sale.refId) ?
-                            `unpaid-button-not-ready-${me?.role}`
+                            : !stripeReadyArr.includes(sale.refId)
+                            ? `unpaid-button-not-ready-${me?.role}`
                             : `unpaid-button-${me?.role}`
                         }
                         onClick={() => handleClick(sale)}
                         disabled={
-                          loadingId === sale.id ||
+                          processingId === sale.id ||
                           sale.commissionStatus === "paid" ||
                           me?.role === "affiliate" ||
                           !stripeReadyArr.includes(sale.refId)
                         }
                       >
-                        {loadingId === sale.id && <Spinner />}
+                        {processingId === sale.id && <Spinner />}
                         {sale?.commissionStatus === "paid" &&
-                          loadingId !== sale.id && <span>paid</span>}
+                          processingId !== sale.id && <span>paid</span>}
                         {me?.role === "admin" &&
                           sale.commissionStatus === "unpaid" &&
-                          loadingId !== sale.id && <span>pay</span>}
+                          processingId !== sale.id && <span>pay</span>}
                         {me?.role === "affiliate" &&
                           sale.commissionStatus === "unpaid" &&
-                          loadingId !== sale.id && <span>unpaid</span>}
+                          processingId !== sale.id && <span>unpaid</span>}
                       </Button>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
             </tbody>
           </table>
-          <>
-            <TotalBar
-              addedSales={addedSales()}
-              addedCommissions={addedCommissions()}
-              calculateCommissionsByStatus={calculateCommissionsByStatus()}
-              currentMonth={currentMonth}
-              salesPerMonth={salesPerMonth}
-              clicksPerMonth={clicksPerMonth}
-              monthSales={monthSales}
-              findClicks={findClicks()}
-              me={me}
-            />
-            <br />
-          </>
+
+          <TotalBar
+            addedSales={addedSales()}
+            addedCommissions={addedCommissions()}
+            calculateCommissionsByStatus={calculateCommissionsByStatus()}
+            currentMonth={currentMonth}
+            salesPerMonth={salesPerMonth}
+            clicksPerMonth={clicksPerMonth}
+            monthSales={monthSales}
+            findClicks={findClicks()}
+            me={me}
+          />
+          <br />
         </div>
       </div>
     </div>

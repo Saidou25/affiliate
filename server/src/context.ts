@@ -5,11 +5,13 @@ import Affiliate from "./models/Affiliate";
 export type Role = "affiliate" | "admin";
 
 interface IPaymentRecord {
-  amount: number;
+  saleAmount: number;
+  paidCommission?: number | null;
+  productName?: string | null;
   date: Date;
-  method: "paypal" | "bank" | "crypto" | string;
-  transactionId?: string;
-  notes?: string;
+  method: string;
+  transactionId?: string | null;
+  notes?: string | null;
 }
 
 interface INotification {
@@ -82,7 +84,8 @@ export const createContext = async ({
       commissionRate: foundAffiliate.commissionRate,
       totalSales: foundAffiliate.totalSales,
       stripeAccountId: foundAffiliate.stripeAccountId,
-      paymentHistory: foundAffiliate.paymentHistory ?? [],
+      paymentHistory: (foundAffiliate.paymentHistory ??
+        []) as unknown as IPaymentRecord[],
       notifications: foundAffiliate.notifications ?? [],
       password: foundAffiliate.password,
     };

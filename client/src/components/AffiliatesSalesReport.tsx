@@ -26,24 +26,23 @@ export default function AffiliatesSalesReport() {
 
   // const { data } = useQuery(QUERY_ME);
   // const me = data?.me || {};
-// const refId = me.refId;
-//    const {
-//     data: salesResp,
-//     loading: salesLoading,
-//     error: salesError,
-//     refetch,
-//   } = useQuery(SINGLE_AFFILIATE_SALES, {
-//     variables: { filter: { refId }, limit: 200, offset: 0 },
-//     skip: !refId, // if refId is '', query won’t run
-//     fetchPolicy: "cache-and-network",
-//     onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
-//     onError: (e) => console.error("[AFFILIATE_SALES error]", e),
-//   });
+  // const refId = me.refId;
+  //    const {
+  //     data: salesResp,
+  //     loading: salesLoading,
+  //     error: salesError,
+  //     refetch,
+  //   } = useQuery(SINGLE_AFFILIATE_SALES, {
+  //     variables: { filter: { refId }, limit: 200, offset: 0 },
+  //     skip: !refId, // if refId is '', query won’t run
+  //     fetchPolicy: "cache-and-network",
+  //     onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+  //     onError: (e) => console.error("[AFFILIATE_SALES error]", e),
+  //   });
 
   const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
 
   const { monthlySales } = useSalesReport(salesData);
-  console.log("monthly sales: ", monthlySales);
 
   return (
     <div className="">
@@ -58,7 +57,7 @@ export default function AffiliatesSalesReport() {
                   currentMonth={monthSales.month}
                   setShowReport={setShowReport}
                   clicksData={clicksData}
-                   refetchSales={refetch}
+                  refetchSales={refetch}
                 />
               )}
               {showReport === null && (
