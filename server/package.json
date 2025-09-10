@@ -9,7 +9,8 @@
     "build": "npm install && tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts"
+    "dev": "ts-node-dev --respawn --transpileOnly src/index.ts",
+    "reconcile": "node -r dotenv/config dist/jobs/reconcile.js"
   },
   "keywords": [],
   "author": "",
