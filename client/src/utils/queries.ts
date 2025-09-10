@@ -252,6 +252,11 @@ export const CHECK_STRIPE_STATUS = gql`
       charges_enabled
       payouts_enabled
       details_submitted
+      lastTransferId
+      lastTransferAmount
+      lastTransferCurrency
+      lastTransferCreatedAt
+      lastTransferReversed
     }
   }
 `;
@@ -276,7 +281,11 @@ export const AFFILIATE_PRODUCTS = gql`
 `;
 
 export const GET_AFFILIATESALES = gql`
-  query getAffiliateSales($filter: AffiliateSalesFilter, $limit: Int, $offset: Int) {
+  query getAffiliateSales(
+    $filter: AffiliateSalesFilter
+    $limit: Int
+    $offset: Int
+  ) {
     getAffiliateSales(filter: $filter, limit: $limit, offset: $offset) {
       id
       refId

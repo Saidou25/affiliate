@@ -40,7 +40,7 @@ export default function DetailedReport({ refId }: Props) {
   const {
     data: salesData,
     // loading: salesLoading,
-    error: salesError,
+    // error: salesError,
     refetch,
   } = useQuery(GET_AFFILIATESALES, {
     variables: { filter: { refId }, limit: 200, offset: 0 },
@@ -49,7 +49,7 @@ export default function DetailedReport({ refId }: Props) {
     // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
     // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
-  console.log(salesError);
+
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
 
   const { data: meData } = useQuery(QUERY_ME);
@@ -71,7 +71,6 @@ export default function DetailedReport({ refId }: Props) {
   findEmail();
 
   useEffect(() => {
-    console.log(salesData);
     if (salesData?.getAffiliateSales) {
       const organizedDates = [...salesData?.getAffiliateSales].sort(
         (a, b) =>
@@ -91,7 +90,7 @@ export default function DetailedReport({ refId }: Props) {
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       const key = `${month} ${year}`;
-      console.log(date);
+     
       if (!salesMap[key]) {
         salesMap[key] = [];
       }
@@ -112,7 +111,6 @@ export default function DetailedReport({ refId }: Props) {
       return (dateB?.getTime() ?? 0) - (dateA?.getTime() ?? 0);
     });
 
-    console.log("hello");
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 
@@ -127,7 +125,7 @@ export default function DetailedReport({ refId }: Props) {
       </div>
     );
   }
-  console.log('monthly sales: ', monthlySales)
+
   return (
     <div className="detailed-report-container">
       {me.role === "admin" ? (

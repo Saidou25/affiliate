@@ -12,6 +12,7 @@ export default function useFetchStripeStatusByRefId(refIds: string[]) {
       const stripeResult = await checkStripeStatus({
         variables: { affiliateId },
       });
+
       if (stripeResult?.data?.checkStripeStatus.payouts_enabled === true) {
         setStripeReadyArr((prev) =>
           prev.includes(refId) ? prev : [...prev, refId]
@@ -44,6 +45,6 @@ export default function useFetchStripeStatusByRefId(refIds: string[]) {
       getAffiliates(refIds);
     }
   }, [refIds]);
-  
+
   return stripeReadyArr;
 }

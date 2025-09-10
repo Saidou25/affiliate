@@ -36,7 +36,6 @@ export default function TotalBar({
   // for affiliate's role
   const xtractTotalSales = () => {
     if (salesPerMonth?.length) {
-      console.log(salesPerMonth?.length)
       let month = salesPerMonth[0]?.data.filter(
         (sale: any) => sale.x === currentMonth
       );

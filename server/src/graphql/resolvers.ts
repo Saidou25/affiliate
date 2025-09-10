@@ -50,17 +50,27 @@ function requireAdmin(context: MyContext) {
 //   transactionId?: string;
 //   notes?: string;
 // }
-
-interface PaymentInputLegacy {
-  amount: number; // legacy name
-  date: Date | string;
+type PaymentInputArg = {
+  saleAmount?: number; // new (SDL)
+  amount?: number; // legacy (if some callers still send it)
+  paidCommission?: number;
+  productName?: string;
+  date: string; // GraphQL Date comes as ISO string
   method: string;
   transactionId?: string;
   notes?: string;
-  paidCommission?: number;
-  productName?: string;
-  saleAmount?: number; // allow new name too (from GraphQL)
-}
+};
+// interface PaymentInputLegacy {
+//   amount: number; // legacy name
+//   date: Date | string;
+//   method: string;
+//   transactionId?: string;
+//   notes?: string;
+//   paidCommission?: number;
+//   productName?: string;
+//   saleAmount?: number; // allow new name too (from GraphQL)
+// }
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const resolvers = {
   Date: dateScalar,
@@ -188,12 +198,50 @@ const resolvers = {
         );
       }
 
+      // 2) Looks up the most recent transfer to this connected account
+      // (Platform-side: transfers are created against the platform; we filter by destination)
+      let lastTransfer: {
+        id: string;
+        amount: number;
+        currency: string;
+        createdAt: Date;
+        reversed: boolean;
+      } | null = null;
+
+      try {
+        const list = await stripe.transfers.list({
+          destination: affiliate.stripeAccountId, // acct_...
+          limit: 1,
+        });
+
+        const t = list.data[0];
+        if (t) {
+          lastTransfer = {
+            id: t.id,
+            amount: t.amount / 100,
+            currency: t.currency,
+            createdAt: new Date(t.created * 1000),
+            reversed: Boolean(t.reversed),
+          };
+        }
+      } catch (e) {
+        // Don’t fail the whole status call on transfer lookup issues
+        console.warn(
+          "[checkStripeStatus] transfers.list failed:",
+          (e as Error)?.message || e
+        );
+      }
       // Return a consistent shape regardless of success
       return {
         id: result.id,
         charges_enabled: result.charges_enabled,
         payouts_enabled: result.payouts_enabled,
         details_submitted: result.details_submitted,
+        lastTransferId: lastTransfer?.id ?? null,
+        lastTransferAmount: lastTransfer?.amount ?? null,
+        lastTransferCurrency: lastTransfer?.currency ?? null,
+        lastTransferCreatedAt: lastTransfer?.createdAt ?? null,
+        lastTransferReversed: lastTransfer?.reversed ?? null,
       };
     },
 
@@ -516,7 +564,6 @@ const resolvers = {
         };
       }
     ) => {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
       // 1) Find affiliate & sales
       const affiliate = await Affiliate.findOne({ refId: input.refId });
       if (!affiliate) throw new Error("Affiliate not found.");
@@ -621,59 +668,59 @@ const resolvers = {
 
     addAffiliatePayment: async (
       _: unknown,
-      {
-        payment,
-        refId,
-      }: {
-        payment: PaymentInputLegacy; // use the widened type here
-        refId: string;
-      }
+      { payment, refId }: { payment: PaymentInputArg; refId: string }
     ) => {
+      // 👇 quick visibility
+      console.log("[addAffiliatePayment] vars:", { refId, payment });
+
       try {
         const affiliate = await Affiliate.findOne({ refId });
         if (!affiliate) throw new Error("Affiliate not found");
 
-        // accept both 'saleAmount' (new) and 'amount' (legacy)
-        const saleAmount =
-          (payment as any).saleAmount ?? (payment as any).amount;
-
-        if (saleAmount == null) {
+        // accept both saleAmount and legacy amount
+        const saleAmount = payment.saleAmount ?? payment.amount;
+        if (saleAmount == null)
           throw new Error("saleAmount/amount is required");
-        }
+        if (!payment.method) throw new Error("method is required");
 
-        if (saleAmount > (affiliate.totalCommissions ?? 0)) {
-          throw new Error("Payment exceeds unpaid commissions.");
-        }
-
-        // Normalize to the schema your paymentHistory uses
-        const record: PaymentRecord = {
+        // build exactly what Affiliate.paymentHistory subdoc expects
+        const record = {
           saleAmount: Number(saleAmount),
           paidCommission:
             typeof payment.paidCommission === "number"
-              ? payment.paidCommission
-              : Number(saleAmount), // or undefined/null if you prefer
+              ? Number(payment.paidCommission)
+              : Number(saleAmount), // fallback
           productName: payment.productName ?? undefined,
-          date: new Date(payment.date).toLocaleString(),
+          date: payment.date,
           method: payment.method,
           transactionId: payment.transactionId ?? undefined,
           notes: payment.notes ?? undefined,
         };
 
-        affiliate.paymentHistory = affiliate.paymentHistory ?? [];
-        affiliate.paymentHistory.push(record); // ✅ record matches IPaymentRecord
+        affiliate.paymentHistory ??= [];
+        affiliate.paymentHistory.push(record);
 
-        // optional: decrement unpaid balance if that's what totalCommissions is
-        if (typeof affiliate.totalCommissions === "number") {
-          affiliate.totalCommissions = Math.max(
-            0,
-            Number((affiliate.totalCommissions - Number(saleAmount)).toFixed(2))
-          );
-        }
-
+        await Payment.create({
+          affiliateId: affiliate._id,
+          refId: affiliate.refId,
+          saleIds: [], // manual payout: no specific sales
+          saleAmount: record.saleAmount, // number
+          paidCommission: record.paidCommission ?? record.saleAmount,
+          productName: record.productName ?? "Manual commission payout",
+          date: record.date, // Date object
+          method: record.method,
+          transactionId: record.transactionId ?? `MANUAL-${Date.now()}`,
+          notes: record.notes,
+        });
         await affiliate.save();
-        return affiliate;
-      } catch (error) {
-        console.error("❌ Error tracking affiliate payment:", error);
+
+        // return a fresh doc to the client
+        return await Affiliate.findById(affiliate._id);
+      } catch (err) {
+        // 👇 log the real reason to your server console
+        const msg =
+          err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+        console.error("[addAffiliatePayment] failed:", msg, err);
         throw new Error("Failed to track affiliate payment");
       }
     },

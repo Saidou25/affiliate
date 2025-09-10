@@ -52,10 +52,9 @@ export default function DetailedReportView({
     },
   });
 
-  const [addAffiliatePayment, { error: errorPayment }] = useMutation(
+  const [addAffiliatePayment] = useMutation(
     ADD_AFFILIATE_PAYMENT
   );
-  console.log("error: ", errorPayment);
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};

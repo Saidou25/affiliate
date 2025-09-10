@@ -87,6 +87,18 @@ const typeDefs = gql`
     avatar: String
   }
 
+  type StripeStatus {
+    id: ID!
+    charges_enabled: Boolean
+    payouts_enabled: Boolean
+    details_submitted: Boolean
+    lastTransferId: String
+    lastTransferCreatedAt: Date
+    lastTransferAmount: Float
+    lastTransferReversed: Boolean
+    lastTransferCurrency: String
+  }
+
   type AuthPayload {
     token: String!
     affiliate: Affiliate!
@@ -164,13 +176,6 @@ const typeDefs = gql`
   type OnboardingResponse {
     onboardingUrl: String!
     stripeAccountId: String!
-  }
-
-  type StripeStatus {
-    id: ID!
-    charges_enabled: Boolean
-    payouts_enabled: Boolean
-    details_submitted: Boolean
   }
 
   type StripeOnboardingResult {
