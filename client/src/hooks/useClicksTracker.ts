@@ -36,14 +36,24 @@ export function useClicksTracker() {
     skip: !me?.refId,
   });
 
+  // console.log(clicksData);
   const getDateRange = (start: Date, end: Date) => {
     const range: string[] = [];
-    const current = new Date(start);
-    while (current <= end) {
+
+    // normalize both to ET day boundaries inside the function
+    const toET = (d: Date) =>
+      new Date(d.toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const s = toET(start);
+    s.setHours(0, 0, 0, 0);
+    const e = toET(end);
+    e.setHours(23, 59, 59, 999);
+
+    const current = new Date(s);
+    while (current <= e) {
       range.push(
         current.toLocaleDateString("en-US", { timeZone: "America/New_York" })
       );
-      current.setDate(current.getDate() + 1);
+      current.setDate(current.getDate() + 1); // time-of-day stays at 00:00
     }
     return range;
   };
@@ -80,11 +90,11 @@ export function useClicksTracker() {
   useEffect(() => {
     if (clicksData?.getAffiliateClickLogs) {
       const sortedClicks = [...(clicksData?.getAffiliateClickLogs ?? [])]
-  .filter((c: any) => c?.createdAt != null)
-  .sort(
-    (a: any, b: any) =>
-      toDate(a.createdAt)!.getTime() - toDate(b.createdAt)!.getTime()
-  );
+        .filter((c: any) => c?.createdAt != null)
+        .sort(
+          (a: any, b: any) =>
+            toDate(a.createdAt)!.getTime() - toDate(b.createdAt)!.getTime()
+        );
       // const allDateObjects = sortedClicks.map(
       //   (click: any) =>
       //     new Date(
@@ -94,9 +104,11 @@ export function useClicksTracker() {
       //     )
       // );
 
-   const allDateObjects: Date[] = sortedClicks
-  .map((c: any) => toDate(c.createdAt))
-  .filter((d: Date | null): d is Date => !!d && !Number.isNaN(d.getTime()));
+      const allDateObjects: Date[] = sortedClicks
+        .map((c: any) => toDate(c.createdAt))
+        .filter(
+          (d: Date | null): d is Date => !!d && !Number.isNaN(d.getTime())
+        );
 
       // 1. Per Day
       const toEasternDate = (date: Date | string) =>
@@ -145,7 +157,7 @@ export function useClicksTracker() {
           const [yearB, weekB] = b.x.split("-W").map(Number);
           return yearA !== yearB ? yearA - yearB : weekA - weekB;
         });
-     
+
       setClicksPerWeek([{ id: "Clicks per Week", data: weekData }]);
 
       // 3. Per Month (e.g. May 2025)
