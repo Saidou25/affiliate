@@ -16,7 +16,20 @@ const typeDefs = gql`
     reversed # transfer reversed
   }
 
+  enum PaymentStatus {
+    processing
+    paid
+    failed
+    transfer_created
+    transfer_reversed
+  }
+
   type PaymentRecord {
+    # mirroring Payment (snapshot)
+    paymentId: ID
+    refId: String
+    affiliateId: String
+    saleIds: [ID!]
     saleAmount: Float
     paidCommission: Float
     productName: String
@@ -24,6 +37,9 @@ const typeDefs = gql`
     method: String!
     transactionId: String
     notes: String
+    currency: String
+    status: PaymentStatus
+    paidAt: Date
   }
 
   type Payment {
@@ -40,13 +56,15 @@ const typeDefs = gql`
     transactionId: String
     notes: String
     createdAt: String
+
     # Stripe sync
-    status: String # "initiated" | "transfer_created" | "transfer_succeeded" | "transfer_reversed"
+    status: PaymentStatus # <-- switch to enum
     transferId: String # tr_...
     balanceTransactionId: String # txn_...
-    payoutId: String # po_...
-    payoutStatus: String # "paid" | "pending" | "failed" | ...
+    payoutId: String
+    payoutStatus: String
     payoutArrivalDate: Date
+    paidAt: Date
   }
 
   input PaymentInput {
@@ -60,15 +78,22 @@ const typeDefs = gql`
     notes: String
   }
 
+  # input RecordAffiliatePaymentInput {
+  #   refId: String!
+  #   affiliateId: String
+  #   saleIds: [ID!]!
+  #   saleAmount: Float
+  #   paidCommission: Float
+  #   productName: String
+  #   method: String!
+  #   transactionId: String
+  #   notes: String
+  # }
+
   input RecordAffiliatePaymentInput {
     refId: String!
-    affiliateId: String
     saleIds: [ID!]!
     saleAmount: Float
-    paidCommission: Float
-    productName: String
-    method: String!
-    transactionId: String
     notes: String
   }
 

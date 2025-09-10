@@ -149,4 +149,6 @@
   /* pick your colors */
   background: #f0ad4e; /* amber-ish */
   color: #fff;
+  border: none;
+  padding: 4px 10px
 }

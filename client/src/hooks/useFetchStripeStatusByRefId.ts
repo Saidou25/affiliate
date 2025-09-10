@@ -13,7 +13,7 @@ export default function useFetchStripeStatusByRefId(refIds: string[]) {
         variables: { affiliateId },
       });
 
-      if (stripeResult) { console.log("stripeResult: ", stripeResult);}
+      // if (stripeResult) { console.log("stripeResult: ", stripeResult);}
       
       if (stripeResult?.data?.checkStripeStatus.payouts_enabled === true) {
         setStripeReadyArr((prev) =>
