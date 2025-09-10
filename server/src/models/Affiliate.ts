@@ -50,6 +50,8 @@ const AffiliateSchema = new Schema<IAffiliate>(
       {
         saleAmount: { type: Number },
         date: { type: Date },
+        paidCommission: { type: Number },
+        productName: { type: String },
         method: { type: String },
         transactionId: { type: String },
         notes: { type: String },

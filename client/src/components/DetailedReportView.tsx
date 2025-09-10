@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
 import { AffiliateSale } from "../types";
@@ -14,7 +14,7 @@ import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import useStripePayout from "../hooks/useStripePayout";
-import { ADD_AFFILIATE_PAYMENT } from "../utils/mutations";
+// import { ADD_AFFILIATE_PAYMENT } from "../utils/mutations";
 
 import "./DetailedReport.css";
 
@@ -41,6 +41,13 @@ export default function DetailedReportView({
 
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
 
+  //  const [checkStripeStatus] = useLazyQuery(CHECK_STRIPE_STATUS, {
+  //     errorPolicy: "all",
+  //     fetchPolicy: "network-only",
+  //     // onCompleted: (d) => dbg("CHECK_STRIPE_STATUS ✓", d),
+  //     // onError: (e) => dbg("CHECK_STRIPE_STATUS ✗", e?.message || e),
+  //   });
+
   const addedSales = useAddMonthSales(monthSales);
   const { addedCommissions, calculateCommissionsByStatus } =
     useAddMonthCommissions(monthSales);
@@ -52,29 +59,29 @@ export default function DetailedReportView({
     },
   });
 
-  const [addAffiliatePayment] = useMutation(
-    ADD_AFFILIATE_PAYMENT
-  );
+  // const [addAffiliatePayment] = useMutation(
+  //   ADD_AFFILIATE_PAYMENT
+  // );
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
 
   const handleClick = async (sale: AffiliateSale) => {
-    const refId = sale?.refId;
-    const payment = {
-      saleAmount: 1.0,
-      paidCommission: 2.0,
-      date: new Date().toISOString(),
-      method: "bank",
-      productName: "August commissions",
-      transactionId: "BANK-12345",
-      notes: "Manual payout one",
-    };
+    // const refId = sale?.refId;
+    // const payment = {
+    //   saleAmount: 1.0,
+    //   paidCommission: 2.0,
+    //   date: new Date().toISOString(),
+    //   method: "bank",
+    //   productName: "August commissions",
+    //   transactionId: "BANK-12345",
+    //   notes: "Manual payout one",
+    // };
     try {
       await paySale(sale);
-      await addAffiliatePayment({
-        variables: { refId, payment },
-      });
+      // await addAffiliatePayment({
+      //   variables: { refId, payment },
+      // });
     } catch (error) {
       const msg =
         error instanceof Error
@@ -216,7 +223,7 @@ export default function DetailedReportView({
                       </td>
                     )}
 
-                    <td className="cell-style">
+                    {/* <td className="cell-style">
                       <Button
                         className={
                           sale?.commissionStatus === "paid"
@@ -243,6 +250,60 @@ export default function DetailedReportView({
                           sale.commissionStatus === "unpaid" &&
                           processingId !== sale.id && <span>unpaid</span>}
                       </Button>
+                    </td> */}
+                    <td className="cell-style">
+                      {(() => {
+                        const status = (sale?.commissionStatus ?? "unpaid") as
+                          | "unpaid"
+                          | "processing"
+                          | "paid";
+                        const isAdmin = me?.role === "admin";
+                        const isReady = stripeReadyArr.includes(sale.refId);
+                        const isPaying = processingId === sale.id;
+
+                        // Button text
+                        const label = isPaying
+                          ? "paying…"
+                          : status === "paid"
+                          ? "paid"
+                          : status === "processing"
+                          ? "processing…"
+                          : isAdmin
+                          ? "pay"
+                          : "unpaid";
+
+                        // Button class (add a processing style)
+                        const btnClass =
+                          status === "paid"
+                            ? `paid-button-${me?.role}`
+                            : status === "processing"
+                            ? `processing-button-${me?.role}`
+                            : !isReady
+                            ? `unpaid-button-not-ready-${me?.role}`
+                            : `unpaid-button-${me?.role}`;
+
+                        // Disabled if:
+                        //  - currently paying,
+                        //  - not admin (affiliates can’t trigger payouts),
+                        //  - sale not “unpaid” (i.e., already processing or paid),
+                        //  - Stripe not ready for that refId
+                        const disabled =
+                          isPaying ||
+                          !isAdmin ||
+                          status !== "unpaid" ||
+                          !isReady;
+
+                        return (
+                          <Button
+                            className={btnClass}
+                            onClick={() => handleClick(sale)}
+                            disabled={disabled}
+                          >
+                            {isPaying && <Spinner />}
+                            <span>{label}</span>
+                          </Button>
+                        );
+                      })()}
                     </td>
                   </tr>
                 );

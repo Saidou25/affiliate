@@ -9,7 +9,7 @@ type UseStripePayoutOpts = {
   onAfterSuccess?: () => Promise<any> | void;
   method?: "bank" | "paypal" | "crypto" | string;
   amountOverride?: (sale: AffiliateSale) => number | undefined;
-  debug?: boolean; // <-- NEW
+  debug?: boolean; 
 };
 
 export default function useStripePayout(opts?: UseStripePayoutOpts) {
@@ -27,6 +27,7 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
   const dbg = (...args: any[]) => {
     if (debug) console.log("[useStripePayout]", ...args);
   };
+
   const group = (label: string) => debug && console.groupCollapsed(label);
   const groupEnd = () => debug && console.groupEnd();
 

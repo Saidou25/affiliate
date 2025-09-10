@@ -141,3 +141,12 @@
   border: none;
   cursor: pointer;
 }
+
+.processing-button-admin,
+.processing-button-affiliate {
+  opacity: 0.85;
+  cursor: not-allowed;
+  /* pick your colors */
+  background: #f0ad4e; /* amber-ish */
+  color: #fff;
+}

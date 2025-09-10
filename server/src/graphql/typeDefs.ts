@@ -9,6 +9,13 @@ const typeDefs = gql`
     affiliate
   }
 
+  enum CommissionStatus {
+    unpaid # default
+    processing # transfer requested
+    paid # transfer succeeded (money in connected acct)
+    reversed # transfer reversed
+  }
+
   type PaymentRecord {
     saleAmount: Float
     paidCommission: Float
@@ -28,10 +35,18 @@ const typeDefs = gql`
     paidCommission: Float
     date: Date!
     productName: String
+    currency: String
     method: String!
     transactionId: String
     notes: String
     createdAt: String
+    # Stripe sync
+    status: String # "initiated" | "transfer_created" | "transfer_succeeded" | "transfer_reversed"
+    transferId: String # tr_...
+    balanceTransactionId: String # txn_...
+    payoutId: String # po_...
+    payoutStatus: String # "paid" | "pending" | "failed" | ...
+    payoutArrivalDate: Date
   }
 
   input PaymentInput {

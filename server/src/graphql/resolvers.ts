@@ -22,7 +22,7 @@ import { checkStripeAccountStatus } from "../utils/checkStripeAccount";
 import { title } from "process";
 import Stripe from "stripe";
 import GraphQLJSON from "graphql-type-json";
-import { PaymentRecord, SendEmailArgs } from "./types";
+import { SendEmailArgs } from "./types";
 import { sendEmailMessage } from "../utils/sendEmailMessage";
 import { refreshWooProductsOnce } from "../services/wooStoreSync";
 import AffiliateProduct from "../models/AffiliateProduct";
@@ -549,182 +549,6 @@ const resolvers = {
       }
     },
 
-    recordAffiliatePayment: async (
-      _: unknown,
-      {
-        input,
-      }: {
-        input: {
-          refId: string;
-          saleIds: string[];
-          saleAmount: number; // order total (or whatever you decided)
-          method: string; // "bank" | "paypal" | "crypto" | ...
-          transactionId?: string; // ignored; we’ll overwrite with Stripe id
-          notes?: string;
-        };
-      }
-    ) => {
-      // 1) Find affiliate & sales
-      const affiliate = await Affiliate.findOne({ refId: input.refId });
-      if (!affiliate) throw new Error("Affiliate not found.");
-      if (!affiliate.stripeAccountId)
-        throw new Error("Affiliate is not connected to Stripe.");
-
-      const sales = await AffiliateSale.find({
-        _id: { $in: input.saleIds.map((id) => new Types.ObjectId(id)) },
-      });
-      if (!sales.length) throw new Error("No valid sales found for payout.");
-
-      // guard against double pay
-      const alreadyPaid = sales.find((s) => s.commissionStatus === "paid");
-      if (alreadyPaid) throw new Error("One or more sales are already paid.");
-
-      // 2) Compute commission to transfer
-      // Prefer exact per-sale commissions if present; else fallback to rate * saleAmount
-      let commission = 0;
-      const perSaleHasCommission = sales.every(
-        (s) => typeof s.commissionEarned === "number"
-      );
-      if (perSaleHasCommission) {
-        commission = sales.reduce(
-          (sum, s) => sum + (s.commissionEarned || 0),
-          0
-        );
-      } else {
-        const rate = affiliate.commissionRate ?? 0.1;
-        commission = input.saleAmount * rate;
-      }
-      commission = Number(commission.toFixed(2));
-      if (!(commission > 0))
-        throw new Error("Computed commission must be > 0.");
-
-      // 3) Create Stripe transfer (platform -> connected account balance)
-      const idempotencyKey = `affpay:${affiliate.refId}:${input.saleIds
-        .slice()
-        .sort()
-        .join(",")}`;
-
-      const transfer = await stripe.transfers.create(
-        {
-          amount: Math.round(commission * 100),
-          currency: "usd",
-          destination: affiliate.stripeAccountId,
-          description: `Affiliate payout ${affiliate.refId} (${
-            sales.length
-          } sale${sales.length > 1 ? "s" : ""})`,
-          metadata: {
-            refId: affiliate.refId,
-            saleIds: input.saleIds.join(","),
-            type: "affiliate_payout",
-          },
-        },
-        { idempotencyKey }
-      );
-
-      // 4) Create Payment record in Mongo (store the Stripe transfer id)
-      const firstSale = sales[0];
-      const payment = await Payment.create({
-        refId: affiliate.refId,
-        affiliateId: affiliate._id,
-        saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
-        saleAmount: Number(input.saleAmount.toFixed(2)),
-        paidCommission: commission,
-        productName: firstSale?.event ?? "Commission payout",
-        date: new Date(),
-        method: input.method,
-        transactionId: transfer.id, // <-- Stripe transfer id (tr_...)
-        notes: input.notes,
-      });
-
-      // 5) Mark all sales as paid
-      await AffiliateSale.updateMany(
-        { _id: { $in: payment.saleIds } },
-        {
-          $set: {
-            commissionStatus: "paid",
-            paidAt: new Date(),
-            paymentId: payment._id,
-          },
-        }
-      );
-
-      // 6) Append snapshot to Affiliate.paymentHistory
-      await Affiliate.findByIdAndUpdate(affiliate._id, {
-        $push: {
-          paymentHistory: {
-            saleAmount: Number(input.saleAmount.toFixed(2)),
-            paidCommission: commission,
-            date: payment.date,
-            method: input.method,
-            transactionId: transfer.id,
-            notes: input.notes,
-            productName: firstSale?.event ?? "Commission payout",
-          },
-        },
-      });
-
-      return payment;
-    },
-
-    addAffiliatePayment: async (
-      _: unknown,
-      { payment, refId }: { payment: PaymentInputArg; refId: string }
-    ) => {
-      // 👇 quick visibility
-      console.log("[addAffiliatePayment] vars:", { refId, payment });
-
-      try {
-        const affiliate = await Affiliate.findOne({ refId });
-        if (!affiliate) throw new Error("Affiliate not found");
-
-        // accept both saleAmount and legacy amount
-        const saleAmount = payment.saleAmount ?? payment.amount;
-        if (saleAmount == null)
-          throw new Error("saleAmount/amount is required");
-        if (!payment.method) throw new Error("method is required");
-
-        // build exactly what Affiliate.paymentHistory subdoc expects
-        const record = {
-          saleAmount: Number(saleAmount),
-          paidCommission:
-            typeof payment.paidCommission === "number"
-              ? Number(payment.paidCommission)
-              : Number(saleAmount), // fallback
-          productName: payment.productName ?? undefined,
-          date: payment.date,
-          method: payment.method,
-          transactionId: payment.transactionId ?? undefined,
-          notes: payment.notes ?? undefined,
-        };
-
-        affiliate.paymentHistory ??= [];
-        affiliate.paymentHistory.push(record);
-
-        await Payment.create({
-          affiliateId: affiliate._id,
-          refId: affiliate.refId,
-          saleIds: [], // manual payout: no specific sales
-          saleAmount: record.saleAmount, // number
-          paidCommission: record.paidCommission ?? record.saleAmount,
-          productName: record.productName ?? "Manual commission payout",
-          date: record.date, // Date object
-          method: record.method,
-          transactionId: record.transactionId ?? `MANUAL-${Date.now()}`,
-          notes: record.notes,
-        });
-        await affiliate.save();
-
-        // return a fresh doc to the client
-        return await Affiliate.findById(affiliate._id);
-      } catch (err) {
-        // 👇 log the real reason to your server console
-        const msg =
-          err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-        console.error("[addAffiliatePayment] failed:", msg, err);
-        throw new Error("Failed to track affiliate payment");
-      }
-    },
-
     saveHtmlReport: async (
       _: unknown,
       { html, month }: { html: string; month: string }
@@ -970,7 +794,7 @@ const resolvers = {
       if (!affiliate.stripeAccountId)
         throw new Error("Affiliate is not connected to Stripe.");
 
-      // Optional policy: block overpay against unpaid balance
+      // block overpay against unpaid balance
       const unpaid = Number(affiliate.totalCommissions ?? 0);
       if (amount > unpaid) {
         throw new Error("Payment exceeds unpaid commissions.");
@@ -1015,25 +839,32 @@ const resolvers = {
         notes: notes ?? transfer.description ?? null,
       });
 
-      // 4) Append snapshot to Affiliate.paymentHistory (what your UI reads)
-      affiliate.paymentHistory = affiliate.paymentHistory ?? [];
-      affiliate.paymentHistory.push({
-        saleAmount: Number(amount.toFixed(2)),
-        paidCommission: Number(amount.toFixed(2)),
-        productName: productName ?? "Stripe transfer",
-        date: new Date(paidAtISO).toLocaleString(),
-        method: "stripe_transfer",
-        transactionId: transfer.id,
-        notes: notes ?? transfer.description ?? undefined,
-      });
-
-      // 5) Reduce unpaid balance (if totalCommissions is your “unpaid” pool)
-      if (typeof affiliate.totalCommissions === "number") {
-        affiliate.totalCommissions = Math.max(
-          0,
-          Number((affiliate.totalCommissions - amount).toFixed(2))
+      if (saleIds.length) {
+        await AffiliateSale.updateMany(
+          { _id: { $in: payment.saleIds }, commissionStatus: "unpaid" },
+          { $set: { commissionStatus: "processing", paymentId: payment._id } }
         );
       }
+
+      // 4) Append snapshot to Affiliate.paymentHistory (what your UI reads)
+      // affiliate.paymentHistory = affiliate.paymentHistory ?? [];
+      // affiliate.paymentHistory.push({
+      //   saleAmount: Number(amount.toFixed(2)),
+      //   paidCommission: Number(amount.toFixed(2)),
+      //   productName: productName ?? "Stripe transfer",
+      //   date: new Date(paidAtISO).toLocaleString(),
+      //   method: "stripe_transfer",
+      //   transactionId: transfer.id,
+      //   notes: notes ?? transfer.description ?? undefined,
+      // });
+
+      // 5) Reduce unpaid balance (if totalCommissions is your “unpaid” pool)
+      // if (typeof affiliate.totalCommissions === "number") {
+      //   affiliate.totalCommissions = Math.max(
+      //     0,
+      //     Number((affiliate.totalCommissions - amount).toFixed(2))
+      //   );
+      // }
 
       await affiliate.save();
 
@@ -1053,6 +884,182 @@ const resolvers = {
         createdAt:
           payment.createdAt?.toISOString?.() ?? new Date().toISOString(),
       };
+    },
+
+    recordAffiliatePayment: async (
+      _: unknown,
+      {
+        input,
+      }: {
+        input: {
+          refId: string;
+          saleIds: string[];
+          saleAmount: number; // order total (or whatever you decided)
+          method: string; // "bank" | "paypal" | "crypto" | ...
+          transactionId?: string; // ignored; we’ll overwrite with Stripe id
+          notes?: string;
+        };
+      }
+    ) => {
+      // 1) Find affiliate & sales
+      const affiliate = await Affiliate.findOne({ refId: input.refId });
+      if (!affiliate) throw new Error("Affiliate not found.");
+      if (!affiliate.stripeAccountId)
+        throw new Error("Affiliate is not connected to Stripe.");
+
+      const sales = await AffiliateSale.find({
+        _id: { $in: input.saleIds.map((id) => new Types.ObjectId(id)) },
+      });
+      if (!sales.length) throw new Error("No valid sales found for payout.");
+
+      // guard against double pay
+      const alreadyPaid = sales.find((s) => s.commissionStatus === "paid");
+      if (alreadyPaid) throw new Error("One or more sales are already paid.");
+
+      // 2) Compute commission to transfer
+      // Prefer exact per-sale commissions if present; else fallback to rate * saleAmount
+      let commission = 0;
+      const perSaleHasCommission = sales.every(
+        (s) => typeof s.commissionEarned === "number"
+      );
+      if (perSaleHasCommission) {
+        commission = sales.reduce(
+          (sum, s) => sum + (s.commissionEarned || 0),
+          0
+        );
+      } else {
+        const rate = affiliate.commissionRate ?? 0.1;
+        commission = input.saleAmount * rate;
+      }
+      commission = Number(commission.toFixed(2));
+      if (!(commission > 0))
+        throw new Error("Computed commission must be > 0.");
+
+      // 3) Create Stripe transfer (platform -> connected account balance)
+      const idempotencyKey = `affpay:${affiliate.refId}:${input.saleIds
+        .slice()
+        .sort()
+        .join(",")}`;
+
+      const transfer = await stripe.transfers.create(
+        {
+          amount: Math.round(commission * 100),
+          currency: "usd",
+          destination: affiliate.stripeAccountId,
+          description: `Affiliate payout ${affiliate.refId} (${
+            sales.length
+          } sale${sales.length > 1 ? "s" : ""})`,
+          metadata: {
+            refId: affiliate.refId,
+            saleIds: input.saleIds.join(","),
+            type: "affiliate_payout",
+          },
+        },
+        { idempotencyKey }
+      );
+
+      // 4) Create Payment record in Mongo (store the Stripe transfer id)
+      const firstSale = sales[0];
+      const payment = await Payment.create({
+        refId: affiliate.refId,
+        affiliateId: affiliate._id,
+        saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
+        saleAmount: Number(input.saleAmount.toFixed(2)),
+        paidCommission: commission,
+        productName: firstSale?.event ?? "Commission payout",
+        date: new Date(),
+        method: input.method,
+        transactionId: transfer.id, // <-- Stripe transfer id (tr_...)
+        notes: input.notes,
+      });
+
+      // 5) Mark all sales as processing (wait for webhook to confirm)
+      await AffiliateSale.updateMany(
+        { _id: { $in: payment.saleIds }, commissionStatus: { $ne: "paid" } },
+        {
+          $set: {
+            commissionStatus: "processing",
+            paymentId: payment._id,
+            // paidAt: (leave unset until webhook)
+          },
+        }
+      );
+
+      // 6) Append snapshot to Affiliate.paymentHistory
+      // await Affiliate.findByIdAndUpdate(affiliate._id, {
+      //   $push: {
+      //     paymentHistory: {
+      //       saleAmount: Number(input.saleAmount.toFixed(2)),
+      //       paidCommission: commission,
+      //       date: payment.date,
+      //       method: input.method,
+      //       transactionId: transfer.id,
+      //       notes: input.notes,
+      //       productName: firstSale?.event ?? "Commission payout",
+      //     },
+      //   },
+      // });
+
+      return payment;
+    },
+
+    addAffiliatePayment: async (
+      _: unknown,
+      { payment, refId }: { payment: PaymentInputArg; refId: string }
+    ) => {
+      // 👇 quick visibility
+      console.log("[addAffiliatePayment] vars:", { refId, payment });
+
+      try {
+        const affiliate = await Affiliate.findOne({ refId });
+        if (!affiliate) throw new Error("Affiliate not found");
+
+        // accept both saleAmount and legacy amount
+        const saleAmount = payment.saleAmount ?? payment.amount;
+        if (saleAmount == null)
+          throw new Error("saleAmount/amount is required");
+        if (!payment.method) throw new Error("method is required");
+
+        // build exactly what Affiliate.paymentHistory subdoc expects
+        const record = {
+          saleAmount: Number(saleAmount),
+          paidCommission:
+            typeof payment.paidCommission === "number"
+              ? Number(payment.paidCommission)
+              : Number(saleAmount), // fallback
+          productName: payment.productName ?? undefined,
+          date: payment.date,
+          method: payment.method,
+          transactionId: payment.transactionId ?? undefined,
+          notes: payment.notes ?? undefined,
+        };
+
+        affiliate.paymentHistory ??= [];
+        affiliate.paymentHistory.push(record);
+
+        await Payment.create({
+          affiliateId: affiliate._id,
+          refId: affiliate.refId,
+          saleIds: [], // manual payout: no specific sales
+          saleAmount: record.saleAmount, // number
+          paidCommission: record.paidCommission ?? record.saleAmount,
+          productName: record.productName ?? "Manual commission payout",
+          date: record.date, // Date object
+          method: record.method,
+          transactionId: record.transactionId ?? `MANUAL-${Date.now()}`,
+          notes: record.notes,
+        });
+        await affiliate.save();
+
+        // return a fresh doc to the client
+        return await Affiliate.findById(affiliate._id);
+      } catch (err) {
+        // 👇 log the real reason to your server console
+        const msg =
+          err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+        console.error("[addAffiliatePayment] failed:", msg, err);
+        throw new Error("Failed to track affiliate payment");
+      }
     },
   },
 };
