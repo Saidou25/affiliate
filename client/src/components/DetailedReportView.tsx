@@ -138,6 +138,7 @@ export default function DetailedReportView({
     pdf.save("report.pdf");
   }
 
+  console.log(monthSales)
   return (
     <div className="print">
       <div className="">

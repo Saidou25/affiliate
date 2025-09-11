@@ -158,8 +158,6 @@ const typeDefs = gql`
     commissionStatus: String
     paidAt: Date
     paymentId: ID
-
-    # new
     source: String
     orderId: String
     orderNumber: String
@@ -174,7 +172,6 @@ const typeDefs = gql`
     paymentIntentId: String
     items: [JSON!] # or a structured type if you know the shape
     product: JSON
-
     createdAt: Date
     updatedAt: Date
   }

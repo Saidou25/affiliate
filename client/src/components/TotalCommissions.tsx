@@ -8,7 +8,9 @@ import Button from "./Button";
 export default function TotalCommissions() {
   const { me, commissionPerDay, commissionsPerWeek, commissionsPerMonth } =
     useCommissionsTracker();
-
+  // console.log("commissionPerDay:", commissionPerDay);
+  // console.log("commissionsPerWeek:", commissionsPerWeek);
+  // console.log("commissionsPerMonth:", commissionsPerMonth);
   const [commissionsRange, setCommissionsRange] = useState(commissionPerDay);
 
   const selectCommissionsRange = (range: string) => {

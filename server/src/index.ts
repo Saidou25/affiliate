@@ -94,7 +94,39 @@ async function startServer() {
     try {
       const p = req.body as any;
 
-      // minimal validation
+      // ——— helpers ———
+      const num = (v: any) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+      };
+      const DEFAULT_RATE = 0.1;
+
+      // Compute commission base (prefer line items → subtotal-discount → total-tax-shipping)
+      const computeCommissionBase = (payload: any) => {
+        if (Array.isArray(payload.items) && payload.items.length) {
+          const lines = payload.items.reduce((acc: number, it: any) => {
+            // accept both your normalized shape and raw Woo fields
+            const lineTotal = num(it.lineTotal ?? it.total ?? it.line_total);
+            if (lineTotal) return acc + lineTotal;
+            const unit = num(it.unitPrice ?? it.price);
+            const qty = num(it.qty ?? it.quantity ?? 1);
+            return acc + unit * qty;
+          }, 0);
+          const orderDiscount = num(payload.discount ?? payload.discount_total);
+          return Math.max(0, lines - orderDiscount);
+        }
+
+        const subtotal = num(p.subtotal);
+        const discount = num(p.discount ?? p.discount_total);
+        if (subtotal || discount) return Math.max(0, subtotal - discount);
+
+        const total = num(p.total);
+        const tax = num(p.tax ?? p.total_tax);
+        const shipping = num(p.shipping ?? p.shipping_total);
+        return Math.max(0, total - tax - shipping);
+      };
+
+      // ——— minimal validation ———
       if (
         !p?.orderId ||
         !p?.orderNumber ||
@@ -104,49 +136,94 @@ async function startServer() {
         return res.status(400).json({ ok: false, error: "Bad payload" });
       }
 
-      // resolve affiliate (optional if refId not present)
+      // Resolve affiliate + pick rate (payload override → affiliate → default)
       let affiliateId: any = null;
       if (p.refId) {
-        const aff = await Affiliate.findOne({ refId: p.refId }).select("_id");
+        const aff = await Affiliate.findOne({ refId: p.refId }).select(
+          "_id commissionRate"
+        );
         if (aff) affiliateId = aff._id;
       }
+      const rateOverride = num(p.meta?.commissionRate);
+      const affiliateRate = num(
+        (await Affiliate.findOne({ refId: p.refId }).select("commissionRate"))
+          ?.commissionRate
+      );
+      const commissionRate = rateOverride || affiliateRate || DEFAULT_RATE;
 
+      // Compute commission
+      const base = computeCommissionBase(p);
+      const commissionEarned = Math.round(base * commissionRate * 100) / 100;
+
+      // Normalize a few fields
+      const orderId = String(p.orderId);
+      const orderNumber = String(p.orderNumber);
+      const orderDate = new Date(p.orderDate);
+
+      // Normalize items to your stored shape (keeps your current field names)
+      const items = Array.isArray(p.items)
+        ? p.items.map((it: any) => ({
+            wooProductId: num(it.wooProductId ?? it.product_id),
+            name: it.name,
+            qty: num(it.qty ?? it.quantity),
+            unitPrice: num(it.unitPrice ?? it.price),
+            lineTotal: num(it.lineTotal ?? it.total ?? it.line_total),
+          }))
+        : [];
+
+      // Upsert idempotently by (source, orderId)
       const sale = await AffiliateSale.findOneAndUpdate(
-        // ❗ filter contains "orderId" and "source" which your schema doesn't have yet
-        { source: "woocommerce", orderId: String(p.orderId) },
+        { source: "woocommerce", orderId },
         {
           $set: {
             source: "woocommerce",
-            orderId: String(p.orderId),
+            orderId,
             refId: p.refId ?? null,
             affiliateId,
-            orderNumber: String(p.orderNumber),
-            orderDate: new Date(p.orderDate),
+            orderNumber,
+            orderDate,
             status: String(p.status || "processing"),
             currency: String(p.currency || "USD"),
-            subtotal: Number(p.subtotal || 0),
-            discount: Number(p.discount || 0),
-            tax: Number(p.tax || 0),
-            shipping: Number(p.shipping || 0),
-            total: Number(p.total || 0),
-            paymentIntentId: p.paymentIntentId ?? null,
-            items: Array.isArray(p.items) ? p.items : [],
-            product: p.product ?? null,
+            subtotal: num(p.subtotal || 0),
+            discount: num(p.discount || p.discount_total || 0),
+            tax: num(p.tax || p.total_tax || 0),
+            shipping: num(p.shipping || p.shipping_total || 0),
+            total: num(p.total || 0),
+            paymentIntentId: p.paymentIntentId ?? p.payment_intent_id ?? null,
+            items,
+            product: p.product ?? items[0]?.name ?? null,
+
+            // 🔹 snapshot and persist the commission math
+            commissionRate,
+            commissionEarned,
+
             updatedAt: new Date(),
           },
-          $setOnInsert: { createdAt: new Date() },
+          $setOnInsert: {
+            event: "purchase",
+            title: "purchase",
+            createdAt: new Date(),
+          },
         },
         {
           new: true,
           upsert: true,
           setDefaultsOnInsert: true,
-          // 👇 allow unknown keys in filter & update for this operation
           strictQuery: false,
           strict: false,
         }
       );
 
-      return res.json({ ok: true, saleId: String(sale._id) });
+      // Optional debug
+      console.log("[woo/order] upserted", {
+        orderId,
+        refId: p.refId,
+        base,
+        commissionRate,
+        commissionEarned,
+      });
+
+      return res.json({ ok: true, saleId: String(sale._id), commissionEarned });
     } catch (err) {
       console.error("woo/order ingest error", err);
       return res.status(500).json({ ok: false, error: "Server error" });

@@ -587,16 +587,16 @@ const resolvers = {
       };
     },
 
-    markSaleAsPaid: async (_: unknown, { saleId }: { saleId: string }) => {
-      console.log("💥 Received saleId on backend:", saleId);
-      const sale = await AffiliateSale.findById(saleId);
-      if (!sale) throw new Error("Sale not found");
+    // markSaleAsPaid: async (_: unknown, { saleId }: { saleId: string }) => {
+    //   console.log("💥 Received saleId on backend:", saleId);
+    //   const sale = await AffiliateSale.findById(saleId);
+    //   if (!sale) throw new Error("Sale not found");
 
-      sale.commissionStatus = "paid";
-      await sale.save();
+    //   sale.commissionStatus = "paid";
+    //   await sale.save();
 
-      return sale;
-    },
+    //   return sale;
+    // },
 
     createAffiliateStripeAccount: async (
       _: any,

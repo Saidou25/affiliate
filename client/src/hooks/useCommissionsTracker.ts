@@ -31,7 +31,8 @@ export function useCommissionsTracker() {
   const [commissionsPerMonth, setCommissionsPerMonth] = useState<SaleObj[]>([]);
 
   const { data } = useQuery(QUERY_ME);
-  const refId = me?.refId
+  const refId = me?.refId;
+
   const {
     data: salesData,
     // loading: salesLoading,
@@ -41,9 +42,32 @@ export function useCommissionsTracker() {
     variables: { filter: { refId }, limit: 200, offset: 0 },
     skip: !refId, // if refId is '', query won’t run
     fetchPolicy: "cache-and-network",
-    // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
-    // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
+
+  // ---------- helpers ----------
+  const num = (v: any) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  };
+
+  // Prefer stored commissionEarned if > 0; else compute from saleAmount * rate.
+  // Tries several likely sale total field names and falls back to me.commissionRate.
+  const getCommissionForSale = (sale: any, meRate?: number) => {
+    const direct = num(sale?.commissionEarned);
+    if (direct && direct > 0) return +direct.toFixed(2);
+
+    const saleAmount =
+      num(sale?.saleAmount) ??
+      num(sale?.orderTotal) ??
+      num(sale?.total) ??
+      num(sale?.amount) ??
+      0;
+
+    const rate = num(sale?.commissionRate) ?? num(meRate) ?? 0;
+
+    const computed = saleAmount * rate;
+    return Number.isFinite(computed) ? +computed.toFixed(2) : 0;
+  };
 
   const toEasternDate = (isoDate: string) =>
     new Date(isoDate).toLocaleDateString("en-US", {
@@ -77,72 +101,79 @@ export function useCommissionsTracker() {
     }
     return range;
   };
+  // -----------------------------
 
   useEffect(() => {
-    if (salesData?.getAffiliateSales) {
-      const sortedSales = [...salesData.getAffiliateSales].sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
-      const dayLabels = sortedSales.map((sale: any) =>
-        toEasternDate(sale.timestamp)
-      );
-      const allDateObjs = dayLabels.map((d: string) => new Date(d));
-      const min = new Date(
-        Math.min(...allDateObjs.map((d: Date) => d.getTime()))
-      );
-      const max = new Date(
-        Math.max(...allDateObjs.map((d: Date) => d.getTime()))
-      );
-      const fullDateRange = getDateRange(min, max);
-
-      const dailyTotals: Record<string, number> = {};
-      const weeklyTotals: Record<string, number> = {};
-      const monthlyTotals: Record<string, number> = {};
-
-      for (const sale of sortedSales) {
-        const commission = sale.commissionEarned ?? 0;
-        const day = toEasternDate(sale.timestamp);
-        const week = toWeekLabel(sale.timestamp);
-        const month = toMonthLabel(sale.timestamp);
-
-        dailyTotals[day] = (dailyTotals[day] || 0) + commission;
-        weeklyTotals[week] = (weeklyTotals[week] || 0) + commission;
-        monthlyTotals[month] = (monthlyTotals[month] || 0) + commission;
-      }
-
-      const dailyData: DataObj[] = fullDateRange.map((date) => ({
-        x: date,
-        y: Number((dailyTotals[date] || 0).toFixed(2)),
-      }));
-
-      const weeklyData: DataObj[] = Object.entries(weeklyTotals)
-        .map(([week, total]) => ({ x: week, y: Number(total.toFixed(2)) }))
-        .sort((a, b) => {
-          const [_, weekA, yearA] = a.x.match(/Week (\d+), (\d+)/) || [];
-          const [__, weekB, yearB] = b.x.match(/Week (\d+), (\d+)/) || [];
-          return +yearA !== +yearB
-            ? +yearA - +yearB
-            : +weekA - +weekB;
-        });
-
-      const monthlyData: DataObj[] = Object.entries(monthlyTotals)
-        .map(([month, total]) => ({ x: month, y: Number(total.toFixed(2)) }))
-        .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
-
-      setCommissionPerDay([{ id: "Commissions per day", data: dailyData }]);
-      setCommissionsPerWeek([{ id: "Commissions per week", data: weeklyData }]);
-      setCommissionsPerMonth([
-        { id: "Commissions per month", data: monthlyData },
-      ]);
+    const sales = salesData?.getAffiliateSales;
+    if (!sales || sales.length === 0) {
+      setCommissionPerDay([]);
+      setCommissionsPerWeek([]);
+      setCommissionsPerMonth([]);
+      return;
     }
-  }, [salesData, me]);
+
+    const sortedSales = [...sales].sort(
+      (a: any, b: any) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+
+    const dayLabels = sortedSales.map((sale: any) =>
+      toEasternDate(sale.createdAt)
+    );
+    const allDateObjs = dayLabels.map((d: string) => new Date(d));
+    const minMs = Math.min(...allDateObjs.map((d: Date) => d.getTime()));
+    const maxMs = Math.max(...allDateObjs.map((d: Date) => d.getTime()));
+    if (!Number.isFinite(minMs) || !Number.isFinite(maxMs)) {
+      setCommissionPerDay([]);
+      setCommissionsPerWeek([]);
+      setCommissionsPerMonth([]);
+      return;
+    }
+    const min = new Date(minMs);
+    const max = new Date(maxMs);
+    const fullDateRange = getDateRange(min, max);
+
+    const dailyTotals: Record<string, number> = {};
+    const weeklyTotals: Record<string, number> = {};
+    const monthlyTotals: Record<string, number> = {};
+
+    for (const sale of sortedSales) {
+      const commission = getCommissionForSale(sale, me?.commissionRate);
+      const day = toEasternDate(sale.createdAt);
+      const week = toWeekLabel(sale.createdAt);
+      const month = toMonthLabel(sale.createdAt);
+
+      dailyTotals[day] = (dailyTotals[day] || 0) + commission;
+      weeklyTotals[week] = (weeklyTotals[week] || 0) + commission;
+      monthlyTotals[month] = (monthlyTotals[month] || 0) + commission;
+    }
+
+    const dailyData: DataObj[] = fullDateRange.map((date) => ({
+      x: date,
+      y: Number((dailyTotals[date] || 0).toFixed(2)),
+    }));
+
+    const weeklyData: DataObj[] = Object.entries(weeklyTotals)
+      .map(([week, total]) => ({ x: week, y: Number(total.toFixed(2)) }))
+      .sort((a, b) => {
+        const [_, weekA, yearA] = a.x.match(/Week (\d+), (\d+)/) || [];
+        const [__, weekB, yearB] = b.x.match(/Week (\d+), (\d+)/) || [];
+        return +yearA !== +yearB ? +yearA - +yearB : +weekA - +weekB;
+      });
+
+    const monthlyData: DataObj[] = Object.entries(monthlyTotals)
+      .map(([month, total]) => ({ x: month, y: Number(total.toFixed(2)) }))
+      .sort((a, b) => new Date(a.x).getTime() - new Date(b.x).getTime());
+
+    setCommissionPerDay([{ id: "Commissions per day", data: dailyData }]);
+    setCommissionsPerWeek([{ id: "Commissions per week", data: weeklyData }]);
+    setCommissionsPerMonth([
+      { id: "Commissions per month", data: monthlyData },
+    ]);
+  }, [salesData, me?.commissionRate]);
 
   useEffect(() => {
-    if (data?.me) {
-      setMe(data.me);
-    }
+    if (data?.me) setMe(data.me);
   }, [data]);
 
   return { me, commissionPerDay, commissionsPerWeek, commissionsPerMonth };
