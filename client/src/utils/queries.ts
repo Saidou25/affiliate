@@ -310,3 +310,24 @@ export const GET_AFFILIATESALES = gql`
     }
   }
 `;
+
+
+export const STRIPE_CHARGES = gql`
+  query StripeCharges($after: String, $limit: Int, $filter: StripeListFilter) {
+    stripeCharges(after: $after, limit: $limit, filter: $filter) {
+      hasMore
+      nextCursor
+      data
+    }
+  }
+`;
+
+export const STRIPE_PAYMENT_INTENTS = gql`
+  query StripePaymentIntents($after: String, $limit: Int, $filter: StripeListFilter) {
+    stripePaymentIntents(after: $after, limit: $limit, filter: $filter) {
+      hasMore
+      nextCursor
+      data
+    }
+  }
+`;

@@ -26,6 +26,7 @@ import { SendEmailArgs } from "./types";
 import { sendEmailMessage } from "../utils/sendEmailMessage";
 import { refreshWooProductsOnce } from "../services/wooStoreSync";
 import AffiliateProduct from "../models/AffiliateProduct";
+import { stripeFiltersToParams, toStripeListPage } from "../utils/stipeListFunctions";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -261,6 +262,31 @@ const resolvers = {
       const filter: any = {};
       if (active !== undefined) filter.active = active;
       return AffiliateProduct.find(filter).sort({ name: 1 }).lean();
+    },
+
+     stripePaymentIntents: async (_: any, { after, limit, filter }: any) => {
+      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter), expand: ["data.latest_charge"] };
+      const list = await stripe.paymentIntents.list(params);
+      return toStripeListPage(list);
+    },
+    stripeCharges: async (_: any, { after, limit, filter }: any) => {
+      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter), expand: ["data.balance_transaction"] };
+      const list = await stripe.charges.list(params);
+      return toStripeListPage(list);
+    },
+    stripeRefunds: async (_: any, { after, limit, filter }: any) => {
+      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter) };
+      const list = await stripe.refunds.list(params);
+      return toStripeListPage(list);
+    },
+    stripeTransfers: async (_: any, { after, limit, filter }: any) => {
+      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter) };
+      const list = await stripe.transfers.list(params);
+      return toStripeListPage(list);
+    },
+    stripeBalanceTxns: async (_: any, { after, limit }: any) => {
+      const list = await stripe.balanceTransactions.list({ limit, starting_after: after || undefined });
+      return toStripeListPage(list);
     },
   },
 

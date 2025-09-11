@@ -139,6 +139,20 @@ const typeDefs = gql`
     lastTransferCurrency: String
   }
 
+type StripeListPage {
+  hasMore: Boolean!
+  nextCursor: String
+  data: [JSON!]!  # raw Stripe objects (or define strong types later)
+}
+
+input StripeListFilter {
+  createdFrom: Int
+  createdTo: Int
+  email: String
+  refId: String
+  status: String
+}
+
   type AuthPayload {
     token: String!
     affiliate: Affiliate!
@@ -284,6 +298,11 @@ const typeDefs = gql`
     getAllPayments: [Payment!]!
     checkStripeStatus(affiliateId: ID!): StripeStatus
     affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
+    stripePaymentIntents(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
+    stripeCharges(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
+    stripeRefunds(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
+    stripeTransfers(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
+    stripeBalanceTxns(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
   }
 
   type Mutation {

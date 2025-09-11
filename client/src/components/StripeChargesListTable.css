@@ -1,0 +1,224 @@
+.sc-wrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.sc-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--bs-border-color, #e5e7eb);
+}
+
+.sc-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.sc-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.sc-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sc-filters {
+  display: grid;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--bs-border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 0.75rem;
+}
+
+.sc-filter-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.sc-filters label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.sc-filters input,
+.sc-filters select {
+  border-radius: 10px;
+  border: 1px solid var(--bs-border-color, #e5e7eb);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.95rem;
+}
+
+.sc-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sc-btn {
+  border: 1px solid var(--bs-border-color, #d1d5db);
+  background: #fff;
+  border-radius: 10px;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sc-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sc-primary {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.sc-ghost {
+  background: transparent;
+}
+
+.sc-error {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #991b1b;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.sc-table-wrap {
+  border: 1px solid var(--bs-border-color, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.sc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.sc-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f9fafb;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  padding: 0.6rem 0.6rem;
+  border-bottom: 1px solid var(--bs-border-color, #e5e7eb);
+  text-align: left;
+}
+
+.sc-table tbody td {
+  padding: 0.6rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+  word-wrap: break-word;
+}
+
+.sc-row {
+  cursor: pointer;
+}
+
+.sc-row:hover td {
+  background: #fafafa;
+}
+
+.sc-row.expanded td {
+  background: #f9fafb;
+}
+
+.sc-expand td {
+  background: #f9fafb;
+  padding-top: 0;
+  border-top: none;
+}
+
+.sc-expand-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sc-kv {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sc-kv li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.sc-pre {
+  margin: 0;
+  padding: 0.6rem;
+  border-radius: 8px;
+  background: #0b1020;
+  color: #e6edf3;
+  font-size: 0.78rem;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.sc-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sc-links a {
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.sc-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 1rem;
+}
+
+.sc-pagination {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0.5rem;
+}
+
+.pill {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.pill--succeeded { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.pill--failed    { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.pill--pending   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.pill--refunded  { background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe; }
+.pill--canceled  { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+.pill--captured  { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
