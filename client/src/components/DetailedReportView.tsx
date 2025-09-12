@@ -41,13 +41,6 @@ export default function DetailedReportView({
 
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
 
-  //  const [checkStripeStatus] = useLazyQuery(CHECK_STRIPE_STATUS, {
-  //     errorPolicy: "all",
-  //     fetchPolicy: "network-only",
-  //     // onCompleted: (d) => dbg("CHECK_STRIPE_STATUS ✓", d),
-  //     // onError: (e) => dbg("CHECK_STRIPE_STATUS ✗", e?.message || e),
-  //   });
-
   const addedSales = useAddMonthSales(monthSales);
   const { addedCommissions, calculateCommissionsByStatus } =
     useAddMonthCommissions(monthSales);
@@ -137,8 +130,7 @@ export default function DetailedReportView({
     pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
     pdf.save("report.pdf");
   }
-
-  console.log(monthSales)
+// console.log(monthSales);
   return (
     <div className="print">
       <div className="">

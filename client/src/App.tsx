@@ -25,6 +25,7 @@ import WooSyncCard from "./components/WooSyncCard";
 import "bootswatch/dist/lux/bootstrap.min.css";
 
 import "./App.css";
+import StripeChargesTable from "./components/StripeChargesListTable";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);
@@ -66,6 +67,7 @@ function App() {
           <Route path="sales report" element={<AffiliatesSalesReport />} />
           {/* <Route path="data center" element={<DataCenter />} /> */}
           <Route path="/admin/wooproducts" element={<WooSyncCard />} />
+          <Route path="stripe list" element={<StripeChargesTable />} />
         </Route>
 
         <Route path="/affiliate" element={<AffiliateDashboard />}>

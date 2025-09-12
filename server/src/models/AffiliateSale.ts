@@ -27,9 +27,15 @@ export interface IAffiliateSale extends Document {
   event?: "purchase" | string;
   timestamp?: Date; // legacy event time
   commissionEarned?: number; // computed sale commission (snapshot)
-  commissionStatus?: "paid" | "unpaid" | "processing" | "reversed";
+  commissionStatus?: "paid" | "unpaid" | "processing" | "reversed" | "refunded";
   paidAt?: Date;
+  processingAt?: Date; // NEW
   paymentId?: mongoose.Types.ObjectId;
+
+  // ───── Stripe / payouts linkage (NEW) ───────────────────────────────────────
+  stripeAccountId?: string; // acct_... (destination connected account)
+  transferId?: string; // tr_... (platform → connected account)
+  payoutId?: string; // po_... (connected account → bank)
 
   // ───── Newer fields for Woo/Stripe ingest (names preserved) ────────────────
   source?: "woocommerce" | "stripe" | "manual";
@@ -64,9 +70,8 @@ export interface IAffiliateSale extends Document {
 
 /**
  * MAIN SCHEMA
- * - All existing names are preserved.
- * - Added `commissionRate` only (no renames).
- * - Added safe defaults and validation where it won’t break existing data.
+ * - Existing names preserved.
+ * - Adds Stripe linkage fields needed by your webhook flow.
  */
 const AffiliateSaleSchema = new Schema<IAffiliateSale>(
   {
@@ -82,16 +87,22 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>(
     // Computed per-sale commission (snapshot)
     commissionEarned: { type: Number, default: 0, min: 0 },
 
-    // Extended enum to reflect your UI logic (paid/unpaid/processing/reversed)
+    // Expanded enum to reflect UI logic (now also includes 'refunded')
     commissionStatus: {
       type: String,
-      enum: ["paid", "unpaid", "processing", "reversed"],
+      enum: ["paid", "unpaid", "processing", "reversed", "refunded"],
       default: "unpaid",
       index: true,
     },
 
     paidAt: { type: Date },
+    processingAt: { type: Date }, // NEW
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
+
+    // ─── Stripe linkage (NEW) ────────────────────────────────────────────────
+    stripeAccountId: { type: String, index: true }, // acct_...
+    transferId: { type: String, index: true }, // tr_...
+    payoutId: { type: String, index: true }, // po_...
 
     // ─── Newer fields for Woo/Stripe ─────────────────────────────────────────
     source: {
@@ -120,24 +131,23 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>(
     // Keep `product` flexible (Mixed) to avoid breaking older data
     product: { type: Schema.Types.Mixed, default: null },
 
-    // ─── Added field (name preserved as requested) ───────────────────────────
+    // ─── Commission config snapshot ───────────────────────────────────────────
     commissionRate: {
       type: Number, // e.g., 0.10 for 10%
-      // No default here: set it at ingestion time from (sale override || affiliate || platform default)
       min: 0,
       max: 1,
     },
   },
   {
     timestamps: true, // adds createdAt / updatedAt
-    strict: true, // keep strict on now that fields exist
+    strict: true,
   }
 );
 
 /**
  * INDICES
  * - Idempotency: one sale per (source, orderId)
- * - Common query patterns (by refId+orderDate and by createdAt)
+ * - Webhook matchers for payout flipping and transfer lookups
  */
 AffiliateSaleSchema.index(
   { source: 1, orderId: 1 },
@@ -146,11 +156,18 @@ AffiliateSaleSchema.index(
 AffiliateSaleSchema.index({ refId: 1, orderDate: -1 });
 AffiliateSaleSchema.index({ createdAt: -1 });
 
+// Helpful for payout flip (Connect webhook): find in-flight rows fast
+AffiliateSaleSchema.index({ stripeAccountId: 1, commissionStatus: 1 });
+
+// Optional but handy when correlating programmatically
+AffiliateSaleSchema.index({ transferId: 1 }, { sparse: true });
+AffiliateSaleSchema.index({ payoutId: 1 }, { sparse: true });
+AffiliateSaleSchema.index({ refId: 1, commissionStatus: 1 });
+
 /**
  * Helper: compute the commission base for this sale.
  * Convention (recommended): subtotal - discount (i.e., exclude shipping/tax).
  * Falls back to line items sum, then to total - tax - shipping.
- * NOTE: This is a schema method; it does NOT change field names.
  */
 AffiliateSaleSchema.methods.computeCommissionBase = function (): number {
   const toNum = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -189,16 +206,13 @@ AffiliateSaleSchema.methods.computeCommissionEarned = function (): number {
   const rate = Number(this.commissionRate ?? 0);
   if (!Number.isFinite(rate) || rate <= 0) return 0;
   const base = this.computeCommissionBase();
-  // Round to 2 decimals. Consider storing integer cents for full safety.
   return Math.round(base * rate * 100) / 100;
 };
 
 /**
  * pre('save')
  * - If `commissionEarned` is missing/zero AND a `commissionRate` is set,
- *   compute and snapshot `commissionEarned` so reads (UI/reporting) are simple.
- * - Does NOT fetch affiliate rate here (keeps model decoupled). Pass the chosen
- *   rate at ingestion time (woo/stripe/manual) and set `commissionRate` there.
+ *   compute and snapshot `commissionEarned`.
  */
 AffiliateSaleSchema.pre("save", function (next) {
   if (!this.isModified("commissionEarned") && !this.isNew) return next();
@@ -206,7 +220,6 @@ AffiliateSaleSchema.pre("save", function (next) {
   const current = Number(this.commissionEarned ?? 0);
   const rate = Number(this.commissionRate ?? 0);
 
-  // Only auto-compute when rate is provided and current commission is not positive
   if (
     (Number.isNaN(current) || current <= 0) &&
     Number.isFinite(rate) &&

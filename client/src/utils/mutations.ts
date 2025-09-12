@@ -110,6 +110,11 @@ export const TRACK_AFFILIATESALES = gql`
       timestamp
       commissionEarned
       commissionStatus
+      paidAt
+      processingAt
+      stripeAccountId
+      transferId
+      payoutId
     }
   }
 `;
@@ -119,6 +124,11 @@ export const UPDATE_AFFILIATE_SALE = gql`
     updateAffiliateSale(id: $saleId, commissionStatus: $commissionStatus) {
       id
       commissionStatus
+      paidAt
+      processingAt
+      stripeAccountId
+      transferId
+      payoutId
     }
   }
 `;
@@ -181,6 +191,7 @@ export const ADD_AFFILIATE_PAYMENT = gql`
         method
         transactionId
         notes
+        # status        # ← optional
       }
       updatedAt
     }

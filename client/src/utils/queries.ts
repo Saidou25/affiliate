@@ -151,6 +151,11 @@ export const GET_ALLAFFILIATESALES = gql`
       updatedAt
       items
       product
+      processingAt
+      paidAt
+      stripeAccountId
+      transferId
+      payoutId
     }
   }
 `;
@@ -307,10 +312,14 @@ export const GET_AFFILIATESALES = gql`
       updatedAt
       items
       product
+      processingAt 
+      paidAt 
+      stripeAccountId 
+      transferId 
+      payoutId
     }
   }
 `;
-
 
 export const STRIPE_CHARGES = gql`
   query StripeCharges($after: String, $limit: Int, $filter: StripeListFilter) {
@@ -323,7 +332,11 @@ export const STRIPE_CHARGES = gql`
 `;
 
 export const STRIPE_PAYMENT_INTENTS = gql`
-  query StripePaymentIntents($after: String, $limit: Int, $filter: StripeListFilter) {
+  query StripePaymentIntents(
+    $after: String
+    $limit: Int
+    $filter: StripeListFilter
+  ) {
     stripePaymentIntents(after: $after, limit: $limit, filter: $filter) {
       hasMore
       nextCursor

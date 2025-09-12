@@ -10,7 +10,8 @@ const adminLinks = {
     "look up",
     "sales report",
     // "data center",
-    "wooProducts"
+    "wooProducts",
+    "stripe list"
   ],
 };
 export { affiliateLinks, adminLinks };

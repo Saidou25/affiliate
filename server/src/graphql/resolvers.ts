@@ -26,7 +26,14 @@ import { SendEmailArgs } from "./types";
 import { sendEmailMessage } from "../utils/sendEmailMessage";
 import { refreshWooProductsOnce } from "../services/wooStoreSync";
 import AffiliateProduct from "../models/AffiliateProduct";
-import { stripeFiltersToParams, toStripeListPage } from "../utils/stipeListFunctions";
+import {
+  buildChargesSearchQuery,
+  buildPISearchQuery,
+  needsSearch,
+  stripeFiltersToParams,
+  toStripeListPage,
+  toStripeSearchPage,
+} from "../utils/stripeListFunctions";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -264,28 +271,126 @@ const resolvers = {
       return AffiliateProduct.find(filter).sort({ name: 1 }).lean();
     },
 
-     stripePaymentIntents: async (_: any, { after, limit, filter }: any) => {
-      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter), expand: ["data.latest_charge"] };
-      const list = await stripe.paymentIntents.list(params);
+    // Payment Intents
+    stripePaymentIntents: async (
+      _: any,
+      { after, limit = 25, filter }: any
+    ) => {
+      if (needsSearch(filter)) {
+        const query = buildPISearchQuery(filter);
+        const res = await stripe.paymentIntents.search({
+          query,
+          limit,
+          page: after || undefined, // search uses `page`
+          expand: ["data.latest_charge"],
+        });
+        return toStripeSearchPage(res);
+      }
+      const list = await stripe.paymentIntents.list({
+        limit,
+        starting_after: after || undefined, // list uses `starting_after`
+        ...stripeFiltersToParams(filter), // created range only
+        expand: ["data.latest_charge"],
+      });
       return toStripeListPage(list);
     },
-    stripeCharges: async (_: any, { after, limit, filter }: any) => {
-      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter), expand: ["data.balance_transaction"] };
-      const list = await stripe.charges.list(params);
+
+    // Charges
+    stripeCharges: async (_: any, { after, limit = 25, filter }: any) => {
+      if (needsSearch(filter)) {
+        const query = buildChargesSearchQuery(filter);
+        const res = await stripe.charges.search({
+          query,
+          limit,
+          page: after || undefined,
+          expand: ["data.balance_transaction"],
+        });
+        return toStripeSearchPage(res);
+      }
+      const list = await stripe.charges.list({
+        limit,
+        starting_after: after || undefined,
+        ...stripeFiltersToParams(filter),
+        expand: ["data.balance_transaction"],
+      });
       return toStripeListPage(list);
     },
-    stripeRefunds: async (_: any, { after, limit, filter }: any) => {
-      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter) };
-      const list = await stripe.refunds.list(params);
+
+    // Refunds
+
+    stripeRefunds: async (_: any, { after, limit = 25, filter }: any) => {
+      // If user asks for refId/email/status, emulate search via charges.search
+      if (needsSearch(filter)) {
+        const query = buildChargesSearchQuery(filter); // builds metadata/email/status/created terms
+        // 1) Search charges (this returns ApiSearchResult with .next_page)
+        const chRes = await stripe.charges.search({
+          query,
+          limit, // limit of charges page, not refunds count
+          page: after || undefined,
+        });
+
+        // 2) Fan-out to refunds for each charge (parallel, but keep it bounded)
+        const refundsArrays = await Promise.all(
+          chRes.data.map(
+            (ch) => stripe.refunds.list({ charge: ch.id, limit: 100 }) // pull all for that charge (adjust if needed)
+          )
+        );
+
+        // 3) Flatten + filter locally for refund-specific fields
+        const createdFrom = filter?.createdFrom
+          ? Number(filter.createdFrom)
+          : undefined;
+        const createdTo = filter?.createdTo
+          ? Number(filter.createdTo)
+          : undefined;
+        const wantedStatus = filter?.status as
+          | ("pending" | "succeeded" | "failed")
+          | undefined;
+
+        const allRefunds = refundsArrays
+          .flatMap((r) => r.data)
+          .filter((re) => {
+            if (wantedStatus && re.status !== wantedStatus) return false;
+            if (createdFrom && re.created < createdFrom) return false;
+            if (createdTo && re.created > createdTo) return false;
+            // Optional: if you only stored refId on the charge (not refund), keep them all;
+            // or filter by re.metadata?.refId if you set it at refund creation time.
+            return true;
+          });
+
+        // 4) Return a "search-style" page keyed by the charges search cursor
+        return {
+          hasMore: chRes.has_more,
+          nextCursor: chRes.next_page ?? null, // client passes this back as `after`
+          data: allRefunds as any[],
+        };
+      }
+
+      // Fast path: simple list (created range supported)
+      const list = await stripe.refunds.list({
+        limit,
+        starting_after: after || undefined,
+        ...stripeFiltersToParams(filter), // supports createdFrom/createdTo only
+      });
       return toStripeListPage(list);
     },
-    stripeTransfers: async (_: any, { after, limit, filter }: any) => {
-      const params = { limit, starting_after: after || undefined, ...stripeFiltersToParams(filter) };
-      const list = await stripe.transfers.list(params);
+
+    // Transfers (no search API)
+    stripeTransfers: async (_: any, { after, limit = 25, filter }: any) => {
+      const list = await stripe.transfers.list({
+        limit,
+        starting_after: after || undefined,
+        ...stripeFiltersToParams(filter), // created only
+      });
       return toStripeListPage(list);
     },
-    stripeBalanceTxns: async (_: any, { after, limit }: any) => {
-      const list = await stripe.balanceTransactions.list({ limit, starting_after: after || undefined });
+
+    // Balance Transactions (no search API)
+    stripeBalanceTxns: async (_: any, { after, limit = 25 }: any) => {
+      const list = await stripe.balanceTransactions.list({
+        limit,
+        starting_after: after || undefined,
+      });
       return toStripeListPage(list);
     },
   },
@@ -875,8 +980,16 @@ const resolvers = {
 
       if (saleIds.length) {
         await AffiliateSale.updateMany(
-          { _id: { $in: payment.saleIds }, commissionStatus: "unpaid" },
-          { $set: { commissionStatus: "processing", paymentId: payment._id } }
+          { _id: { $in: payment.saleIds }, commissionStatus: { $ne: "paid" } },
+          {
+            $set: {
+              commissionStatus: "processing",
+              paymentId: payment._id,
+              transferId: transfer.id, // NEW
+              stripeAccountId: affiliate.stripeAccountId, // NEW (acct_...)
+              processingAt: new Date(), // optional
+            },
+          }
         );
       }
 
@@ -920,267 +1033,6 @@ const resolvers = {
       };
     },
 
-    // recordAffiliatePayment: async (
-    //   _: unknown,
-    //   {
-    //     input,
-    //   }: {
-    //     input: {
-    //       refId: string;
-    //       saleIds: string[];
-    //       saleAmount: number; // order total (or whatever you decided)
-    //       method: string; // "bank" | "paypal" | "crypto" | ...
-    //       transactionId?: string; // ignored; we’ll overwrite with Stripe id
-    //       notes?: string;
-    //     };
-    //   }
-    // ) => {
-    //   // 1) Find affiliate & sales
-    //   const affiliate = await Affiliate.findOne({ refId: input.refId });
-    //   if (!affiliate) throw new Error("Affiliate not found.");
-    //   if (!affiliate.stripeAccountId)
-    //     throw new Error("Affiliate is not connected to Stripe.");
-
-    //   const sales = await AffiliateSale.find({
-    //     _id: { $in: input.saleIds.map((id) => new Types.ObjectId(id)) },
-    //   });
-    //   if (!sales.length) throw new Error("No valid sales found for payout.");
-
-    //   // guard against double pay
-    //   const alreadyPaid = sales.find((s) => s.commissionStatus === "paid");
-    //   if (alreadyPaid) throw new Error("One or more sales are already paid.");
-
-    //   // 2) Compute commission to transfer
-    //   // Prefer exact per-sale commissions if present; else fallback to rate * saleAmount
-    //   let commission = 0;
-    //   const perSaleHasCommission = sales.every(
-    //     (s) => typeof s.commissionEarned === "number"
-    //   );
-    //   if (perSaleHasCommission) {
-    //     commission = sales.reduce(
-    //       (sum, s) => sum + (s.commissionEarned || 0),
-    //       0
-    //     );
-    //   } else {
-    //     const rate = affiliate.commissionRate ?? 0.1;
-    //     commission = input.saleAmount * rate;
-    //   }
-    //   commission = Number(commission.toFixed(2));
-    //   if (!(commission > 0))
-    //     throw new Error("Computed commission must be > 0.");
-
-    //   // 3) Create Stripe transfer (platform -> connected account balance)
-    //   const idempotencyKey = `affpay:${affiliate.refId}:${input.saleIds
-    //     .slice()
-    //     .sort()
-    //     .join(",")}`;
-
-    //   const transfer = await stripe.transfers.create(
-    //     {
-    //       amount: Math.round(commission * 100),
-    //       currency: "usd",
-    //       destination: affiliate.stripeAccountId,
-    //       description: `Affiliate payout ${affiliate.refId} (${
-    //         sales.length
-    //       } sale${sales.length > 1 ? "s" : ""})`,
-    //       metadata: {
-    //         refId: affiliate.refId,
-    //         saleIds: input.saleIds.join(","),
-    //         type: "affiliate_payout",
-    //       },
-    //     },
-    //     { idempotencyKey }
-    //   );
-
-    //   // 4) Create Payment record in Mongo (store the Stripe transfer id)
-    //   const firstSale = sales[0];
-    //   const payment = await Payment.create({
-    //     refId: affiliate.refId,
-    //     affiliateId: affiliate._id,
-    //     saleIds: input.saleIds.map((id) => new Types.ObjectId(id)),
-    //     saleAmount: Number(input.saleAmount.toFixed(2)),
-    //     paidCommission: commission,
-    //     productName: firstSale?.event ?? "Commission payout",
-    //     date: new Date(),
-    //     method: input.method,
-    //     transactionId: transfer.id, // <-- Stripe transfer id (tr_...)
-    //     notes: input.notes,
-    //   });
-
-    //   // 5) Mark all sales as processing (wait for webhook to confirm)
-    //   await AffiliateSale.updateMany(
-    //     { _id: { $in: payment.saleIds }, commissionStatus: { $ne: "paid" } },
-    //     {
-    //       $set: {
-    //         commissionStatus: "processing",
-    //         paymentId: payment._id,
-    //         // paidAt: (leave unset until webhook)
-    //       },
-    //     }
-    //   );
-
-    //   // 6) Append snapshot to Affiliate.paymentHistory
-    //   // await Affiliate.findByIdAndUpdate(affiliate._id, {
-    //   //   $push: {
-    //   //     paymentHistory: {
-    //   //       saleAmount: Number(input.saleAmount.toFixed(2)),
-    //   //       paidCommission: commission,
-    //   //       date: payment.date,
-    //   //       method: input.method,
-    //   //       transactionId: transfer.id,
-    //   //       notes: input.notes,
-    //   //       productName: firstSale?.event ?? "Commission payout",
-    //   //     },
-    //   //   },
-    //   // });
-
-    //   return payment;
-    // },
-
-    // recordAffiliatePayment: async (
-    //   _: unknown,
-    //   {
-    //     input,
-    //   }: {
-    //     input: {
-    //       refId: string;
-    //       saleIds: string[];
-    //       saleAmount?: number; // make optional; prefer sales or known totals
-    //       method: string; // "bank" | "paypal" | "crypto" | ...
-    //       transactionId?: string; // ignored; we’ll overwrite with Stripe id
-    //       notes?: string;
-    //     };
-    //   }
-    // ) => {
-    //   // 1) Find affiliate & sales
-    //   const affiliate = await Affiliate.findOne({ refId: input.refId });
-    //   if (!affiliate) throw new Error("Affiliate not found.");
-    //   if (!affiliate.stripeAccountId)
-    //     throw new Error("Affiliate is not connected to Stripe.");
-
-    //   // ensure unique saleIds
-    //   const uniqueSaleIds = Array.from(new Set(input.saleIds)).map(
-    //     (id) => new Types.ObjectId(id)
-    //   );
-
-    //   const sales = await AffiliateSale.find({ _id: { $in: uniqueSaleIds } });
-    //   if (!sales.length) throw new Error("No valid sales found for payout.");
-
-    //   // guard against double pay
-    //   const alreadyPaid = sales.find((s) => s.commissionStatus === "paid");
-    //   if (alreadyPaid) throw new Error("One or more sales are already paid.");
-
-    //   // 2) Compute commission safely
-    //   const rate =
-    //     typeof affiliate.commissionRate === "number" &&
-    //     affiliate.commissionRate > 0
-    //       ? affiliate.commissionRate
-    //       : 0.1;
-
-    //   // sum of defined per-sale commissions
-    //   const sumDefinedPerSale = round2(
-    //     sales.reduce(
-    //       (sum, s) =>
-    //         sum +
-    //         (typeof s.commissionEarned === "number" ? s.commissionEarned : 0),
-    //       0
-    //     )
-    //   );
-
-    //   // optional: try computing from per-sale amounts if available
-    //   // change `s.total` to whatever your sale amount field is (e.g., s.amount, s.orderTotal, etc.)
-    //   const sumFromPerSaleTotals = round2(
-    //     sales.reduce((sum, s: any) => {
-    //       const perSaleTotal = typeof s.total === "number" ? s.total : 0;
-    //       return sum + perSaleTotal * rate;
-    //     }, 0)
-    //   );
-
-    //   // last resort: provided input.saleAmount
-    //   const fromInputTotal = round2((input.saleAmount ?? 0) * rate);
-
-    //   let commission = 0;
-    //   if (sumDefinedPerSale > 0) {
-    //     commission = sumDefinedPerSale;
-    //   } else if (sumFromPerSaleTotals > 0) {
-    //     commission = sumFromPerSaleTotals;
-    //   } else if (fromInputTotal > 0) {
-    //     commission = fromInputTotal;
-    //   } else {
-    //     // give diagnostics to help you debug quickly
-    //     throw new Error(
-    //       `Computed commission must be > 0. Details: sumDefinedPerSale=${sumDefinedPerSale}, sumFromPerSaleTotals=${sumFromPerSaleTotals}, fromInputTotal=${fromInputTotal}, rate=${rate}, input.saleAmount=${
-    //         input.saleAmount ?? "n/a"
-    //       }`
-    //     );
-    //   }
-
-    //   // enforce cents and minimum
-    //   commission = round2(commission);
-    //   if (commission < 0.01) {
-    //     throw new Error(
-    //       `Computed commission ${commission} is below the minimum payout of $0.01.`
-    //     );
-    //   }
-
-    //   // 3) Create Stripe transfer (platform -> connected account balance)
-    //   const idempotencyKey = `affpay:${affiliate.refId}:${uniqueSaleIds
-    //     .slice()
-    //     .map(String)
-    //     .sort()
-    //     .join(",")}`;
-
-    //   const transfer = await stripe.transfers.create(
-    //     {
-    //       amount: toCents(commission),
-    //       currency: "usd",
-    //       destination: affiliate.stripeAccountId,
-    //       description: `Affiliate payout ${affiliate.refId} (${
-    //         sales.length
-    //       } sale${sales.length > 1 ? "s" : ""})`,
-    //       metadata: {
-    //         refId: affiliate.refId,
-    //         saleIds: uniqueSaleIds.join(","),
-    //         type: "affiliate_payout",
-    //       },
-    //     },
-    //     { idempotencyKey }
-    //   );
-
-    //   // 4) Create Payment record in Mongo (status: processing)
-    //   const firstSale = sales[0];
-    //   const payment = await Payment.create({
-    //     refId: affiliate.refId,
-    //     affiliateId: affiliate._id,
-    //     saleIds: uniqueSaleIds,
-    //     // Prefer a real known total for “saleAmount” if you have it; otherwise keep input
-    //     saleAmount: round2(input.saleAmount ?? 0),
-    //     paidCommission: commission,
-    //     productName: firstSale?.event ?? "Commission payout",
-    //     date: new Date(),
-    //     method: "stripe_transfer",
-    //     transactionId: transfer.id, // Stripe transfer id (tr_...)
-    //     notes: input.notes,
-    //     status: "processing", // <-- add a status field to Payment schema
-    //   });
-
-    //   // 5) Mark all sales as processing (wait for webhook to confirm)
-    //   await AffiliateSale.updateMany(
-    //     { _id: { $in: payment.saleIds }, commissionStatus: { $ne: "paid" } },
-    //     {
-    //       $set: {
-    //         commissionStatus: "processing",
-    //         paymentId: payment._id,
-    //         // paidAt: (defer until confirmed)
-    //       },
-    //     }
-    //   );
-
-    //   // 6) Defer snapshot push to webhook/reconcile after confirmation
-    //   // (Do it there to keep Affiliate.paymentHistory = confirmed-only)
-
-    //   return payment;
-    // },
     recordAffiliatePayment: async (
       _: unknown,
       {
@@ -1340,70 +1192,15 @@ const resolvers = {
           $set: {
             commissionStatus: "processing",
             paymentId: payment._id,
+            transferId: transfer.id, // NEW
+            stripeAccountId: affiliate.stripeAccountId, // NEW
+            processingAt: new Date(), // optional
           },
         }
       );
 
       return payment;
     },
-    // addAffiliatePayment: async (
-    //   _: unknown,
-    //   { payment, refId }: { payment: PaymentInputArg; refId: string }
-    // ) => {
-    //   // 👇 quick visibility
-    //   console.log("[addAffiliatePayment] vars:", { refId, payment });
-
-    //   try {
-    //     const affiliate = await Affiliate.findOne({ refId });
-    //     if (!affiliate) throw new Error("Affiliate not found");
-
-    //     // accept both saleAmount and legacy amount
-    //     const saleAmount = payment.saleAmount ?? payment.amount;
-    //     if (saleAmount == null)
-    //       throw new Error("saleAmount/amount is required");
-    //     if (!payment.method) throw new Error("method is required");
-
-    //     // build exactly what Affiliate.paymentHistory subdoc expects
-    //     const record = {
-    //       saleAmount: Number(saleAmount),
-    //       paidCommission:
-    //         typeof payment.paidCommission === "number"
-    //           ? Number(payment.paidCommission)
-    //           : Number(saleAmount), // fallback
-    //       productName: payment.productName ?? undefined,
-    //       date: payment.date,
-    //       method: payment.method,
-    //       transactionId: payment.transactionId ?? undefined,
-    //       notes: payment.notes ?? undefined,
-    //     };
-
-    //     affiliate.paymentHistory ??= [];
-    //     affiliate.paymentHistory.push(record);
-
-    //     await Payment.create({
-    //       affiliateId: affiliate._id,
-    //       refId: affiliate.refId,
-    //       saleIds: [], // manual payout: no specific sales
-    //       saleAmount: record.saleAmount, // number
-    //       paidCommission: record.paidCommission ?? record.saleAmount,
-    //       productName: record.productName ?? "Manual commission payout",
-    //       date: record.date, // Date object
-    //       method: record.method,
-    //       transactionId: record.transactionId ?? `MANUAL-${Date.now()}`,
-    //       notes: record.notes,
-    //     });
-    //     await affiliate.save();
-
-    //     // return a fresh doc to the client
-    //     return await Affiliate.findById(affiliate._id);
-    //   } catch (err) {
-    //     // 👇 log the real reason to your server console
-    //     const msg =
-    //       err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-    //     console.error("[addAffiliatePayment] failed:", msg, err);
-    //     throw new Error("Failed to track affiliate payment");
-    //   }
-    // },
 
     addAffiliatePayment: async (
       _: unknown,

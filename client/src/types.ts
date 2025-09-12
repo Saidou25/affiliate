@@ -1,15 +1,3 @@
-// export type AffiliateSale = {
-//   id: string;
-//   refId: string;
-//   buyerEmail: string;
-//   event: string;
-//   commissionEarned: number;
-//   commissionStatus: string;
-//   timestamp: string | Date;
-//   amount: number;
-//   productId: string;
-// };
-
 export type PaymentRecord = {
   saleAmount: number;
   paidCommission?: number | null;
@@ -88,17 +76,28 @@ export type AffiliateProduct = {
   price?: number | null;
   currency?: string | null;
 };
+// --- status helpers (optional but nice) ---
+export type CommissionStatus =
+  | "unpaid"
+  | "processing"
+  | "paid"
+  | "reversed"
+  | "refunded";
+
+// --- existing types above unchanged ---
 
 export interface AffiliateSale {
   id: string;
   refId?: string | null;
-  source?: "woocommerce" | "stripe" | "manual" | (string & {}) | null;
 
-  // New model
+  // Source / order info
+  source?: "woocommerce" | "stripe" | "manual" | (string & {}) | null;
   orderId?: string | null;
   orderNumber?: string | null;
   orderDate?: string | null;
-  status?: string | null;
+
+  // Monetary / product fields
+  status?: string | null; // store order status if you use it (not commissionStatus)
   currency?: string | null;
   subtotal?: number | null;
   discount?: number | null;
@@ -108,15 +107,25 @@ export interface AffiliateSale {
   paymentIntentId?: string | null;
   items?: any[] | null;
   product?: any | null;
+
+  // Commission snapshot + payout lifecycle
   commissionEarned?: number | null;
-  commissionStatus?: "paid" | "unpaid" | (string & {}) | null;
+  commissionStatus?: CommissionStatus | null; // <-- expanded enum
+  processingAt?: string | null; // ISO date
+  paidAt?: string | null; // ISO date
+  paymentId?: string | null; // Mongo ID as string
+  stripeAccountId?: string | null; // acct_...
+  transferId?: string | null; // tr_...
+  payoutId?: string | null; // po_...
+
+  // Timestamps
   createdAt: string;
   updatedAt?: string | null;
 
-  // Legacy (optional; for backward compatibility)
-  timestamp?: string | Date; // prefer createdAt/orderDate
-  amount?: number; // prefer total
-  productId?: string; // prefer items/product
+  // Legacy/back-compat
+  timestamp?: string | Date;
+  amount?: number;
+  productId?: string;
   buyerEmail?: string;
   event?: string;
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { gql, useQuery } from "@apollo/client";
-import "./StripeChargesTable.css";
+import "./StripeChargesListTable.css";
 
 const STRIPE_CHARGES = gql`
   query StripeCharges($after: String, $limit: Int, $filter: StripeListFilter) {
@@ -71,7 +71,7 @@ const toEpoch = (yyyyMmDd?: string) => {
   return Math.floor(d.getTime() / 1000);
 };
 
-export default function StripeChargesTable() {
+export default function StripeChargesListTable() {
   const [after, setAfter] = useState<string | undefined>(undefined);
   const [filter, setFilter] = useState<FilterState>({});
   const [expanded, setExpanded] = useState<string | null>(null);
