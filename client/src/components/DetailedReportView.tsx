@@ -60,6 +60,7 @@ export default function DetailedReportView({
   const me = data?.me || {};
 
   const handleClick = async (sale: AffiliateSale) => {
+    console.log("in hanle click", sale)
     // const refId = sale?.refId;
     // const payment = {
     //   saleAmount: 1.0,

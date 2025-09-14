@@ -78,23 +78,13 @@ const typeDefs = gql`
     notes: String
   }
 
-  # input RecordAffiliatePaymentInput {
-  #   refId: String!
-  #   affiliateId: String
-  #   saleIds: [ID!]!
-  #   saleAmount: Float
-  #   paidCommission: Float
-  #   productName: String
-  #   method: String!
-  #   transactionId: String
-  #   notes: String
-  # }
-
   input RecordAffiliatePaymentInput {
     refId: String!
     saleIds: [ID!]!
     saleAmount: Float
     notes: String
+    method: String # add
+    transactionId: String
   }
 
   type StripeDeletionResponse {
@@ -139,19 +129,19 @@ const typeDefs = gql`
     lastTransferCurrency: String
   }
 
-type StripeListPage {
-  hasMore: Boolean!
-  nextCursor: String
-  data: [JSON!]!  # raw Stripe objects (or define strong types later)
-}
+  type StripeListPage {
+    hasMore: Boolean!
+    nextCursor: String
+    data: [JSON!]! # raw Stripe objects (or define strong types later)
+  }
 
-input StripeListFilter {
-  createdFrom: Int
-  createdTo: Int
-  email: String
-  refId: String
-  status: String
-}
+  input StripeListFilter {
+    createdFrom: Int
+    createdTo: Int
+    email: String
+    refId: String
+    status: String
+  }
 
   type AuthPayload {
     token: String!
@@ -188,6 +178,10 @@ input StripeListFilter {
     product: JSON
     createdAt: Date
     updatedAt: Date
+    processingAt: Date
+    stripeAccountId: String
+    transferId: String
+    payoutId: String
   }
 
   input AffiliateSalesFilter {
@@ -298,11 +292,31 @@ input StripeListFilter {
     getAllPayments: [Payment!]!
     checkStripeStatus(affiliateId: ID!): StripeStatus
     affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
-    stripePaymentIntents(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
-    stripeCharges(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
-    stripeRefunds(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
-    stripeTransfers(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
-    stripeBalanceTxns(after: String, limit: Int = 25, filter: StripeListFilter): StripeListPage!
+    stripePaymentIntents(
+      after: String
+      limit: Int = 25
+      filter: StripeListFilter
+    ): StripeListPage!
+    stripeCharges(
+      after: String
+      limit: Int = 25
+      filter: StripeListFilter
+    ): StripeListPage!
+    stripeRefunds(
+      after: String
+      limit: Int = 25
+      filter: StripeListFilter
+    ): StripeListPage!
+    stripeTransfers(
+      after: String
+      limit: Int = 25
+      filter: StripeListFilter
+    ): StripeListPage!
+    stripeBalanceTxns(
+      after: String
+      limit: Int = 25
+      filter: StripeListFilter
+    ): StripeListPage!
   }
 
   type Mutation {
