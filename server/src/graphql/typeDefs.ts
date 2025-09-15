@@ -4,16 +4,28 @@ const typeDefs = gql`
   scalar Date
   scalar JSON
 
+  # INTERNAL NOTE:
+  # - TRANSFER: platform -> connected Stripe account (what this app triggers)
+  # - PAYOUT:   connected Stripe account -> bank (Stripe schedules / not our mutation)
+
   enum Role {
     admin
     affiliate
   }
 
   enum CommissionStatus {
-    unpaid # default
-    processing # transfer requested
-    paid # transfer succeeded (money in connected acct)
-    reversed # transfer reversed
+    unpaid       # default
+    processing   # transfer requested
+    paid         # transfer succeeded (money in connected acct)
+    reversed     # transfer reversed
+    refunded
+  }
+
+  enum PayoutStatus {
+    pending
+    paid
+    failed
+    canceled
   }
 
   enum PaymentStatus {
@@ -24,8 +36,87 @@ const typeDefs = gql`
     transfer_reversed
   }
 
+  enum RefundStatus {
+    none
+    partial
+    full
+  }
+
+  type RefundEntry {
+    id: String!
+    amount: Float!
+    status: String
+    createdAt: Date
+    updatedAt: Date
+  }
+
+  # Unified AffiliateSale type (merged the previous "extend" + "type")
+  type AffiliateSale {
+    id: ID!
+
+    # legacy/basic sale fields
+    refId: String
+    productId: String
+    buyerEmail: String
+    amount: Float
+    title: String
+    event: String
+    timestamp: Date
+    commissionEarned: Float
+    commissionStatus: CommissionStatus
+    paidAt: Date
+    paymentId: ID
+    source: String
+    orderId: String
+    orderNumber: String
+    orderDate: Date
+    status: String
+    currency: String
+    subtotal: Float
+    discount: Float
+    tax: Float
+    shipping: Float
+    total: Float
+    paymentIntentId: String
+    items: [JSON!]
+    product: JSON
+    createdAt: Date
+    updatedAt: Date
+    processingAt: Date
+    stripeAccountId: String
+    transferId: String
+    payoutId: String
+
+    # refunds
+    refundStatus: RefundStatus
+    refundAmount: Float
+    refundId: String
+    refundAt: Date          # keep if you track "first/primary" refund moment
+    refundTotal: Float      # sum of all refund entries
+    refundedAt: Date        # time of last refund event
+    refunds: [RefundEntry!]!
+
+    # payout summary for the sale (optional but handy)
+    payoutStatus: PayoutStatus
+    lastPayoutId: String
+    lastPayoutAt: Date
+    payoutFailureCode: String
+    payoutFailureMessage: String
+  }
+
+  input RefundAffiliateSaleInput {
+    saleId: ID!
+    amount: Float        # optional; if omitted => full remaining
+    reason: String
+  }
+
+  type RefundResult {
+    sale: AffiliateSale!
+    stripeRefundId: String!
+    transferReversalId: String
+  }
+
   type PaymentRecord {
-    # mirroring Payment (snapshot)
     paymentId: ID
     refId: String
     affiliateId: String
@@ -34,7 +125,7 @@ const typeDefs = gql`
     paidCommission: Float
     productName: String
     date: Date!
-    method: String!
+    method: String!            # consider a PaymentMethod enum later
     transactionId: String
     notes: String
     currency: String
@@ -55,12 +146,12 @@ const typeDefs = gql`
     method: String!
     transactionId: String
     notes: String
-    createdAt: String
+    createdAt: Date
 
-    # Stripe sync
-    status: PaymentStatus # <-- switch to enum
-    transferId: String # tr_...
-    balanceTransactionId: String # txn_...
+    # Stripe sync (may be null until reconciled)
+    status: PaymentStatus
+    transferId: String           # tr_...
+    balanceTransactionId: String
     payoutId: String
     payoutStatus: String
     payoutArrivalDate: Date
@@ -83,7 +174,7 @@ const typeDefs = gql`
     saleIds: [ID!]!
     saleAmount: Float
     notes: String
-    method: String # add
+    method: String!             # aligned with records
     transactionId: String
   }
 
@@ -132,7 +223,7 @@ const typeDefs = gql`
   type StripeListPage {
     hasMore: Boolean!
     nextCursor: String
-    data: [JSON!]! # raw Stripe objects (or define strong types later)
+    data: [JSON!]!   # raw Stripe objects (or define strong types later)
   }
 
   input StripeListFilter {
@@ -143,71 +234,11 @@ const typeDefs = gql`
     status: String
   }
 
-  type AuthPayload {
-    token: String!
-    affiliate: Affiliate!
-  }
-
-  type AffiliateSale {
-    id: ID!
-    # legacy
-    refId: String
-    productId: String
-    buyerEmail: String
-    amount: Float
-    title: String
-    event: String
-    timestamp: Date
-    commissionEarned: Float
-    commissionStatus: String
-    paidAt: Date
-    paymentId: ID
-    source: String
-    orderId: String
-    orderNumber: String
-    orderDate: Date
-    status: String
-    currency: String
-    subtotal: Float
-    discount: Float
-    tax: Float
-    shipping: Float
-    total: Float
-    paymentIntentId: String
-    items: [JSON!] # or a structured type if you know the shape
-    product: JSON
-    createdAt: Date
-    updatedAt: Date
-    processingAt: Date
-    stripeAccountId: String
-    transferId: String
-    payoutId: String
-  }
-
-  input AffiliateSalesFilter {
-    refId: String
-    source: String
-    orderId: String
-    status: String
-    from: Date
-    to: Date
-  }
-
-  type ClickLog {
-    id: ID
-    refId: String
-    pageUrl: String
-    userAgent: String
-    createdAt: String
-    ipAddress: String
-    updatedAt: Date
-  }
-
   type ReportEntry {
     month: String!
     pdf: String
     html: String
-    createdAt: String
+    createdAt: Date
   }
 
   type ReportHistory {
@@ -215,7 +246,7 @@ const typeDefs = gql`
     month: String!
     html: String
     pdf: String
-    createdAt: String
+    createdAt: Date
   }
 
   type OnboardingResponse {
@@ -239,10 +270,9 @@ const typeDefs = gql`
     text: String
   }
 
-  "Public, shop-visible products (parents only) synced from Woo Store API"
   type AffiliateProduct {
-    id: ID! # Mongo _id (string)
-    wooId: Int! # Store API product id
+    id: ID!              # Mongo _id (string)
+    wooId: Int!          # Store API product id
     slug: String!
     name: String!
     permalink: String!
@@ -256,9 +286,9 @@ const typeDefs = gql`
     categorySlugs: [String!]!
     updatedAt: Date!
     hasOptions: Boolean! # true if Woo type = "variable"
-    active: Boolean! # false if not seen in last sync
+    active: Boolean!     # false if not seen in last sync
     createdAt: Date!
-    modifiedAt: Date! # server-side last write
+    modifiedAt: Date!    # server-side last write
   }
 
   type WooSyncSummary {
@@ -271,47 +301,76 @@ const typeDefs = gql`
     notes: [String!]!
   }
 
+  input AffiliateSalesFilter {
+    refId: String
+    source: String
+    orderId: String
+    status: String
+    from: Date
+    to: Date
+  }
+
+  type ClickLog {
+    id: ID
+    refId: String
+    pageUrl: String
+    userAgent: String
+    createdAt: Date
+    ipAddress: String
+    updatedAt: Date
+  }
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
     getAffiliateByRefId(refId: String!): Affiliate
     me: Affiliate
+
     getAllAffiliateSales: [AffiliateSale!]!
-    # getAffiliateSales(refId: ID!): [AffiliateSale!]!
     getAffiliateSales(
       filter: AffiliateSalesFilter
       limit: Int = 50
       offset: Int = 0
     ): [AffiliateSale!]!
+
     getAffiliateClickLogs(refId: ID): [ClickLog]
     getAllAffiliatesClickLogs: [ClickLog!]!
+
     getReportByMonth(month: String!): ReportHistory
     getAllReports: [ReportHistory!]!
+
     getAffiliatePaymentHistory(refId: String!): [PaymentRecord!]!
     getAllAffiliatePayments: [PaymentRecord!]!
     getAllPayments: [Payment!]!
+
     checkStripeStatus(affiliateId: ID!): StripeStatus
+
     affiliateProducts(active: Boolean = true): [AffiliateProduct!]!
+
     stripePaymentIntents(
       after: String
       limit: Int = 25
       filter: StripeListFilter
     ): StripeListPage!
+
     stripeCharges(
       after: String
       limit: Int = 25
       filter: StripeListFilter
     ): StripeListPage!
+
     stripeRefunds(
       after: String
       limit: Int = 25
       filter: StripeListFilter
     ): StripeListPage!
+
     stripeTransfers(
       after: String
       limit: Int = 25
       filter: StripeListFilter
     ): StripeListPage!
+
     stripeBalanceTxns(
       after: String
       limit: Int = 25
@@ -359,7 +418,7 @@ const typeDefs = gql`
       title: String
       timestamp: Date
       commissionEarned: Float
-      commissionStatus: String
+      commissionStatus: CommissionStatus
     ): AffiliateSale!
 
     updateAffiliateSale(
@@ -370,10 +429,10 @@ const typeDefs = gql`
       event: String
       timestamp: Date
       commissionEarned: Float
-      commissionStatus: String
+      commissionStatus: CommissionStatus
     ): AffiliateSale!
 
-    markSaleAsPaid(saleId: String!): AffiliateSale!
+    markSaleAsPaid(saleId: ID!): AffiliateSale!
 
     recordAffiliatePayment(input: RecordAffiliatePaymentInput!): Payment
 
@@ -409,17 +468,23 @@ const typeDefs = gql`
       amount: Float!
     ): AffiliateSale
 
-    "Manually refresh Woo public catalog (parents only)."
     refreshWooProducts(baseUrl: String!, perPage: Int = 100): WooSyncSummary!
 
     createAffiliateTransfer(
       refId: String!
-      amount: Float! # dollars
+      amount: Float!
       currency: String = "usd"
       productName: String
       saleIds: [ID!]
       notes: String
     ): Payment!
+
+    refundAffiliateSale(input: RefundAffiliateSaleInput!): RefundResult!
+  }
+
+  type AuthPayload {
+    token: String!
+    affiliate: Affiliate!
   }
 `;
 export default typeDefs;

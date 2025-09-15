@@ -1,18 +1,24 @@
+// src/hooks/useCommissionTransfer.ts
 import { useState, useCallback } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { CHECK_STRIPE_STATUS, GET_AFFILIATE_BY_REFID } from "../utils/queries";
 import { RECORD_AFFILIATE_PAYMENT } from "../utils/mutations";
 import type { AffiliateSale } from "../types";
 
+/**
+ * NOTE: This hook actually triggers a STRIPE TRANSFER (platform -> connected account).
+ * Consider renaming to `useAffiliateTransfer` later; keeping name for now to avoid breaking imports.
+ */
+
 type UseStripePayoutOpts = {
   currentMonth?: string;
   onAfterSuccess?: () => Promise<any> | void;
   method?: "bank" | "paypal" | "crypto" | string;
   amountOverride?: (sale: AffiliateSale) => number | undefined;
-  debug?: boolean; 
+  debug?: boolean;
 };
 
-export default function useStripePayout(opts?: UseStripePayoutOpts) {
+export default function useCommissionTransfer(opts?: UseStripePayoutOpts) {
   const {
     currentMonth,
     onAfterSuccess,
@@ -25,9 +31,8 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
   const [error, setError] = useState<string | null>(null);
 
   const dbg = (...args: any[]) => {
-    if (debug) console.log("[useStripePayout]", ...args);
+    if (debug) console.log("[useCommissionTransfer]", ...args);
   };
-
   const group = (label: string) => debug && console.groupCollapsed(label);
   const groupEnd = () => debug && console.groupEnd();
 
@@ -58,49 +63,20 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
       group(`checkReadyByRefId(refId=${refId})`);
       try {
         console.time("↪ getAffiliateByRefId");
-        const { data: aData } = await getAffiliateByRefId({
-          variables: { refId },
-        });
+        const { data: aData } = await getAffiliateByRefId({ variables: { refId } });
         console.timeEnd("↪ getAffiliateByRefId");
 
-        const affiliateId = aData?.getAffiliateByRefId?.id as
-          | string
-          | undefined;
+        const affiliateId = aData?.getAffiliateByRefId?.id as string | undefined;
         dbg("affiliateId:", affiliateId);
-
         if (!affiliateId) {
           dbg("not ready: no affiliateId for refId", refId);
           return { ready: false };
         }
 
         console.time("↪ checkStripeStatus");
-        const { data: sData } = await checkStripeStatus({
-          variables: { affiliateId },
-        });
+        const { data: sData } = await checkStripeStatus({ variables: { affiliateId } });
         console.timeEnd("↪ checkStripeStatus");
-        if (sData) {
-          console.log("data: ", sData);
-        }
-
-        const s = sData?.checkStripeStatus;
-        if (s) {
-          dbg(
-            "stripe status:",
-            s,
-            "→ ready:",
-            !!s.charges_enabled && !!s.payouts_enabled
-          );
-          // extra visibility
-          if (s.lastTransferId) {
-            dbg("last transfer:", {
-              id: s.lastTransferId,
-              amount: s.lastTransferAmount,
-              currency: s.lastTransferCurrency,
-              createdAt: s.lastTransferCreatedAt,
-              reversed: s.lastTransferReversed,
-            });
-          }
-        }
+        if (sData) dbg("data: ", sData);
 
         const ready =
           !!sData?.checkStripeStatus?.charges_enabled &&
@@ -122,12 +98,13 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
   const paySale = useCallback(
     async (sale: AffiliateSale): Promise<boolean> => {
       setError(null);
-
       group(`paySale(saleId=${sale?.id || "?"}, refId=${sale?.refId || "?"})`);
       dbg("sale snapshot:", {
         id: sale?.id,
         refId: sale?.refId,
         total: (sale as any)?.total,
+        subtotal: (sale as any)?.subtotal,
+        discount: (sale as any)?.discount,
         amount_legacy: sale?.amount,
         commissionEarned: sale?.commissionEarned,
         commissionStatus: sale?.commissionStatus,
@@ -154,32 +131,42 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
         console.time("① readiness");
         const { ready } = await checkReadyByRefId(sale.refId);
         console.timeEnd("① readiness");
-        if (!ready) {
-          throw new Error("Affiliate not ready for payouts.");
-        }
+        if (!ready) throw new Error("Affiliate not ready for payouts.");
 
+        // ② compute amount (server will compute commission; do NOT block on total === 0)
         console.time("② compute amount");
-        const resolvedAmount =
-          amountOverride?.(sale) ??
-          (typeof (sale as any).total === "number"
-            ? (sale as any).total
-            : Number(sale.amount ?? 0));
-        console.timeEnd("② compute amount");
-        dbg("resolvedAmount:", resolvedAmount);
 
-        if (!Number.isFinite(resolvedAmount) || resolvedAmount <= 0) {
-          throw new Error("Invalid sale amount.");
+        // Prefer a realistic sale amount hint (optional for backend):
+        // Try subtotal - discount; else legacy amount; else 0.
+        const saleAmountHint =
+          amountOverride?.(sale) ??
+          (typeof (sale as any).subtotal === "number"
+            ? Math.max(0, (sale as any).subtotal - ((sale as any).discount ?? 0))
+            : Number(sale.amount ?? 0));
+
+        // For visibility only: what we *think* commission is (server will compute anyway)
+        const directCommission =
+          typeof sale.commissionEarned === "number" ? sale.commissionEarned : undefined;
+
+        console.timeEnd("② compute amount");
+        dbg("resolved saleAmountHint:", saleAmountHint, "directCommission:", directCommission);
+
+        // Guard only if BOTH are unusable (rare)
+        if (
+          (directCommission === undefined || directCommission <= 0) &&
+          (!Number.isFinite(saleAmountHint) || saleAmountHint < 0)
+        ) {
+          throw new Error("No payable amount (commission/sale amount missing).");
         }
 
         const variables = {
           input: {
             refId: sale.refId,
             saleIds: [sale.id],
-            saleAmount: resolvedAmount,
+            // saleAmount is optional; send hint if we have it, else 0 — server computes commission safely
+            saleAmount: Number.isFinite(saleAmountHint) ? saleAmountHint : 0,
             method,
-            transactionId: `BANK-TRX-${Date.now()}-${Math.floor(
-              Math.random() * 1e6
-            )}`,
+            transactionId: `BANK-TRX-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
             notes: `${currentMonth ?? ""} payout for ${sale.refId}`.trim(),
           },
         };
@@ -209,14 +196,7 @@ export default function useStripePayout(opts?: UseStripePayoutOpts) {
         groupEnd();
       }
     },
-    [
-      amountOverride,
-      checkReadyByRefId,
-      recordAffiliatePayment,
-      currentMonth,
-      method,
-      onAfterSuccess,
-    ]
+    [amountOverride, checkReadyByRefId, recordAffiliatePayment, currentMonth, method, onAfterSuccess]
   );
 
   return {

@@ -3,18 +3,16 @@ import { useQuery } from "@apollo/client";
 import { IoMdClose } from "react-icons/io";
 import { PiFilePdfThin, PiPrinterThin } from "react-icons/pi";
 import { AffiliateSale } from "../types";
-// import type { AffiliateSale } from "../types";
 import { QUERY_ME } from "../utils/queries";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import useAddMonthSales from "../hooks/useAddMonthSales";
 import useAddMonthCommissions from "../hooks/useAddMonthCommissions";
 import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
+import useCommissionTransfer from "../hooks/useCommissionTransfer";
 import TotalBar from "./TotalBar";
 import Spinner from "./Spinner";
 import Button from "./Button";
-import useStripePayout from "../hooks/useStripePayout";
-// import { ADD_AFFILIATE_PAYMENT } from "../utils/mutations";
 
 import "./DetailedReport.css";
 
@@ -45,7 +43,7 @@ export default function DetailedReportView({
   const { addedCommissions, calculateCommissionsByStatus } =
     useAddMonthCommissions(monthSales);
 
-  const { processingId, paySale, error } = useStripePayout({
+  const { processingId, paySale, error } = useCommissionTransfer({
     currentMonth,
     onAfterSuccess: async () => {
       if (refetchSales) await refetchSales();
@@ -60,7 +58,7 @@ export default function DetailedReportView({
   const me = data?.me || {};
 
   const handleClick = async (sale: AffiliateSale) => {
-    console.log("in hanle click", sale)
+    console.log("in hanle click", sale);
     // const refId = sale?.refId;
     // const payment = {
     //   saleAmount: 1.0,
@@ -131,7 +129,7 @@ export default function DetailedReportView({
     pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
     pdf.save("report.pdf");
   }
-// console.log(monthSales);
+
   return (
     <div className="print">
       <div className="">
@@ -217,34 +215,6 @@ export default function DetailedReportView({
                       </td>
                     )}
 
-                    {/* <td className="cell-style">
-                      <Button
-                        className={
-                          sale?.commissionStatus === "paid"
-                            ? `paid-button-${me?.role}`
-                            : !stripeReadyArr.includes(sale.refId)
-                            ? `unpaid-button-not-ready-${me?.role}`
-                            : `unpaid-button-${me?.role}`
-                        }
-                        onClick={() => handleClick(sale)}
-                        disabled={
-                          processingId === sale.id ||
-                          sale.commissionStatus === "paid" ||
-                          me?.role === "affiliate" ||
-                          !stripeReadyArr.includes(sale.refId)
-                        }
-                      >
-                        {processingId === sale.id && <Spinner />}
-                        {sale?.commissionStatus === "paid" &&
-                          processingId !== sale.id && <span>paid</span>}
-                        {me?.role === "admin" &&
-                          sale.commissionStatus === "unpaid" &&
-                          processingId !== sale.id && <span>pay</span>}
-                        {me?.role === "affiliate" &&
-                          sale.commissionStatus === "unpaid" &&
-                          processingId !== sale.id && <span>unpaid</span>}
-                      </Button>
-                    </td> */}
                     <td className="cell-style">
                       {(() => {
                         const status = (sale?.commissionStatus ?? "unpaid") as
@@ -304,7 +274,9 @@ export default function DetailedReportView({
               })}
             </tbody>
           </table>
-
+          <br />
+          <br />
+          <h3 style={{ color: "black" }}> Report summary</h3>
           <TotalBar
             addedSales={addedSales()}
             addedCommissions={addedCommissions()}

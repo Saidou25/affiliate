@@ -1,15 +1,15 @@
+// Button.tsx
 import { CSSProperties, ReactNode } from "react";
-
 import "./Button.css";
 
 type ButtonProps = {
   className?: string;
   onClick?: () => void;
   children: ReactNode;
-  // ReactNode covers strings, numbers, JSX, fragments, arrays of elements, etc.*}
   style?: CSSProperties;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
+  title?: string; // <- tooltip text
 };
 
 export default function Button({
@@ -19,6 +19,7 @@ export default function Button({
   style,
   disabled,
   type,
+  title,
 }: ButtonProps) {
   return (
     <button
@@ -26,7 +27,8 @@ export default function Button({
       onClick={onClick}
       style={style}
       disabled={disabled}
-      type={type}
+      type={type ?? "button"}   // (nice-to-have) default to "button"
+      title={title}             // ✅ forward title so hover tooltip shows
     >
       {children}
     </button>

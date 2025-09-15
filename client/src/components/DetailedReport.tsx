@@ -7,6 +7,7 @@ import { Affiliate, AffiliateSale } from "../types";
 import DetailedReportView from "./DetailedReportView";
 
 import "./DetailedReport.css";
+import ReusableTable from "./ReusableTable";
 
 interface MonthlySalesGroup {
   month: string;
@@ -90,7 +91,7 @@ export default function DetailedReport({ refId }: Props) {
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       const key = `${month} ${year}`;
-     
+
       if (!salesMap[key]) {
         salesMap[key] = [];
       }
@@ -137,14 +138,24 @@ export default function DetailedReport({ refId }: Props) {
         monthlySales.map((monthSales, index) => (
           <div className="" key={monthSales.month}>
             {showReport === index && (
-              <DetailedReportView
-                monthSales={monthSales.sales}
-                currentMonth={monthSales.month}
-                setShowReport={setShowReport}
-                salesPerMonth={salesPerMonth}
-                clicksPerMonth={clicksPerMonth}
-                refetchSales={refetch}
-              />
+              <>
+                {/* <DetailedReportView
+                  monthSales={monthSales.sales}
+                  currentMonth={monthSales.month}
+                  setShowReport={setShowReport}
+                  salesPerMonth={salesPerMonth}
+                  clicksPerMonth={clicksPerMonth}
+                  refetchSales={refetch}
+                /> */}
+                <ReusableTable
+                  monthSales={monthSales.sales}
+                  currentMonth={monthSales.month}
+                  setShowReport={setShowReport}
+                  salesPerMonth={salesPerMonth}
+                  clicksPerMonth={clicksPerMonth}
+                  refetchSales={refetch}
+                />
+              </>
             )}
             {showReport === null && (
               <div className="view-line-div">

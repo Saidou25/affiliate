@@ -1,3 +1,6 @@
+export type RefundStatus = "none" | "partial" | "full";
+export type PayoutStatus = "pending" | "paid" | "failed" | "canceled";
+
 export type PaymentRecord = {
   saleAmount: number;
   paidCommission?: number | null;
@@ -29,7 +32,7 @@ export type Affiliate = {
   createdAt?: string; // ✅ Automatically added by Mongoose
   updatedAt?: string; // ✅ Automatically added by Mongoose
   paymentHistory: PaymentRecord[];
-  stripeAccountId?: String;
+  stripeAccountId?: string;
   notifications?: Notification[];
   avatar?: string;
 };
@@ -85,8 +88,7 @@ export type CommissionStatus =
   | "refunded";
 
 // --- existing types above unchanged ---
-
-export interface AffiliateSale {
+  export interface AffiliateSale {
   id: string;
   refId?: string | null;
 
@@ -97,7 +99,7 @@ export interface AffiliateSale {
   orderDate?: string | null;
 
   // Monetary / product fields
-  status?: string | null; // store order status if you use it (not commissionStatus)
+  status?: string | null;
   currency?: string | null;
   subtotal?: number | null;
   discount?: number | null;
@@ -110,13 +112,25 @@ export interface AffiliateSale {
 
   // Commission snapshot + payout lifecycle
   commissionEarned?: number | null;
-  commissionStatus?: CommissionStatus | null; // <-- expanded enum
-  processingAt?: string | null; // ISO date
-  paidAt?: string | null; // ISO date
-  paymentId?: string | null; // Mongo ID as string
-  stripeAccountId?: string | null; // acct_...
-  transferId?: string | null; // tr_...
-  payoutId?: string | null; // po_...
+  commissionStatus?: CommissionStatus | null;
+  processingAt?: string | null;
+  paidAt?: string | null;
+  paymentId?: string | null;
+  stripeAccountId?: string | null;
+  transferId?: string | null;
+  payoutId?: string | null;
+
+  // ✅ NEW: refund fields
+  refundStatus?: RefundStatus | null;
+  refundTotal?: number | null;
+  refundedAt?: string | null;
+
+  // ✅ NEW: payout status UX fields
+  payoutStatus?: PayoutStatus | null;
+  lastPayoutId?: string | null;
+  lastPayoutAt?: string | null;
+  payoutFailureCode?: string | null;
+  payoutFailureMessage?: string | null;
 
   // Timestamps
   createdAt: string;

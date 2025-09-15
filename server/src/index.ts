@@ -1,15 +1,22 @@
 // server.ts
-import dotenv from "dotenv";
-import path from "path";
+// ─────────────────────────────────────────────────────────────────────────────
+// Bootstraps Express + Apollo Server (v4) with Stripe webhook + Woo ingest.
+// Key ordering rules:
+//   1) Stripe webhook must receive RAW body (no JSON parsing before it).
+//   2) Each JSON-using route should mount its own parser (scoped), not global.
+//   3) Apollo (/graphql) must have express.json() BEFORE expressMiddleware.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Load env
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+import path from "path";
+import dotenv from "dotenv";
+
+// Load env file early (production vs dev)
+const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
+// Prefer Express' built-in raw/json parsers. No need for 'body-parser' package.
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 
@@ -22,7 +29,7 @@ import resolvers from "./graphql/resolvers";
 import ordersRoute from "./routes/orders";
 import stripeWebhook from "./routes/stripeWebhook";
 
-// Models used by Woo ingest
+// Models referenced in Woo ingest
 import Affiliate from "./models/Affiliate";
 import AffiliateSale from "./models/AffiliateSale";
 
@@ -36,27 +43,27 @@ async function startServer() {
 
   const app = express();
 
-  // Render / Cloudflare can be behind proxies
+  // If you’re behind a proxy (Render, Cloudflare, Nginx), preserve client IPs, etc.
   app.set("trust proxy", true);
 
-  // ——————————————————————————————————————————————————————————
-  // 1) STRIPE WEBHOOK — must receive RAW BODY and be mounted
-  //    BEFORE any JSON/body parser touches the request.
-  // ——————————————————————————————————————————————————————————
+  // ───────────────────────────────────────────────────────────────────────────
+  // 1) STRIPE WEBHOOK — MUST SEE RAW BODY
+  //    Keep this BEFORE any JSON/body parser touches the request.
+  //    Stripe signs the exact raw bytes; JSON parsing would break verification.
+  // ───────────────────────────────────────────────────────────────────────────
   app.post(
     "/api/stripe/webhook",
-    bodyParser.raw({ type: "application/json" }),
+    express.raw({ type: "application/json" }), // <- raw body only for this route
     stripeWebhook
   );
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
 
-  // ——————————————————————————————————————————————————————————
-  // 2) CORS (tight but permissive enough); handle preflight
-  // ——————————————————————————————————————————————————————————
+  // ───────────────────────────────────────────────────────────────────────────
+  // 2) CORS — Apply after webhook (webhook doesn't need CORS)
+  //    If you want to lock origins, replace "*" with your frontend URL(s).
+  // ───────────────────────────────────────────────────────────────────────────
   app.use(
     cors({
-      origin: "*", // adjust to your frontend origin(s) if you want to lock down
+      origin: "*",
       credentials: false,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: [
@@ -68,19 +75,18 @@ async function startServer() {
       ],
     })
   );
-  // app.options("*", cors());
-  app.options(/.*/, cors()); // OK with path-to-regexp v6
-  // // or
-  // app.options("(.*)", cors());
+  // Handle all preflight OPTION requests
+  app.options(/.*/, cors());
 
-  // Simple healthcheck (useful for Render)
+  // Simple healthcheck (handy for Render/uptime probes)
   app.get("/healthz", (_req, res) =>
     res.status(200).json({ ok: true, uptime: process.uptime() })
   );
 
-  // ——————————————————————————————————————————————————————————
-  // 3) WOO INGEST — scoped JSON parser and API key guard
-  // ——————————————————————————————————————————————————————————
+  // ───────────────────────────────────────────────────────────────────────────
+  // 3) WOO INGEST — SCOPE JSON PARSER + API KEY GUARD
+  //    We mount express.json() ONLY for /api/woo so it doesn’t affect webhook.
+  // ───────────────────────────────────────────────────────────────────────────
   app.use("/api/woo", express.json({ limit: "1mb" }), (req, res, next) => {
     const apiKey = req.header("x-api-key");
     if (!apiKey || apiKey !== process.env.WOO_INGEST_KEY) {
@@ -94,18 +100,18 @@ async function startServer() {
     try {
       const p = req.body as any;
 
-      // ——— helpers ———
+      // ── helpers ──
       const num = (v: any) => {
         const n = Number(v);
         return Number.isFinite(n) ? n : 0;
       };
       const DEFAULT_RATE = 0.1;
 
-      // Compute commission base (prefer line items → subtotal-discount → total-tax-shipping)
+      // Compute commission base:
+      // prefer line items → subtotal - discount → total - tax - shipping
       const computeCommissionBase = (payload: any) => {
         if (Array.isArray(payload.items) && payload.items.length) {
           const lines = payload.items.reduce((acc: number, it: any) => {
-            // accept both your normalized shape and raw Woo fields
             const lineTotal = num(it.lineTotal ?? it.total ?? it.line_total);
             if (lineTotal) return acc + lineTotal;
             const unit = num(it.unitPrice ?? it.price);
@@ -116,51 +122,43 @@ async function startServer() {
           return Math.max(0, lines - orderDiscount);
         }
 
-        const subtotal = num(p.subtotal);
-        const discount = num(p.discount ?? p.discount_total);
+        const subtotal = num(payload.subtotal);
+        const discount = num(payload.discount ?? payload.discount_total);
         if (subtotal || discount) return Math.max(0, subtotal - discount);
 
-        const total = num(p.total);
-        const tax = num(p.tax ?? p.total_tax);
-        const shipping = num(p.shipping ?? p.shipping_total);
+        const total = num(payload.total);
+        const tax = num(payload.tax ?? payload.total_tax);
+        const shipping = num(payload.shipping ?? payload.shipping_total);
         return Math.max(0, total - tax - shipping);
       };
 
-      // ——— minimal validation ———
-      if (
-        !p?.orderId ||
-        !p?.orderNumber ||
-        !p?.orderDate ||
-        typeof p.total !== "number"
-      ) {
+      // Minimal payload validation (adjust as needed)
+      if (!p?.orderId || !p?.orderNumber || !p?.orderDate || typeof p.total !== "number") {
         return res.status(400).json({ ok: false, error: "Bad payload" });
       }
 
-      // Resolve affiliate + pick rate (payload override → affiliate → default)
+      // Resolve affiliate (if any) and choose commission rate
       let affiliateId: any = null;
       if (p.refId) {
-        const aff = await Affiliate.findOne({ refId: p.refId }).select(
-          "_id commissionRate"
-        );
+        const aff = await Affiliate.findOne({ refId: p.refId }).select("_id commissionRate");
         if (aff) affiliateId = aff._id;
       }
       const rateOverride = num(p.meta?.commissionRate);
       const affiliateRate = num(
-        (await Affiliate.findOne({ refId: p.refId }).select("commissionRate"))
-          ?.commissionRate
+        (await Affiliate.findOne({ refId: p.refId }).select("commissionRate"))?.commissionRate
       );
       const commissionRate = rateOverride || affiliateRate || DEFAULT_RATE;
 
-      // Compute commission
+      // Do the math
       const base = computeCommissionBase(p);
       const commissionEarned = Math.round(base * commissionRate * 100) / 100;
 
-      // Normalize a few fields
+      // Normalize some fields
       const orderId = String(p.orderId);
       const orderNumber = String(p.orderNumber);
       const orderDate = new Date(p.orderDate);
 
-      // Normalize items to your stored shape (keeps your current field names)
+      // Normalize items to stored shape
       const items = Array.isArray(p.items)
         ? p.items.map((it: any) => ({
             wooProductId: num(it.wooProductId ?? it.product_id),
@@ -192,11 +190,9 @@ async function startServer() {
             paymentIntentId: p.paymentIntentId ?? p.payment_intent_id ?? null,
             items,
             product: p.product ?? items[0]?.name ?? null,
-
-            // 🔹 snapshot and persist the commission math
+            // snapshot commission
             commissionRate,
             commissionEarned,
-
             updatedAt: new Date(),
           },
           $setOnInsert: {
@@ -214,7 +210,6 @@ async function startServer() {
         }
       );
 
-      // Optional debug
       console.log("[woo/order] upserted", {
         orderId,
         refId: p.refId,
@@ -230,31 +225,37 @@ async function startServer() {
     }
   });
 
-  // Other REST routes (mounted after Woo guard)
+  // Other REST routes (these can use their own parsers internally as needed)
   app.use("/api", ordersRoute);
 
-  // ——————————————————————————————————————————————————————————
-  // 4) GRAPHQL — JSON parser AFTER the Stripe raw route
-  // ——————————————————————————————————————————————————————————
+  // ───────────────────────────────────────────────────────────────────────────
+  // 4) GRAPHQL — SCOPE JSON PARSER ON /graphql BEFORE expressMiddleware
+  //    Do NOT mount a global express.json() above; keep it localized here.
+  // ───────────────────────────────────────────────────────────────────────────
   const server = new ApolloServer<MyContext>({ typeDefs, resolvers });
   await server.start();
 
   app.use(
     "/graphql",
-    // bodyParser.json(),
-    express.json(),
+    // Optional: log content-type to debug "req.body not set" issues
+    (req, _res, next) => {
+      if (req.method === "POST") {
+        console.log("GraphQL hit:", req.headers["content-type"]);
+      }
+      next();
+    },
+    cors({ origin: "*", credentials: false }),
+    express.json({ limit: "1mb" }), // ✅ ensures req.body exists for Apollo
     expressMiddleware(server, { context: createContext as any })
   );
 
-  // ——————————————————————————————————————————————————————————
-  // 5) START
-  // ——————————————————————————————————————————————————————————
+  // ───────────────────────────────────────────────────────────────────────────
+  // 5) START SERVER
+  // ───────────────────────────────────────────────────────────────────────────
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`🚀 GraphQL ready at http://localhost:${PORT}/graphql`);
-    console.log(
-      `✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`
-    );
+    console.log(`✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`);
     console.log(`📥 Woo ingest at http://localhost:${PORT}/api/woo/order`);
   });
 }

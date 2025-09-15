@@ -170,6 +170,9 @@ export const RECORD_AFFILIATE_PAYMENT = gql`
       productName
       method
       transactionId
+      paidCommission
+      status
+      transferId
       notes
       saleIds
       createdAt
@@ -323,6 +326,27 @@ export const REFRESH_WOO_PRODUCTS = gql`
       inactivated
       finishedAt
       notes
+    }
+  }
+`;
+
+export const REFUND_AFFILIATE_SALE = gql`
+  mutation RefundAffiliateSale($input: RefundAffiliateSaleInput!) {
+    refundAffiliateSale(input: $input) {
+      sale {
+        id
+        commissionStatus
+        # ✅ keep the snapshot fields you already use
+        refundStatus
+        refundAmount
+        refundId
+        refundAt
+        # ✅ also return the aggregate + timestamp we added
+        refundTotal
+        refundedAt
+      }
+      stripeRefundId
+      transferReversalId
     }
   }
 `;

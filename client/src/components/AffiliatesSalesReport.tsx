@@ -9,6 +9,9 @@ import { useState } from "react";
 import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
 import { AffiliateSale } from "../types";
+import ReusableTable from "./ReusableTable";
+// import SalesAdapter from "./SalesAdapter";
+// import SalesTable from "./SalesAdapter";
 // import PaymentsReports from "./PaymentsReports";
 // import PaidCommissions from "./PaidCommissions";
 // import UnpaidCommissions from "./UnpaidCommissions";
@@ -52,13 +55,24 @@ export default function AffiliatesSalesReport() {
           monthlySales.map((monthSales, index) => (
             <div className="" key={monthSales.month}>
               {showReport === index && (
-                <DetailedReportView
-                  monthSales={monthSales.sales}
-                  currentMonth={monthSales.month}
-                  setShowReport={setShowReport}
-                  clicksData={clicksData}
-                  refetchSales={refetch}
-                />
+                <>
+                  {/* <DetailedReportView
+                    monthSales={monthSales.sales}
+                    currentMonth={monthSales.month}
+                    setShowReport={setShowReport}
+                    clicksData={clicksData}
+                    refetchSales={refetch}
+                  /> */}
+                  <br />
+                  <br />
+                  <ReusableTable
+                    monthSales={monthSales.sales}
+                    currentMonth={monthSales.month}
+                    setShowReport={setShowReport}
+                    clicksData={clicksData}
+                    refetchSales={refetch}
+                  />
+                </>
               )}
               {showReport === null && (
                 <>

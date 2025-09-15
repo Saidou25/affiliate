@@ -212,6 +212,7 @@
   border: 1px solid #e5e7eb;
   background: #f9fafb;
   color: #111827;
+  width: 100%;
 }
 
 .pill--succeeded { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
@@ -221,4 +222,27 @@
 .pill--canceled  { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
 .pill--captured  { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
 
+/* .pill--processing { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }  */
+/* .pill--unpaid     { background: #f8fafc; color: #334155; border-color: #e2e8f0; }  */
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.pill--unpaid {
+  background: #f1effb; /* violet-100 */
+  color: #5b21b6;      /* violet-800 */
+  border-color: #a78bfa;/* violet-400 */
+}
+
+
+/* Partial refund: distinct from full refund blue */
+.pill--partially-refunded {
+  background: #faf5ff;   /* purple-50 */
+  color: #6d28d9;        /* purple-700 */
+  border-color: #e9d5ff; /* purple-200 */
+}
+
+/* (Optional) Processing if you haven't added already */
+.pill--processing {
+  background: #fff7ed;   /* amber-50 */
+  color: #9a3412;        /* amber-800 */
+  border-color: #fed7aa; /* amber-200 */
+}

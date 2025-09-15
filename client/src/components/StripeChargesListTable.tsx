@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { gql, useQuery } from "@apollo/client";
+
 import "./StripeChargesListTable.css";
 
 const STRIPE_CHARGES = gql`
@@ -208,7 +209,7 @@ export default function StripeChargesListTable() {
             refId
             <input
               type="text"
-              placeholder="e.g. bboWS8LP"
+              placeholder="e.g. bboWa9LP"
               value={filter.refId ?? ""}
               onChange={(e) =>
                 setFilter((f) => ({ ...f, refId: e.target.value || undefined }))

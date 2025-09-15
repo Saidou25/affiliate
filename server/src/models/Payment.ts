@@ -13,14 +13,15 @@ export interface IPayment extends Document {
   notes?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  currency: String;
+  currency: string;
   // Stripe sync
-  status: String;
-  transferId: String;
-  balanceTransactionId: String;
-  payoutId: String;
-  payoutStatus: String;
+  status: string;
+  transferId: string;
+  balanceTransactionId: string;
+  payoutId: string;
+  payoutStatus: string;
   payoutArrivalDate: Date;
+  reversalId?: string;
 }
 
 const PaymentSchema = new Schema<IPayment>(
@@ -46,6 +47,7 @@ const PaymentSchema = new Schema<IPayment>(
     payoutId: { type: String, index: true }, // Stripe po_...
     payoutStatus: { type: String }, // paid, pending, failed...
     payoutArrivalDate: { type: Date },
+    reversalId: { type: String },
   },
   { timestamps: true }
 );

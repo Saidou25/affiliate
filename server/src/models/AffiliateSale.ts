@@ -1,93 +1,124 @@
-// server/src/models/AffiliateSale.ts
 import mongoose, { Document, Schema } from "mongoose";
 
 /**
- * Item shape (kept optional/loose to avoid breaking existing payloads).
- * NOTE: We use a sub-schema for better typing/validation without changing the
- *       public field name `items` or its basic structure (array of objects).
+ * Line Item sub-schema
  */
 const ItemSchema = new Schema(
   {
-    wooProductId: { type: Number }, // Woo product id if available
+    wooProductId: { type: Number },
     name: { type: String },
-    qty: { type: Number }, // quantity purchased
-    unitPrice: { type: Number }, // price per unit
-    lineTotal: { type: Number }, // qty * unitPrice after discounts
+    qty: { type: Number },
+    unitPrice: { type: Number },
+    lineTotal: { type: Number },
+  },
+  { _id: false }
+);
+
+/**
+ * Refund entry sub-schema
+ */
+const RefundEntrySchema = new Schema(
+  {
+    id: { type: String, required: true }, // rf_... (or synthetic id)
+    amount: { type: Number, required: true }, // refund amount (positive)
+    status: { type: String }, // pending | succeeded | failed | ...
+    createdAt: { type: Date },
+    updatedAt: { type: Date },
   },
   { _id: false }
 );
 
 export interface IAffiliateSale extends Document {
-  // ───── Legacy fields you already had (names preserved) ──────────────────────
+  // ── Legacy / existing fields ────────────────────────────────────────────────
   productId?: string;
-  refId?: string; // affiliate refId (e.g., bboWS8LP)
+  refId?: string;
   buyerEmail?: string;
-  amount?: number; // legacy total (kept for compatibility)
+  amount?: number;
   title?: "purchase" | string;
   event?: "purchase" | string;
-  timestamp?: Date; // legacy event time
-  commissionEarned?: number; // computed sale commission (snapshot)
+  timestamp?: Date;
+  commissionEarned?: number;
   commissionStatus?: "paid" | "unpaid" | "processing" | "reversed" | "refunded";
   paidAt?: Date;
-  processingAt?: Date; // NEW
+  processingAt?: Date;
   paymentId?: mongoose.Types.ObjectId;
 
-  // ───── Stripe / payouts linkage (NEW) ───────────────────────────────────────
-  stripeAccountId?: string; // acct_... (destination connected account)
-  transferId?: string; // tr_... (platform → connected account)
-  payoutId?: string; // po_... (connected account → bank)
+  // ── Stripe / payouts linkage ───────────────────────────────────────────────
+  stripeAccountId?: string; // acct_...
+  transferId?: string; // tr_...
+  payoutId?: string; // po_...
+  // more link fields to help matching in webhooks/importers:
+  stripeChargeId?: string; // ch_...
+  stripePaymentIntentId?: string; // pi_...
 
-  // ───── Newer fields for Woo/Stripe ingest (names preserved) ────────────────
+  // ── Newer fields for Woo/Stripe ingest ─────────────────────────────────────
   source?: "woocommerce" | "stripe" | "manual";
-  orderId?: string; // external system id (unique per source)
-  orderNumber?: string; // human-facing number
+  orderId?: string;
+  orderNumber?: string;
   orderDate?: Date;
 
-  status?: string; // e.g., processing, completed, refunded
-  currency?: string; // e.g., USD
+  status?: string; // Woo-style fulfillment status
+  currency?: string;
 
-  subtotal?: number; // sum of line items before tax/shipping
-  discount?: number; // order-level discount (if any)
-  tax?: number; // order tax
-  shipping?: number; // shipping cost
-  total?: number; // grand total (Woo total)
+  subtotal?: number;
+  discount?: number;
+  tax?: number;
+  shipping?: number;
+  total?: number;
 
-  paymentIntentId?: string; // Stripe PI if available
-  items?: any[]; // line items array from Woo
-  product?: any; // optional single-product shape
+  paymentIntentId?: string; // historically used by you (may be ch_ or pi_)
+  items?: any[];
+  product?: any;
 
-  // ───── Added: snapshot of the rate used for THIS sale ──────────────────────
-  /**
-   * commissionRate
-   * Snapshot of the commission rate applied to this sale (e.g., 0.10 for 10%).
-   * Storing it here ensures future rate changes do not alter historical sales.
-   */
-  commissionRate?: number;
+  // ── Commission config snapshot ─────────────────────────────────────────────
+  commissionRate?: number; // e.g., 0.10 (10%)
+
+  // ── Refund tracking (top-level + history) ──────────────────────────────────
+  refundStatus?: "none" | "partial" | "full";
+  refunds?: Array<{
+    id: string;
+    amount: number;
+    status?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }>;
+  refundTotal?: number; // cumulative refunded amount
+  refundedAt?: Date; // time of most recent succeeded refund
+  // kept for mutation compatibility (last refund snapshot):
+  refundId?: string;
+  refundAmount?: number;
+  refundAt?: Date;
+
+  // ── Payout status (for UX clarity and retries) ─────────────────────────────
+  payoutStatus?: "pending" | "paid" | "failed" | "canceled";
+  lastPayoutId?: string;
+  lastPayoutAt?: Date;
+  payoutFailureCode?: string;
+  payoutFailureMessage?: string;
 
   createdAt?: Date;
   updatedAt?: Date;
+
+  // ── Instance helpers ───────────────────────────────────────────────────────
+  computeCommissionBase(): number;
+  computeCommissionEarned(): number;
 }
 
 /**
  * MAIN SCHEMA
- * - Existing names preserved.
- * - Adds Stripe linkage fields needed by your webhook flow.
  */
 const AffiliateSaleSchema = new Schema<IAffiliateSale>(
   {
-    // ─── Legacy fields (kept) ────────────────────────────────────────────────
+    // Legacy / existing
     refId: { type: String, index: true },
     productId: { type: String },
     event: { type: String, default: "purchase" },
     title: { type: String, default: "purchase" },
-    amount: { type: Number, min: 0 }, // legacy number; left optional
+    amount: { type: Number, min: 0 },
     timestamp: { type: Date, default: Date.now },
     buyerEmail: { type: String },
 
-    // Computed per-sale commission (snapshot)
     commissionEarned: { type: Number, default: 0, min: 0 },
-
-    // Expanded enum to reflect UI logic (now also includes 'refunded')
     commissionStatus: {
       type: String,
       enum: ["paid", "unpaid", "processing", "reversed", "refunded"],
@@ -96,21 +127,23 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>(
     },
 
     paidAt: { type: Date },
-    processingAt: { type: Date }, // NEW
+    processingAt: { type: Date },
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
 
-    // ─── Stripe linkage (NEW) ────────────────────────────────────────────────
+    // Stripe linkage
     stripeAccountId: { type: String, index: true }, // acct_...
     transferId: { type: String }, // tr_...
     payoutId: { type: String }, // po_...
+    stripeChargeId: { type: String, index: true }, // ch_...
+    stripePaymentIntentId: { type: String, index: true }, // pi_...
 
-    // ─── Newer fields for Woo/Stripe ─────────────────────────────────────────
+    // Woo/Stripe ingest
     source: {
       type: String,
       enum: ["woocommerce", "stripe", "manual"],
       index: true,
     },
-    orderId: { type: String, index: true }, // together with source unique
+    orderId: { type: String, index: true },
     orderNumber: { type: String },
     orderDate: { type: Date },
 
@@ -125,29 +158,47 @@ const AffiliateSaleSchema = new Schema<IAffiliateSale>(
 
     paymentIntentId: { type: String, index: true },
 
-    // Keep the public name `items` the same. Using a sub-schema adds light validation.
     items: { type: [ItemSchema], default: [] },
-
-    // Keep `product` flexible (Mixed) to avoid breaking older data
     product: { type: Schema.Types.Mixed, default: null },
 
-    // ─── Commission config snapshot ───────────────────────────────────────────
-    commissionRate: {
-      type: Number, // e.g., 0.10 for 10%
-      min: 0,
-      max: 1,
+    // Commission config snapshot
+    commissionRate: { type: Number, min: 0, max: 1 },
+
+    // Refunds
+    refundStatus: {
+      type: String,
+      enum: ["none", "partial", "full"],
+      default: "none",
+      index: true,
     },
+    refunds: { type: [RefundEntrySchema], default: [] },
+    refundTotal: { type: Number, default: 0, min: 0 },
+    refundedAt: { type: Date },
+
+    // last refund snapshot (kept for compatibility with your mutation)
+    refundId: { type: String },
+    refundAmount: { type: Number, min: 0 },
+    refundAt: { type: Date },
+
+    // Payout status (UX/status clarity for admin)
+    payoutStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "canceled"],
+      index: true,
+    },
+    lastPayoutId: { type: String },
+    lastPayoutAt: { type: Date },
+    payoutFailureCode: { type: String },
+    payoutFailureMessage: { type: String },
   },
   {
-    timestamps: true, // adds createdAt / updatedAt
+    timestamps: true,
     strict: true,
   }
 );
 
 /**
  * INDICES
- * - Idempotency: one sale per (source, orderId)
- * - Webhook matchers for payout flipping and transfer lookups
  */
 AffiliateSaleSchema.index(
   { source: 1, orderId: 1 },
@@ -155,24 +206,17 @@ AffiliateSaleSchema.index(
 );
 AffiliateSaleSchema.index({ refId: 1, orderDate: -1 });
 AffiliateSaleSchema.index({ createdAt: -1 });
-
-// Helpful for payout flip (Connect webhook): find in-flight rows fast
 AffiliateSaleSchema.index({ stripeAccountId: 1, commissionStatus: 1 });
-
-// Optional but handy when correlating programmatically
 AffiliateSaleSchema.index({ transferId: 1 }, { sparse: true });
 AffiliateSaleSchema.index({ payoutId: 1 }, { sparse: true });
 AffiliateSaleSchema.index({ refId: 1, commissionStatus: 1 });
 
 /**
- * Helper: compute the commission base for this sale.
- * Convention (recommended): subtotal - discount (i.e., exclude shipping/tax).
- * Falls back to line items sum, then to total - tax - shipping.
+ * Helpers
  */
 AffiliateSaleSchema.methods.computeCommissionBase = function (): number {
   const toNum = (v: any) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-  // Prefer line items if available (more precise after per-line discounts)
   if (Array.isArray(this.items) && this.items.length > 0) {
     const lines = this.items.reduce((acc: number, it: any) => {
       const lt = toNum(it?.lineTotal);
@@ -185,23 +229,16 @@ AffiliateSaleSchema.methods.computeCommissionBase = function (): number {
     return Math.max(0, lines - discount);
   }
 
-  // Next best: subtotal - discount, if present
   const subtotal = toNum(this.subtotal);
   const discount = toNum(this.discount);
   if (subtotal || discount) return Math.max(0, subtotal - discount);
 
-  // Final fallback: total - tax - shipping
   const total = toNum(this.total);
   const tax = toNum(this.tax);
   const shipping = toNum(this.shipping);
   return Math.max(0, total - tax - shipping);
 };
 
-/**
- * Helper: compute commission amount from current snapshot rate.
- * Only runs if a `commissionRate` is present.
- * Return value is NOT automatically persisted; see pre-save hook below.
- */
 AffiliateSaleSchema.methods.computeCommissionEarned = function (): number {
   const rate = Number(this.commissionRate ?? 0);
   if (!Number.isFinite(rate) || rate <= 0) return 0;
@@ -210,9 +247,7 @@ AffiliateSaleSchema.methods.computeCommissionEarned = function (): number {
 };
 
 /**
- * pre('save')
- * - If `commissionEarned` is missing/zero AND a `commissionRate` is set,
- *   compute and snapshot `commissionEarned`.
+ * Snapshot commissionEarned if missing and rate exists.
  */
 AffiliateSaleSchema.pre("save", function (next) {
   if (!this.isModified("commissionEarned") && !this.isNew) return next();

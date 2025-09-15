@@ -1,8 +1,7 @@
 // src/routes/stripeWebhook.ts
 import { Request, Response } from "express";
 import Stripe from "stripe";
-import mongoose, { Types } from "mongoose";
-import Affiliate from "../models/Affiliate";
+import { Types } from "mongoose";
 import AffiliateSale from "../models/AffiliateSale";
 import Payment from "../models/Payment";
 
@@ -46,8 +45,9 @@ export default async function stripeWebhook(req: Request, res: Response) {
       // --------- TRANSFERS (platform → connected account) ---------
       case "transfer.created": {
         const t = event.data.object as Stripe.Transfer;
-        // If you have a Payment doc for this transfer, use it; otherwise match by transferId later.
-        const payment = await Payment.findOne({ transactionId: t.id });
+
+        // Prefer matching by Payment.transferId (set when you initiated transfer)
+        const payment = await Payment.findOne({ transferId: t.id });
 
         const saleFilter: any = payment
           ? { _id: { $in: payment.saleIds } }
@@ -72,17 +72,24 @@ export default async function stripeWebhook(req: Request, res: Response) {
 
       case "transfer.reversed": {
         const t = event.data.object as Stripe.Transfer;
-        const reason =
-          (t.reversals?.data?.[0] as any)?.reason ??
-          (t.reversals?.data?.[0] as any)?.metadata?.reason ??
-          "n/a";
-        console.log(
-          `[WH] transfer.reversed tr=${t.id} amount=${(t.amount / 100).toFixed(
-            2
-          )} ${t.currency} reason=${reason}`
-        );
 
-        const payment = await Payment.findOne({ transactionId: t.id });
+        // Persist reversal id on Payment (if known)
+        const payment = await Payment.findOne({ transferId: t.id });
+        if (payment) {
+          const firstReversal = t.reversals?.data?.[0];
+          if (firstReversal?.id && !payment.reversalId) {
+            payment.reversalId = firstReversal.id;
+            payment.notes = [
+              payment.notes,
+              `Transfer reversed (${firstReversal.id})`,
+            ]
+              .filter(Boolean)
+              .join(" | ");
+            await payment.save();
+          }
+        }
+
+        // Flip sales status to reversed if they were processing/paid under this transfer
         const saleFilter: any = payment
           ? { _id: { $in: payment.saleIds } }
           : { transferId: t.id };
@@ -91,13 +98,14 @@ export default async function stripeWebhook(req: Request, res: Response) {
           { ...saleFilter, commissionStatus: { $in: ["processing", "paid"] } },
           { $set: { commissionStatus: "reversed" }, $unset: { paidAt: 1 } }
         );
+
         console.log(
-          `[WH] sales set to reversed: modified=${
+          `[WH] transfer.reversed tr=${t.id} amount=${(t.amount / 100).toFixed(
+            2
+          )} ${t.currency} → sales set to reversed: modified=${
             (upd as any).modifiedCount ?? (upd as any).nModified
           }`
         );
-
-        // Optional: restore affiliate totals/history if you previously decremented on paid.
         break;
       }
 
@@ -109,7 +117,7 @@ export default async function stripeWebhook(req: Request, res: Response) {
       }
 
       // --------- PAYOUTS (connected account → bank) ---------
-      // We flip PROCESSING → PAID only when the payout is paid.
+      // We flip PROCESSING → PAID only when the payout is actually paid.
       case "payout.created":
       case "payout.updated":
       case "payout.canceled":
@@ -117,8 +125,11 @@ export default async function stripeWebhook(req: Request, res: Response) {
       case "payout.paid": {
         const p = event.data.object as Stripe.Payout;
         const acctId = (event.account as string) || "";
+        const lastAt = p.arrival_date
+          ? new Date(p.arrival_date * 1000)
+          : new Date();
 
-        // Mark paid only when status is "paid"
+        // ✅ Mark PAID when it really paid
         if (
           event.type === "payout.paid" ||
           (event.type === "payout.updated" && p.status === "paid")
@@ -128,30 +139,44 @@ export default async function stripeWebhook(req: Request, res: Response) {
             {
               $set: {
                 commissionStatus: "paid",
+                payoutStatus: "paid",
                 paidAt: new Date(),
                 payoutId: p.id,
+                lastPayoutId: p.id,
+                lastPayoutAt: lastAt,
               },
             }
           );
           console.log(
-            `[WH] payout → processing→paid: matched=${
-              (upd as any).matchedCount ?? (upd as any).n
-            }, modified=${(upd as any).modifiedCount ?? (upd as any).nModified}`
+            `[WH] payout → processing→paid: modified=${
+              (upd as any).modifiedCount ?? (upd as any).nModified
+            }`
           );
         }
 
-        // If payout fails/cancels, revert processing back to unpaid
+        // ❗️Failed/Cancelled — show it, but allow retry
         if (
           event.type === "payout.failed" ||
           event.type === "payout.canceled"
         ) {
-          const up2 = await AffiliateSale.updateMany(
+          const status = event.type === "payout.failed" ? "failed" : "canceled";
+          const upd = await AffiliateSale.updateMany(
             { stripeAccountId: acctId, commissionStatus: "processing" },
-            { $set: { commissionStatus: "unpaid" } }
+            {
+              $set: {
+                commissionStatus: "unpaid", // enable retry
+                payoutStatus: status, // UI chip shows Failed/Canceled
+                lastPayoutId: p.id,
+                lastPayoutAt: lastAt,
+                payoutFailureCode: p.failure_code || undefined,
+                payoutFailureMessage: p.failure_message || undefined,
+              },
+              $unset: { paidAt: 1, payoutId: 1 }, // this attempt didn’t pay out
+            }
           );
           console.log(
-            `[WH] payout failed/canceled → processing→unpaid: modified=${
-              (up2 as any).modifiedCount ?? (up2 as any).nModified
+            `[WH] payout ${status} → processing→unpaid: modified=${
+              (upd as any).modifiedCount ?? (upd as any).nModified
             }`
           );
         }
@@ -159,19 +184,27 @@ export default async function stripeWebhook(req: Request, res: Response) {
       }
 
       // ===================== REFUND EVENTS (CUSTOMER-LEVEL) =====================
-      case "refund.created": {
-        const r = event.data.object as Stripe.Refund;
-        await processRefund(r, "created");
-        break;
-      }
-      case "refund.updated": {
-        const r = event.data.object as Stripe.Refund;
-        await processRefund(r, "updated");
-        break;
-      }
+      case "refund.created":
+      case "refund.updated":
       case "refund.failed": {
         const r = event.data.object as Stripe.Refund;
-        await processRefund(r, "failed");
+        await processRefund(r, event.type); // processRefund will look at r.status
+        break;
+      }
+
+      // Optional umbrella event
+      case "charge.refunded": {
+        const c = event.data.object as Stripe.Charge;
+        const pseudoRefund = {
+          id: `charge_ref_${c.id}`,
+          amount: c.amount_refunded,
+          currency: c.currency,
+          charge: c.id,
+          payment_intent: c.payment_intent,
+          status: "succeeded",
+          metadata: c.metadata || {},
+        } as unknown as Stripe.Refund;
+        await processRefund(pseudoRefund, "charge.refunded");
         break;
       }
 
@@ -197,10 +230,12 @@ export default async function stripeWebhook(req: Request, res: Response) {
 
 /**
  * Core refund processor.
- * (unchanged from your version)
+ * - Only sets sale.refundStatus on "succeeded"
+ * - Only increments refundTotal on "succeeded"
+ * - Sets commissionStatus="reversed" if the sale had been paid; else "unpaid"
  */
 async function processRefund(refund: Stripe.Refund, source: string) {
-  const refundId = refund.id; // rf_...
+  const refundId = refund.id; // rf_... (or synthetic for charge.refunded)
   const currency = refund.currency;
   const refundAmount = Number(refund.amount || 0) / 100;
   const chargeId =
@@ -229,14 +264,10 @@ async function processRefund(refund: Stripe.Refund, source: string) {
   const saleAmount = Number(
     (sale as any).amount ?? (sale as any).saleAmount ?? 0
   );
-  const commissionEarned = Number((sale as any).commissionEarned ?? 0);
-  const alreadyPaid =
-    (sale as any).commissionStatus === "paid" || !!(sale as any).paidAt;
-
   const proportion =
     saleAmount > 0 ? Math.min(1, refundAmount / saleAmount) : 0;
-  const commissionToReverse = round2(commissionEarned * proportion);
 
+  // Upsert/append refund record on the sale
   const existingIdx = Array.isArray((sale as any).refunds)
     ? (sale as any).refunds.findIndex((r: any) => r.id === refundId)
     : -1;
@@ -246,14 +277,33 @@ async function processRefund(refund: Stripe.Refund, source: string) {
     setObj[`refunds.${existingIdx}.status`] = status;
     setObj[`refunds.${existingIdx}.amount`] = refundAmount;
     setObj[`refunds.${existingIdx}.updatedAt`] = new Date();
-    const topLevelStatus = statusMapToSaleRefundStatus(status, proportion);
-    setObj["refundStatus"] = topLevelStatus;
 
-    await AffiliateSale.updateOne({ _id: (sale as any)._id }, { $set: setObj });
+    // Only set top-level refundStatus when succeeded
+    if (status === "succeeded") {
+      const topLevel = statusMapToSaleRefundStatus(proportion);
+      setObj["refundStatus"] = topLevel;
+      setObj["refundedAt"] = new Date();
+      // commissionStatus
+      const wasPaid =
+        (sale as any).commissionStatus === "paid" || !!(sale as any).paidAt;
+      setObj["commissionStatus"] = wasPaid ? "reversed" : "unpaid";
+      // increment total refunded
+      await AffiliateSale.updateOne(
+        { _id: (sale as any)._id },
+        { $set: setObj, $inc: { refundTotal: refundAmount } }
+      );
+    } else {
+      await AffiliateSale.updateOne(
+        { _id: (sale as any)._id },
+        { $set: setObj }
+      );
+    }
+
     console.log("[REFUND] Updated existing refund record on sale.");
     return;
   }
 
+  // New refund record
   const pushRefund = {
     id: refundId,
     amount: refundAmount,
@@ -263,47 +313,28 @@ async function processRefund(refund: Stripe.Refund, source: string) {
 
   const saleUpdate: any = {
     $push: { refunds: pushRefund },
-    $set: {
-      refundStatus: statusMapToSaleRefundStatus(status, proportion),
-      refundedAt: new Date(),
-    },
-    $inc: { refundTotal: refundAmount },
   };
 
-  if (alreadyPaid) {
-    await Affiliate.updateOne(
-      { _id: (sale as any).affiliateId },
-      {
-        $inc: { totalCommissions: commissionToReverse },
-        $push: {
-          paymentHistory: {
-            saleAmount: -refundAmount,
-            paidCommission: -commissionToReverse,
-            productName: `Clawback for refund ${refundId}`,
-            date: new Date(),
-            method: "stripe_transfer_clawback",
-            transactionId: `refund:${refundId}`,
-            notes: buildRefundNotes(refund, commissionToReverse),
-          },
-        },
-      }
-    );
-    saleUpdate.$set.commissionStatus = "refunded";
-  } else {
-    await Affiliate.updateOne(
-      { _id: (sale as any).affiliateId },
-      { $inc: { totalCommissions: -commissionToReverse } }
-    );
-    saleUpdate.$set.commissionStatus = "refunded";
+  if (status === "succeeded") {
+    saleUpdate.$set = {
+      refundStatus: statusMapToSaleRefundStatus(proportion),
+      refundedAt: new Date(),
+      // commissionStatus depends on whether funds had been paid already
+      commissionStatus:
+        (sale as any).commissionStatus === "paid" || !!(sale as any).paidAt
+          ? "reversed"
+          : "unpaid",
+    };
+    saleUpdate.$inc = { refundTotal: refundAmount };
   }
 
   await AffiliateSale.updateOne({ _id: (sale as any)._id }, saleUpdate);
+
   console.log(
-    `[REFUND] Sale ${String((sale as any)._id)} marked refunded; ` +
-      `${alreadyPaid ? "clawback recorded" : "unpaid pool decremented"}; ` +
-      `rev_commission=${commissionToReverse.toFixed(2)} on proportion=${(
-        proportion * 100
-      ).toFixed(1)}%`
+    `[REFUND] Sale ${String((sale as any)._id)} ` +
+      (status === "succeeded"
+        ? `marked refund ${saleUpdate.$set.refundStatus}; commissionStatus=${saleUpdate.$set.commissionStatus}`
+        : `recorded refund status=${status} (no state flip yet)`)
   );
 }
 
@@ -330,8 +361,9 @@ async function findAffiliateSaleForRefund(refund: Stripe.Refund) {
 
   const or: any[] = [];
   if (maybeObjectId) or.push({ _id: maybeObjectId });
-  if (chargeId) or.push({ stripeChargeId: chargeId });
-  if (piId) or.push({ stripePaymentIntentId: piId });
+  if (chargeId)
+    or.push({ stripeChargeId: chargeId, paymentIntentId: chargeId }); // try both fields
+  if (piId) or.push({ stripePaymentIntentId: piId, paymentIntentId: piId });
   if (orderId) or.push({ orderId: String(orderId) });
 
   if (!or.length) return null;
@@ -341,35 +373,15 @@ async function findAffiliateSaleForRefund(refund: Stripe.Refund) {
     if (byId) return byId;
   }
 
+  // Try any of the above possibilities
   const sale = await AffiliateSale.findOne({ $or: or }).lean();
   return sale;
 }
 
-function statusMapToSaleRefundStatus(
-  refundStatus: string,
-  proportion: number
-): string {
+// Map to enum-friendly top-level refund status
+function statusMapToSaleRefundStatus(proportion: number): "full" | "partial" {
   const isFull = proportion >= 0.999;
-  switch (refundStatus) {
-    case "pending":
-      return isFull ? "refund_pending_full" : "refund_pending_partial";
-    case "succeeded":
-      return isFull ? "refund_succeeded_full" : "refund_succeeded_partial";
-    case "failed":
-      return "refund_failed";
-    default:
-      return isFull ? "refunded" : "partially_refunded";
-  }
-}
-
-function buildRefundNotes(refund: Stripe.Refund, commissionToReverse: number) {
-  const parts = [
-    `Refund ${refund.id}`,
-    refund.reason ? `reason=${refund.reason}` : "",
-    `status=${refund.status}`,
-    `rev_commission=${commissionToReverse.toFixed(2)}`,
-  ].filter(Boolean);
-  return parts.join(" | ");
+  return isFull ? "full" : "partial";
 }
 
 function logEventHeader(event: Stripe.Event) {

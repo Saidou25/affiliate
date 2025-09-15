@@ -128,38 +128,6 @@ export const QUERY_ME = gql`
   }
 `;
 
-export const GET_ALLAFFILIATESALES = gql`
-  query getAllAffiliateSales {
-    getAllAffiliateSales {
-      id
-      refId
-      source
-      orderId
-      orderNumber
-      orderDate
-      status
-      currency
-      subtotal
-      discount
-      tax
-      shipping
-      total
-      paymentIntentId
-      commissionEarned
-      commissionStatus
-      createdAt
-      updatedAt
-      items
-      product
-      processingAt
-      paidAt
-      stripeAccountId
-      transferId
-      payoutId
-    }
-  }
-`;
-
 export const GET_ALLAFFILIATESCLICKLOGS = gql`
   query getAllAffiliatesClickLogs {
     getAllAffiliatesClickLogs {
@@ -306,17 +274,83 @@ export const GET_AFFILIATESALES = gql`
       shipping
       total
       paymentIntentId
+
       commissionEarned
       commissionStatus
+      processingAt
+      paidAt
+      stripeAccountId
+      transferId
+      payoutId
+
+      # ✅ NEW refund fields
+      refundStatus
+      refundTotal
+      refundedAt
+      refundId
+      refundAmount
+      refundAt
+
+      # ✅ NEW payout UX fields
+      payoutStatus
+      lastPayoutId
+      lastPayoutAt
+      payoutFailureCode
+      payoutFailureMessage
+
       createdAt
       updatedAt
       items
       product
-      processingAt 
-      paidAt 
-      stripeAccountId 
-      transferId 
+    }
+  }
+`;
+
+export const GET_ALLAFFILIATESALES = gql`
+  query getAllAffiliateSales {
+    getAllAffiliateSales {
+      id
+      refId
+      source
+      orderId
+      orderNumber
+      orderDate
+      status
+      currency
+      subtotal
+      discount
+      tax
+      shipping
+      total
+      paymentIntentId
+
+      commissionEarned
+      commissionStatus
+      processingAt
+      paidAt
+      stripeAccountId
+      transferId
       payoutId
+
+      # ✅ NEW refund fields
+      refundStatus
+      refundTotal
+      refundedAt
+      refundId
+      refundAmount
+      refundAt
+
+      # ✅ NEW payout UX fields
+      payoutStatus
+      lastPayoutId
+      lastPayoutAt
+      payoutFailureCode
+      payoutFailureMessage
+
+      createdAt
+      updatedAt
+      items
+      product
     }
   }
 `;

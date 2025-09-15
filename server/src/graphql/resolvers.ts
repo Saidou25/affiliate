@@ -925,43 +925,78 @@ const resolvers = {
       // Optional: restrict to admins
       // requireAdmin(context);
 
-      if (!(amount > 0)) throw new Error("Amount must be > 0");
+      console.log("[TRANSFER] called with", {
+        refId,
+        amount,
+        currency,
+        productName,
+        saleIdsCount: saleIds?.length || 0,
+      });
+
+      if (!(amount > 0)) {
+        console.warn("[TRANSFER] abort: amount must be > 0");
+        throw new Error("Amount must be > 0");
+      }
 
       // 1) Find affiliate & check Stripe account
       const affiliate = await Affiliate.findOne({ refId });
-      if (!affiliate) throw new Error("Affiliate not found.");
-      if (!affiliate.stripeAccountId)
+      if (!affiliate) {
+        console.warn("[TRANSFER] abort: affiliate not found", { refId });
+        throw new Error("Affiliate not found.");
+      }
+      if (!affiliate.stripeAccountId) {
+        console.warn("[TRANSFER] abort: no stripeAccountId", { refId });
         throw new Error("Affiliate is not connected to Stripe.");
+      }
 
-      // block overpay against unpaid balance
+      // Optional: block overpay against unpaid balance pool
       const unpaid = Number(affiliate.totalCommissions ?? 0);
       if (amount > unpaid) {
+        console.warn("[TRANSFER] abort: amount exceeds unpaid pool", {
+          amount,
+          unpaid,
+        });
         throw new Error("Payment exceeds unpaid commissions.");
       }
 
       // 2) Create Stripe transfer (platform -> connected account)
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
       const cents = Math.round(amount * 100);
-
       const idemKey = `xfer:${refId}:${cents}:${
         (saleIds || []).slice().sort().join(",") || "none"
       }`;
 
-      const transfer = await stripe.transfers.create(
-        {
-          amount: cents,
-          currency,
-          destination: affiliate.stripeAccountId!, // acct_xxx
-          description: productName || `Affiliate payout for ${refId}`,
-          metadata: {
-            refId,
-            productName: productName ?? "",
-            saleIds: (saleIds || []).join(","),
-            type: "affiliate_payout",
+      console.log("[TRANSFER] creating Stripe transfer", {
+        destination: affiliate.stripeAccountId,
+        cents,
+        idemKey,
+      });
+
+      let transfer;
+      try {
+        transfer = await stripe.transfers.create(
+          {
+            amount: cents,
+            currency,
+            destination: affiliate.stripeAccountId!, // acct_xxx
+            description: productName || `Affiliate payout for ${refId}`,
+            metadata: {
+              refId,
+              productName: productName ?? "",
+              saleIds: (saleIds || []).join(","),
+              type: "affiliate_payout",
+            },
           },
-        },
-        { idempotencyKey: idemKey }
-      );
+          { idempotencyKey: idemKey }
+        );
+      } catch (err: any) {
+        console.error(
+          "[TRANSFER] Stripe transfer failed:",
+          err?.message || err
+        );
+        throw new Error(err?.message || "Stripe transfer failed");
+      }
+
+      console.log("[TRANSFER] stripe transfer created:", transfer.id);
 
       // 3) Persist Payment document (so it shows up in getAllPayments)
       const paidAtISO = new Date(transfer.created * 1000).toISOString();
@@ -969,15 +1004,19 @@ const resolvers = {
         refId,
         affiliateId: affiliate._id,
         saleIds: (saleIds || []).map((id) => new Types.ObjectId(id)),
-        saleAmount: Number(amount.toFixed(2)), // required by schema
-        paidCommission: Number(amount.toFixed(2)), // paying this amount as commission
+        saleAmount: Number(amount.toFixed(2)),
+        paidCommission: Number(amount.toFixed(2)),
         productName: productName ?? "Stripe transfer",
         date: new Date(paidAtISO),
         method: "stripe_transfer",
         transactionId: transfer.id, // tr_...
         notes: notes ?? transfer.description ?? null,
+        status: "processing", // helpful for the UI
+        currency,
+        transferId: transfer.id, // store explicitly if your Payment model has it
       });
 
+      // 4) If you passed saleIds, mark their commissionStatus -> processing
       if (saleIds.length) {
         await AffiliateSale.updateMany(
           { _id: { $in: payment.saleIds }, commissionStatus: { $ne: "paid" } },
@@ -985,37 +1024,17 @@ const resolvers = {
             $set: {
               commissionStatus: "processing",
               paymentId: payment._id,
-              transferId: transfer.id, // NEW
-              stripeAccountId: affiliate.stripeAccountId, // NEW (acct_...)
-              processingAt: new Date(), // optional
+              transferId: transfer.id,
+              stripeAccountId: affiliate.stripeAccountId,
+              processingAt: new Date(),
             },
           }
         );
       }
 
-      // 4) Append snapshot to Affiliate.paymentHistory (what your UI reads)
-      // affiliate.paymentHistory = affiliate.paymentHistory ?? [];
-      // affiliate.paymentHistory.push({
-      //   saleAmount: Number(amount.toFixed(2)),
-      //   paidCommission: Number(amount.toFixed(2)),
-      //   productName: productName ?? "Stripe transfer",
-      //   date: new Date(paidAtISO).toLocaleString(),
-      //   method: "stripe_transfer",
-      //   transactionId: transfer.id,
-      //   notes: notes ?? transfer.description ?? undefined,
-      // });
-
-      // 5) Reduce unpaid balance (if totalCommissions is your “unpaid” pool)
-      // if (typeof affiliate.totalCommissions === "number") {
-      //   affiliate.totalCommissions = Math.max(
-      //     0,
-      //     Number((affiliate.totalCommissions - amount).toFixed(2))
-      //   );
-      // }
-
       await affiliate.save();
 
-      // 6) Return a Payment (matches your SDL)
+      // 5) Return the saved Payment fields the UI needs (matches SDL)
       return {
         id: payment.id.toString(),
         refId,
@@ -1030,6 +1049,9 @@ const resolvers = {
         notes: payment.notes,
         createdAt:
           payment.createdAt?.toISOString?.() ?? new Date().toISOString(),
+        status: payment.status, // now present
+        transferId: transfer.id, // helpful to surface in UI
+        currency,
       };
     },
 
@@ -1276,6 +1298,195 @@ const resolvers = {
         console.error("[addAffiliatePayment] failed:", msg, err);
         throw new Error("Failed to track affiliate payment");
       }
+    },
+
+    refundAffiliateSale: async (_: any, { input }: any) => {
+      const { saleId, amount, reason } = input;
+
+      const sale = await AffiliateSale.findById(saleId);
+      if (!sale) throw new Error("Sale not found.");
+
+      // ── Compute gross (fallback across your fields) ────────────────────────────
+      const gross =
+        Number.isFinite(Number(sale.total)) && Number(sale.total) > 0
+          ? Number(sale.total)
+          : Number.isFinite(Number(sale.amount)) && Number(sale.amount) > 0
+          ? Number(sale.amount)
+          : Math.max(
+              0,
+              (Number(sale.subtotal) || 0) +
+                (Number(sale.tax) || 0) +
+                (Number(sale.shipping) || 0) -
+                (Number(sale.discount) || 0)
+            );
+
+      const refundedSoFar = Number(sale.refundTotal ?? 0);
+      const remaining = Math.max(0, gross - refundedSoFar);
+
+      // Already fully refunded?
+      if (gross > 0 && remaining <= 0) {
+        throw new Error("Sale is already fully refunded.");
+      }
+
+      // ── Find Payment row (for metadata + possible reversal later) ──────────────
+      const paymentRecord = await Payment.findOne({ saleIds: sale._id }).lean();
+
+      // ── Pick Stripe target (charge or payment_intent) ──────────────────────────
+      const target: { charge: string } | { payment_intent: string } | null =
+        (() => {
+          if (sale.stripeChargeId?.startsWith("ch_"))
+            return { charge: sale.stripeChargeId };
+          if (sale.stripePaymentIntentId?.startsWith("pi_"))
+            return { payment_intent: sale.stripePaymentIntentId };
+          if (sale.paymentIntentId?.startsWith("pi_"))
+            return { payment_intent: sale.paymentIntentId };
+          if (sale.paymentIntentId?.startsWith("ch_"))
+            return { charge: sale.paymentIntentId };
+          return null;
+        })();
+
+      if (!target) {
+        throw new Error(
+          "No Stripe charge or payment intent linked to this sale (expected ch_ or pi_)."
+        );
+      }
+
+      // ── Amount logic: cap to remaining; require > 0 ────────────────────────────
+      const requested = typeof amount === "number" ? Math.max(0, amount) : null;
+      const finalRefundAmount =
+        requested == null ? remaining : Math.min(requested, remaining);
+      if (!Number.isFinite(finalRefundAmount) || finalRefundAmount <= 0) {
+        throw new Error("Refund amount must be greater than 0.");
+      }
+      const cents = Math.max(1, Math.round(finalRefundAmount * 100));
+
+      // ── Build idempotency key to avoid dup refunds on retries ──────────────────
+      const idemKey = [
+        "refund",
+        String(sale._id),
+        "charge" in (target as any)
+          ? (target as any).charge
+          : (target as any).payment_intent,
+        cents,
+      ].join(":");
+
+      // ── Create refund in Stripe (with rich metadata) ───────────────────────────
+      const refund = await stripe.refunds.create(
+        {
+          ...target,
+          amount: cents,
+          reason: reason as any, // 'requested_by_customer' | 'duplicate' | 'fraudulent' | undefined
+          metadata: {
+            type: "affiliate_sale_refund",
+            saleId: String(sale._id),
+            refId: sale.refId ?? "",
+            paymentRecordId: paymentRecord?._id
+              ? String(paymentRecord._id)
+              : "",
+            paymentTransferId: paymentRecord?.transferId ?? "",
+          },
+        },
+        { idempotencyKey: idemKey }
+      );
+
+      // Amount actually refunded by Stripe (in dollars)
+      const entryAmount = (refund.amount ?? cents) / 100;
+      const entryCreatedAt = new Date(
+        (refund.created ?? Math.floor(Date.now() / 1000)) * 1000
+      );
+
+      // ── Journal the refund on the sale ─────────────────────────────────────────
+      sale.refunds = Array.isArray(sale.refunds) ? sale.refunds : [];
+      sale.refunds.push({
+        id: refund.id,
+        amount: entryAmount,
+        status: refund.status, // pending | succeeded | failed
+        createdAt: entryCreatedAt,
+        updatedAt: new Date(),
+      });
+
+      sale.refundTotal = refundedSoFar + entryAmount;
+      sale.refundId = refund.id; // latest refund id
+      sale.refundAmount = entryAmount; // latest refund amount
+      sale.refundedAt = entryCreatedAt; // time of latest refund
+      sale.refundAt = sale.refundAt ?? entryCreatedAt; // first refund timestamp
+
+      // Refund status
+      if (gross > 0 && sale.refundTotal >= gross - 1e-6) {
+        sale.refundStatus = "full";
+      } else if (sale.refundTotal > 0) {
+        sale.refundStatus = "partial";
+      } else {
+        sale.refundStatus = "none";
+      }
+
+      // ── Proportional commission clawback if the sale was already paid ─────────
+      let transferReversalId: string | null = null;
+
+      if (sale.commissionStatus === "paid" && paymentRecord?.transferId) {
+        try {
+          const paidCommission = Number(paymentRecord.paidCommission ?? 0);
+          const fraction = gross > 0 ? Math.min(1, entryAmount / gross) : 0;
+          const reversalCents = Math.max(
+            0,
+            Math.round(paidCommission * 100 * fraction)
+          );
+
+          if (reversalCents > 0) {
+            const reversal = await stripe.transfers.createReversal(
+              paymentRecord.transferId,
+              {
+                amount: reversalCents,
+                metadata: {
+                  type: "affiliate_commission_reversal",
+                  saleId: String(sale._id),
+                  refundId: refund.id,
+                  paymentRecordId: paymentRecord?._id
+                    ? String(paymentRecord._id)
+                    : "",
+                },
+              }
+            );
+            transferReversalId = reversal.id;
+
+            // Optional: update the Payment ledger (if you store notes / reversalId)
+            await Payment.updateOne(
+              { _id: paymentRecord._id },
+              {
+                $set: {
+                  notes: `${
+                    paymentRecord.notes ? paymentRecord.notes + " | " : ""
+                  }Reversed $${(reversalCents / 100).toFixed(
+                    2
+                  )} due to refund ${refund.id}`,
+                  // If your Payment schema doesn't have reversalId, remove the next line:
+                  // @ts-ignore
+                  reversalId: reversal.id,
+                },
+              }
+            );
+          }
+
+          // Only mark commission reversed when the sale is fully refunded
+          if (sale.refundStatus === "full") {
+            sale.commissionStatus = "reversed";
+          }
+        } catch (e: any) {
+          console.warn(
+            "[refundAffiliateSale] proportional transfer reversal failed:",
+            e?.message || e
+          );
+          // Do not fail the mutation if the refund itself succeeded
+        }
+      }
+
+      await sale.save();
+
+      return {
+        sale,
+        stripeRefundId: refund.id,
+        transferReversalId,
+      };
     },
   },
 };
