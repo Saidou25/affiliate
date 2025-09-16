@@ -13,9 +13,9 @@ import TotalBar from "./TotalBar";
 import RowActions from "./RowAction";
 import { StatusChips } from "./StatusChip";
 import useCommissionTransfer from "../hooks/useCommissionTransfer";
-
-import "./DetailedReport.css";
 import { normalizeCommissionStatus } from "../utils/commission";
+
+// import "./DetailedReport.css";
 
 export type FieldKey =
   | "purchaseDate"
@@ -213,7 +213,7 @@ export default function ReusableTable({
       case "orderId":
         return "Order Id";
       case "status":
-        return "Status";
+        return "Commission Status";
       case "transferId":
         return "Transfer ID";
       case "refId":
@@ -221,7 +221,7 @@ export default function ReusableTable({
       case "commission":
         return "Commission Earned";
       case "enrolled":
-        return "Enrolled";
+        return "Stripe Connection";
       case "actionOrStatus":
         return isAdmin ? "Action" : "Status";
     }
@@ -300,11 +300,11 @@ export default function ReusableTable({
             className={`pill ${ready ? "pill--succeeded" : "pill--pending"}`}
             title={
               ready
-                ? "Stripe account is ready for payouts"
-                : "Affiliate not Stripe-ready"
+                ? "Affiliate has a verified Stripe connected account and can receive transfers."
+                : "Affiliate id not ready to receive transfers."
             }
           >
-            {ready ? "Ready" : "Not ready"}
+            {ready ? "connected" : "Not connected"}
           </span>
         );
       }

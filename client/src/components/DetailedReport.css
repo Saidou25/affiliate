@@ -47,6 +47,7 @@ thead {
   background-color: #f8f9fa;
   font-weight: 600;
   color: #333;
+  pointer-events: none;
 }
 
 .cell-style-top {
@@ -55,11 +56,17 @@ thead {
   color: #222;
   padding: 8px;
   text-align: center;
+  pointer-events: none;
 }
 
 .cell-style {
   color: #333;
   font-size: 0.95rem;
+}
+
+.chips {
+  position: relative;
+  z-index: 1;
 }
 
 .th,

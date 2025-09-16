@@ -213,6 +213,7 @@
   background: #f9fafb;
   color: #111827;
   width: 100%;
+  pointer-events: auto; 
 }
 
 .pill--succeeded { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
