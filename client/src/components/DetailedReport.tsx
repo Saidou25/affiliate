@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useClicksTracker } from "../hooks/useClicksTracker";
 import { useSalesTracker } from "../hooks/useSalesTracker";
 import { Affiliate, AffiliateSale } from "../types";
-import DetailedReportView from "./DetailedReportView";
 
 import "./DetailedReport.css";
 import ReusableTable from "./ReusableTable";

@@ -6,7 +6,7 @@ import {
   // SINGLE_AFFILIATE_SALES,
 } from "../utils/queries";
 import { useState } from "react";
-import DetailedReportView from "./DetailedReportView";
+// import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
 import { AffiliateSale } from "../types";
 import ReusableTable from "./ReusableTable";
