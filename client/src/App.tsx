@@ -21,11 +21,11 @@ import Settings from "./components/Settings";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import WooSyncCard from "./components/WooSyncCard";
+import StripeChargesTable from "./components/StripeChargesListTable";
 
 import "bootswatch/dist/lux/bootstrap.min.css";
 
 import "./App.css";
-import StripeChargesTable from "./components/StripeChargesListTable";
 
 function App() {
   const { data: meData } = useQuery(QUERY_ME);

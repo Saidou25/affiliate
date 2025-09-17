@@ -133,7 +133,7 @@ export default function Products() {
   }
 
   return (
-    <div className="products-container">
+    <div className="products-container edge-to-edge">
       <ProductsIntro />
       <br />
       <h2>Products' List</h2>
@@ -153,7 +153,7 @@ export default function Products() {
                 loading="lazy"
               />
 
-              <div className="col-12 col-sm-9 col-md-8 col-lg-7 ps">
+              <div className="col-12 col-sm-12 col-md-8 col-lg-7">
                 <h4 className="affiliate-product-title">{product.name}</h4>
                 {(product.shortDescription || product.description) && (
                   <div
@@ -165,8 +165,8 @@ export default function Products() {
                     }}
                   />
                 )}
-                <br />
-                <span>${product.price}</span>
+
+                <span>{product.price === 0 ? "N/A" : `$${product.price}`}</span>
                 {productsLinks?.some(
                   (p) => p.productTitle === product.name
                 ) && (
