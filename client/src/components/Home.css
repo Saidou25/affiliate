@@ -1,0 +1,156 @@
+
+.image-wrapper {
+  /* width: 85%; */
+  margin: auto;
+  position: relative;
+  height: 150vh;
+}
+
+.floating-image {
+  position: absolute;
+  width: 30%;
+  transition: transform 0.3s ease-out;
+}
+
+.right-img-top {
+  right: 5%;
+  top: 8%;
+}
+
+.center-img {
+  left: 15%;
+  top: 35%;
+}
+
+.right-img-bottom {
+  right: 5%;
+  top: 65%;
+  margin-bottom: 5%;
+}
+
+/* Former .floating-text positions are reused here */
+.text-left-top {
+  left: 5%;
+  top: 10%;
+}
+
+.text-right-center {
+  right: 12%;
+  top: 45%;
+}
+
+.text-left-bottom {
+  left: 5%;
+  top: 70%;
+}
+
+.text-block {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 1rem;
+  /* border-radius: 10px; */
+  color: #000;
+  /* border: 1px solid rgb(128, 0, 0); */
+  text-align: center;
+}
+
+.fade-in-section {
+  width: 100%;
+  padding: 5rem 2rem;
+  text-align: center;
+  background-color: #111; /* matches bg-dark */
+  color: white;
+  opacity: 0;
+  transition: opacity 1s ease, transform 1s ease;
+  margin-top: -36vh;
+}
+
+.ready-tojoin {
+  color: white;
+  margin-bottom: 2%;
+}
+
+.turn {
+  font-size: 20px;
+  color: rgb(155, 149, 149);
+}
+
+.link-home {
+  display: flex;
+  justify-content: center;
+  margin-top: 2%;
+  gap: 2px;
+}
+.register-link {
+  background-color: rgb(72, 137, 223);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  background-color: rgb(13, 83, 175);
+}
+.login-link {
+  background-color: rgb(72, 137, 223);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 210px;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  width: 210px;
+  background-color: rgb(13, 83, 175);
+}
+
+.home-log {
+  display: flex;
+  justify-content: center;
+  margin-top: 3%;
+}
+.logout-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  padding: 1rem 2rem;
+  margin: 1rem auto;
+  width: fit-content;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+
+/* Enable 3D perspective for children */
+.image-wrapper {
+  perspective: 1000px; /* 800–1200px looks good; tune to taste */
+}
+
+/* Apply the tilt to the <img>, not the container */
+/* .floating-image img {
+  transform: rotateX(10deg) rotateY(-8deg);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: transform 400ms ease; 
+  will-change: transform;
+} */
+
+/* Optional: per-image tweaks */
+/* .right-img-top img {
+  transform: rotateX(28deg) rotateY(12deg) rotateZ(0deg);
+ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+.center-img img {
+  transform: rotateX(12deg) rotateY(4deg) rotateZ(-6deg);
+}
+.right-img-bottom img {
+  transform: rotateX(-6deg) rotateY(10deg) rotateZ(-6deg);
+} */
+

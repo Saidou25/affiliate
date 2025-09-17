@@ -101,7 +101,7 @@ export default function ReusableTable({
     "transferId",
     "refId",
     "commission",
-    "actionOrStatus",
+    // "actionOrStatus",
   ];
 
   const resolvedFields: FieldConfig[] = useMemo(() => {
@@ -134,7 +134,12 @@ export default function ReusableTable({
       return true;
     });
 
-    return dedup.filter((f) => (isAdmin ? true : f.key !== "enrolled"));
+    return dedup.filter((f) =>
+      isAdmin
+        ? true
+        : f.key !== "enrolled" &&
+          f.key !== "actionOrStatus"
+    );
   }, [fields, isAdmin]);
 
   // Hooks reused from original component
@@ -434,5 +439,5 @@ export const AffiliateDefaultFields: FieldKey[] = [
   "transferId",
   "refId",
   "commission",
-  "actionOrStatus",
+  // "actionOrStatus",
 ];

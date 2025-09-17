@@ -1,0 +1,284 @@
+
+├── STRUCTURE.txt
+├── client
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon..ico
+│   │   └── logo.svg
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── apolloClient.ts
+│   │   ├── assets
+│   │   ├── components
+│   │   ├── data
+│   │   ├── hooks
+│   │   ├── html2pdf.d.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   ├── types.ts
+│   │   ├── utils
+│   │   └── vite-env.d.ts
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── package-lock.json
+├── package.json
+├── pg-affiliate-woo-bridge
+│   └── pg-affiliate-woo-bridge.php
+└── server
+    ├── bcrypt-test.ts
+    ├── downloaded-report.pdf
+    ├── downloads
+    ├── login-page.png
+    ├── package-lock.json
+    ├── package.json
+    ├── panel-view.png
+    ├── scripts
+    │   └── seed.ts
+    ├── src
+    │   ├── config
+    │   ├── context.js
+    │   ├── context.ts
+    │   ├── cron
+    │   ├── database.js
+    │   ├── database.ts
+    │   ├── dateScalar.ts
+    │   ├── graphql
+    │   ├── index.js
+    │   ├── index.ts
+    │   ├── jobs
+    │   ├── models
+    │   ├── routes
+    │   ├── scripts
+    │   ├── services
+    │   ├── shared
+    │   └── utils
+    ├── testAffiliateSale.ts
+    └── tsconfig.json
+
+25 directories, 38 files
+client
+├── README.md
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── public
+│   ├── favicon..ico
+│   └── logo.svg
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── apolloClient.ts
+│   ├── assets
+│   │   ├── favicon..ico
+│   │   └── images
+│   ├── components
+│   │   ├── AdminDashboard.css
+│   │   ├── AdminDashboard.tsx
+│   │   ├── AffiliateDashboard.css
+│   │   ├── AffiliateDashboard.tsx
+│   │   ├── AffiliateLookUpNav.css
+│   │   ├── AffiliateLookUpNav.tsx
+│   │   ├── AffiliatesList.tsx
+│   │   ├── AffiliatesLookUp.css
+│   │   ├── AffiliatesLookUp.tsx
+│   │   ├── AffiliatesSalesReport.tsx
+│   │   ├── Analytics.css
+│   │   ├── Analytics.tsx
+│   │   ├── BarChart.tsx
+│   │   ├── Button.css
+│   │   ├── Button.tsx
+│   │   ├── ConfirmCloseConnectionModal.css
+│   │   ├── ConfirmCloseConnectionModal.tsx
+│   │   ├── CopyToClipboard.tsx
+│   │   ├── Dashboard.css
+│   │   ├── DataCenter.tsx
+│   │   ├── DetailedReport.css
+│   │   ├── DetailedReport.tsx
+│   │   ├── DetailedReportView.tsx
+│   │   ├── EmailForm.tsx
+│   │   ├── Footer.css
+│   │   ├── Footer.tsx
+│   │   ├── Header.css
+│   │   ├── Header.tsx
+│   │   ├── Home.tsx
+│   │   ├── Login.css
+│   │   ├── Login.tsx
+│   │   ├── Logo.tsx
+│   │   ├── LogoutConfirmation.css
+│   │   ├── LogoutConfirmation.tsx
+│   │   ├── Navbar.css
+│   │   ├── Navbar.tsx
+│   │   ├── NotificationForm.css
+│   │   ├── NotificationForm.tsx
+│   │   ├── NotificationMenu.css
+│   │   ├── NotificationMenu.tsx
+│   │   ├── Orders.tsx
+│   │   ├── PDFReport.tsx
+│   │   ├── PaymentsReports.tsx
+│   │   ├── Products.css
+│   │   ├── Products.tsx
+│   │   ├── Profile.css
+│   │   ├── Profile.tsx
+│   │   ├── ProfileLookUp.css
+│   │   ├── ProfileLookUp.tsx
+│   │   ├── ProfileMenu.css
+│   │   ├── ProfileMenu.tsx
+│   │   ├── ReferralLink.css
+│   │   ├── RefferalLink.tsx
+│   │   ├── Register.tsx
+│   │   ├── RegisterForm.css
+│   │   ├── ReusableTable.css
+│   │   ├── ReusableTable.tsx
+│   │   ├── RowAction.css
+│   │   ├── RowAction.tsx
+│   │   ├── SalesAdapter.tsx
+│   │   ├── SalesTaxPolicy.css
+│   │   ├── SalesTaxPolicy.tsx
+│   │   ├── Settings.css
+│   │   ├── Settings.tsx
+│   │   ├── Spinner.css
+│   │   ├── Spinner.tsx
+│   │   ├── StatusChip.tsx
+│   │   ├── StripStatusCard.tsx
+│   │   ├── StripeChargesListTable.css
+│   │   ├── StripeChargesListTable.tsx
+│   │   ├── StripeReturn.tsx
+│   │   ├── StripeSetupBanner.css
+│   │   ├── StripeSetupBanner.tsx
+│   │   ├── TotalBar.tsx
+│   │   ├── TotalClicks.tsx
+│   │   ├── TotalCommissions.tsx
+│   │   ├── TotalSales.tsx
+│   │   ├── TriggerEmailButton.tsx
+│   │   ├── ViewAllNotifications.css
+│   │   ├── ViewAllNotifications.tsx
+│   │   ├── WooSyncCard.css
+│   │   └── WooSyncCard.tsx
+│   ├── data
+│   │   ├── navData.ts
+│   │   └── products.ts
+│   ├── hooks
+│   │   ├── useAddMonthCommissions.ts
+│   │   ├── useAddMonthSales.ts
+│   │   ├── useCheckOnboardingStatus.ts
+│   │   ├── useClicksTracker.ts
+│   │   ├── useCommissionTransfer.ts
+│   │   ├── useCommissionsTracker.ts
+│   │   ├── useFetchStripeStatusByRefId.ts
+│   │   ├── useGetOneAffiliate.ts
+│   │   ├── useOnBoardingNotifications.ts
+│   │   ├── useReferralCode.ts
+│   │   ├── useSalesReport.ts
+│   │   ├── useSalesTracker.ts
+│   │   ├── useSendEmail.ts
+│   │   └── useUpdateAffiliate.ts
+│   ├── html2pdf.d.ts
+│   ├── index.css
+│   ├── main.tsx
+│   ├── types.ts
+│   ├── utils
+│   │   ├── auth.ts
+│   │   ├── commission.ts
+│   │   ├── fetchStripStatusByRefId.ts
+│   │   ├── mutations.ts
+│   │   └── queries.ts
+│   └── vite-env.d.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+9 directories, 123 files
+server
+├── bcrypt-test.ts
+├── downloaded-report.pdf
+├── downloads
+├── login-page.png
+├── package-lock.json
+├── package.json
+├── panel-view.png
+├── scripts
+│   └── seed.ts
+├── src
+│   ├── config
+│   │   ├── connection.ts
+│   │   ├── env.js
+│   │   └── env.ts
+│   ├── context.js
+│   ├── context.ts
+│   ├── cron
+│   │   ├── generateMonthlyReportForAdmin.ts
+│   │   ├── generateMonthlyReportPDF.ts
+│   │   ├── generateReportHTML.ts
+│   │   ├── scheduler.ts
+│   │   └── testGeneratePDF.ts
+│   ├── database.js
+│   ├── database.ts
+│   ├── dateScalar.ts
+│   ├── graphql
+│   │   ├── index.js
+│   │   ├── index.ts
+│   │   ├── resolvers.js
+│   │   ├── resolvers.ts
+│   │   ├── typeDefs.js
+│   │   ├── typeDefs.ts
+│   │   ├── types.js
+│   │   └── types.ts
+│   ├── index.js
+│   ├── index.ts
+│   ├── jobs
+│   │   ├── reconcile.ts
+│   │   └── reconcileStripeTransfers.ts
+│   ├── models
+│   │   ├── Affiliate.js
+│   │   ├── Affiliate.ts
+│   │   ├── AffiliateProduct.ts
+│   │   ├── AffiliateSale.ts
+│   │   ├── ClickLog.ts
+│   │   ├── Payment.ts
+│   │   ├── Product.js
+│   │   ├── Product.ts
+│   │   ├── Referral.js
+│   │   ├── ReportHistory.ts
+│   │   ├── index.js
+│   │   └── index.ts
+│   ├── routes
+│   │   ├── clickPixel.ts
+│   │   ├── orders.ts
+│   │   ├── pdfRoutes.ts
+│   │   ├── stripe.ts
+│   │   └── stripeWebhook.ts
+│   ├── scripts
+│   │   ├── cleanCookies.ts
+│   │   ├── cookies.json
+│   │   ├── fetchOrders.ts
+│   │   ├── fixCommissionStatus.ts
+│   │   ├── hostingerOrders.ts
+│   │   ├── importStripeCharges.ts
+│   │   └── raw-cookies.json
+│   ├── services
+│   │   ├── hostingerApi.ts
+│   │   └── wooStoreSync.ts
+│   ├── shared
+│   │   ├── groupSalesBymonth.ts
+│   │   └── salesCalculations.ts
+│   └── utils
+│       ├── checkStripeAccount.ts
+│       ├── generatePDF.ts
+│       ├── sendConfirmationEmail.ts
+│       ├── sendEmailMessage.ts
+│       ├── sendTrackASaleConfEmail.ts
+│       ├── stripe.ts
+│       ├── stripeHelpers.ts
+│       └── stripeListFunctions.ts
+├── testAffiliateSale.ts
+└── tsconfig.json
+

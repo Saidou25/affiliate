@@ -13,16 +13,15 @@ export default function RefferalLink({ productUrl }: Props) {
   const me = meData?.me || [];
   const refId = me.refId;
   return (
-    <div>
+    <>
       <br />
       <strong className="product-link-title">Product link</strong>
-      <br />
       <div className="product-link">
-        <span>
-          {productUrl}/?refId={refId}
+        <span className="product-link__url">
+          {productUrl}?refId={refId}
         </span>
-        <CopyToClipboard productUrl={productUrl} refId={refId} />
+        <CopyToClipboard kind="product" productUrl={productUrl} refId={refId} />
       </div>
-    </div>
+    </>
   );
 }

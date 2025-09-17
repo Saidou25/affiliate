@@ -44,3 +44,15 @@
 .admin-product-titles {
   font-weight: 600;
 }
+
+/* --- description preview clamp --- */
+/* .product-desc {
+  margin-top: .5rem;
+  font-size: .9rem;
+  line-height: 1.35;
+  max-height: 6.5rem;
+  overflow: hidden;
+}
+.product-desc p { margin: 0 0 .5rem; }
+.product-desc img,
+.product-desc iframe { display: none !important; }  */

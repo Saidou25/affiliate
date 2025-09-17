@@ -1,23 +1,29 @@
 import { useState } from "react";
-import { FaRegClipboard, FaClipboardCheck } from "react-icons/fa"; // Example icons
+import { FaRegClipboard, FaClipboardCheck } from "react-icons/fa";
 
-type Props = {
-    productUrl: string;
-    refId: string;
-};
+type CopyProps =
+  | { kind: "product"; productUrl: string; refId: string }
+  | { kind: "image"; imageUrl: string };
 
-const CopyToClipboard = ({ productUrl, refId }: Props) => {
+const CopyToClipboard = (props: CopyProps) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(`${productUrl}/?refId=${refId}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+  async function handleCopy() {
+    let text = "";
+
+    if (props.kind === "product") {
+      const u = new URL(props.productUrl);
+      // Append or update ?refId=...
+      u.searchParams.set("refId", props.refId);
+      text = u.toString();
+    } else {
+      text = props.imageUrl;
     }
-  };
+
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
 
   return (
     <button

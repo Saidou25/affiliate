@@ -18,6 +18,9 @@ const AffiliateProductSchema = new Schema({
   active: { type: Boolean, default: true },
   createdAt: { type: Date, default: () => new Date() },
   modifiedAt: { type: Date, default: () => new Date() },
+  description: { type: String, default: null },
+  shortDescription: { type: String, default: null },
+  plainDescription: { type: String, default: null },
 });
 
 AffiliateProductSchema.index({ active: 1 });

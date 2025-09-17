@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
-// import LandingPageTitle from "./LandingPageTitle";
+import { useEffect, useState } from "react";
 import clicks from "../assets/images/affiliateclicks.jpg";
 import commissions from "../assets/images/affiliatecommissions.jpg";
 import sales from "../assets/images/affiliatesales.jpg";
-import { useEffect, useState } from "react";
 import AuthService from "../utils/auth";
 import Button from "./Button";
 
-import "./Header.css";
+import "./Home.css";
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -60,7 +59,7 @@ export default function Home() {
           style={{ marginTop: `${scrollY * -0.1}px` }}
         >
           <img
-            className="img-fluid"
+            className="img-fluid mg-thick"
             src={commissions}
             alt="commission bar chart"
           />

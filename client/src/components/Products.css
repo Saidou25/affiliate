@@ -1,25 +1,208 @@
+/* ===== existing styles (kept) ===== */
 .products-container {
-  padding: 2rem 1.25rem;
+  /* padding: 2rem 1.25rem; */
   margin: auto;
-
 }
 .product-li {
-  display: flex;
-  justify-content: space-between;
+  /* display: flex; */
+  align-items: center;
+  /* justify-content: space-between; */
+  /* gap: 12px; */
   height: auto;
-  padding: 0 0 2% 0;
+  /* padding: 0 0 2% 0; */
 }
 .image-fluid {
-  width: 100px;
-  height: 100px;
+  /* display: block; */
+  /* width: 100%;          */
+  /* aspect-ratio: 1 / 1;    */
+  /* object-fit: cover;     */
+  border-radius: 8px;
 }
 .ps {
   display: flex;
   flex-direction: column;
-  padding-left: 5%;
+  /* padding-left: 5%;
   padding-right: 5%;
-  width: 60%;
+  width: 60%; */
 }
 .affiliate-product-title {
   font-weight: 600;
+}
+.product-desc {
+  color: #4b5563; /* neutral-600 */
+  line-height: 1.4;
+}
+
+/* ===== Skeleton Loader ===== */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #f3f4f6; /* gray-100 */
+  border-radius: 8px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: skeleton-shimmer 1.2s infinite;
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Image placeholder to match .image-fluid footprint */
+.skeleton-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+}
+
+/* Text lines */
+.skeleton-line {
+  height: 14px;
+  margin: 8px 0;
+}
+.skeleton-line--lg {
+  width: 60%;
+  height: 18px;
+}
+.skeleton-line--sm {
+  width: 30%;
+}
+
+/* Button placeholder (roughly matches your Button size) */
+.skeleton-btn {
+  width: 90px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+/* Mobile-first: stack each product card vertically */
+.product-li {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  grid-template-areas:
+    "img info"
+    "btn btn";
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.image-fluid {
+  grid-area: img;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.ps {
+  grid-area: info;
+  padding: 0 8px;
+  width: auto;
+}
+.blue-btn {
+  grid-area: btn;
+  justify-self: stretch;
+}
+
+/* Small phones: image a bit smaller for cramped screens */
+@media (max-width: 420px) {
+  .product-li {
+    grid-template-columns: 84px 1fr;
+    flex-direction: column;
+    /* justify-content: center; */
+  }
+  .image-fluid {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* md+ (≥768px): return to your side-by-side layout */
+@media (min-width: 768px) {
+  .product-li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* gap: 12px; */
+    padding: 0 0 2% 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .ps {
+    padding-left: 5%;
+    padding-right: 5%;
+    width: 60%;
+  }
+  .blue-btn {
+    width: 90px;
+  }
+}
+
+/* For intro text */
+
+/* Slightly larger, readable intro paragraph without using .lead sitewide */
+.lead-intro {
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+/* Link-style toggle, but easier to tap */
+.intro-toggle {
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: none !important;
+  color: rgb(13, 83, 175) !important;
+  font-size: 1.05rem !important;
+}
+.intro-toggle:hover {
+  text-decoration: underline;
+}
+
+/* Show a clear focus indicator for both focus & focus-visible */
+.intro-toggle:focus,
+.intro-toggle:focus-visible {
+  outline: none !important; /* ignore Bootstrap reset */
+  box-shadow: 0 0 0 2px rgba(13, 83, 175, 0.45) !important;
+  border-radius: 6px;
+  padding: 5px !important; /* nice rounded focus ring */
+}
+
+/* Simple show/hide panel (no JS from Bootstrap required) */
+.intro-panel {
+  display: none;
+}
+.intro-panel.show {
+  display: block;
+}
+
+.use-image-directions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid rgb(131, 159, 208);
+  margin-top: 1%;
+  border-radius: 10px;
+  padding: 1%;
+}
+
+/* Optional: add a soft expand animation if motion is allowed */
+@media (prefers-reduced-motion: no-preference) {
+  .intro-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 240ms ease;
+  }
+  .intro-panel.show {
+    max-height: 1000px; /* big enough for the card content */
+  }
 }

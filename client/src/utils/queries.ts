@@ -249,6 +249,8 @@ export const AFFILIATE_PRODUCTS = gql`
       salePrice
       stockStatus
       hasOptions
+      description
+      shortDescription
     }
   }
 `;

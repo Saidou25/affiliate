@@ -22,6 +22,7 @@ export default function WooSyncCard({
   } = useQuery(AFFILIATE_PRODUCTS, {
     variables: { active: true }, // or rely on a schema default if you set one
   });
+  console.log(affiliateProductsData);
 
   const [refresh, { data, loading, error }] = useMutation(REFRESH_WOO_PRODUCTS);
 
@@ -105,6 +106,7 @@ export default function WooSyncCard({
           </div>
         )}
       </div>
+
       <div className="affiliate-products-container">
         {affiliateProductsDataLoading && <p>Loading data...</p>}
         {affiliateProductsDataError && (
@@ -124,19 +126,33 @@ export default function WooSyncCard({
                   />
                   <div className="ps">
                     <span>
-                      <strong className="admin-product-titles">woo id -</strong>
-                      &nbsp;{item.wooId}
-                    </span>
-                    <span>
                       <strong className="admin-product-titles">
                         product name -
                       </strong>
                       &nbsp;{item.name}
                     </span>
                     <span>
+                      <strong className="admin-product-titles">woo id -</strong>
+                      &nbsp;{item.wooId}
+                    </span>
+                    <span>
                       <strong className="admin-product-titles">price -</strong>
                       &nbsp;${item.price}
                     </span>
+                    <strong className="admin-product-titles">
+                      Description -
+                    </strong>
+                    {/* NEW: description preview */}
+                    {(item.shortDescription || item.description) && (
+                      <div
+                        className="product-desc"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            (item.shortDescription as unknown as string) ||
+                            (item.description as unknown as string),
+                        }}
+                      />
+                    )}
                   </div>
                 </li>
               ))}

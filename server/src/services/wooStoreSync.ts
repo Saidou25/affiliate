@@ -1,5 +1,9 @@
+// wooStoreSync.ts
 import fetch from "node-fetch";
 import AffiliateProduct from "../models/AffiliateProduct";
+
+const WOO_CK = process.env.WOO_CONSUMER_KEY;
+const WOO_CS = process.env.WOO_CONSUMER_SECRET;
 
 type StoreImage = { src: string };
 type StoreCategory = { slug: string };
@@ -40,21 +44,39 @@ function mapStoreProduct(p: StoreProduct) {
     permalink: p.permalink,
     price,
     currency,
-    onSale: salePrice != null && regularPrice != null && salePrice < regularPrice,
+    onSale:
+      salePrice != null && regularPrice != null && salePrice < regularPrice,
     regularPrice,
     salePrice,
     stockStatus: p.is_in_stock ? "in_stock" : "out_of_stock",
     primaryImage: p.images?.[0]?.src ?? null,
-    categorySlugs: (p.categories || []).map(c => c.slug).filter(Boolean),
+    categorySlugs: (p.categories || []).map((c) => c.slug).filter(Boolean),
     updatedAt: new Date(p.date_modified || Date.now()),
     hasOptions: p.type === "variable",
     active: true,
   };
 }
 
+// fetch description fields from WooCommerce REST API v3 (optional)
+async function fetchV3Descriptions(baseUrl: string, id: number) {
+  if (!WOO_CK || !WOO_CS) return null;
+  const url = new URL(`/wp-json/wc/v3/products/${id}`, baseUrl);
+  url.searchParams.set("consumer_key", WOO_CK);
+  url.searchParams.set("consumer_secret", WOO_CS);
+
+  const res = await fetch(url.toString(), { timeout: 20000 } as any);
+  if (!res.ok) return null;
+
+  const p = await res.json();
+  return {
+    description: p?.description || null,
+    shortDescription: p?.short_description || null,
+  };
+}
+
 export async function refreshWooProductsOnce(opts: {
-  baseUrl: string;       // e.g. https://yourshop.com
-  perPage?: number;      // default 100
+  baseUrl: string; // e.g. https://yourshop.com
+  perPage?: number; // default 100
   notes?: string[];
 }) {
   const notes: string[] = opts.notes ?? [];
@@ -84,6 +106,18 @@ export async function refreshWooProductsOnce(opts: {
 
     for (const pr of arr) {
       const doc = mapStoreProduct(pr);
+
+      // enrich with descriptions from Woo v3 if credentials are set
+      try {
+        const d = await fetchV3Descriptions(opts.baseUrl, pr.id);
+        if (d) {
+          (doc as any).description = d.description;
+          (doc as any).shortDescription = d.shortDescription;
+        }
+      } catch {
+        // ignore per-item description fetch errors
+      }
+
       seen.add(doc.wooId);
       totalFetched++;
 
@@ -106,8 +140,13 @@ export async function refreshWooProductsOnce(opts: {
           existing.primaryImage !== doc.primaryImage ||
           existing.hasOptions !== doc.hasOptions ||
           existing.active !== true ||
-          JSON.stringify(existing.categorySlugs) !== JSON.stringify(doc.categorySlugs) ||
-          existing.updatedAt.getTime() !== doc.updatedAt.getTime();
+          JSON.stringify(existing.categorySlugs) !==
+            JSON.stringify(doc.categorySlugs) ||
+          existing.updatedAt.getTime() !== doc.updatedAt.getTime() ||
+          (existing.description || null) !==
+            ((doc as any).description || null) ||
+          (existing.shortDescription || null) !==
+            ((doc as any).shortDescription || null);
 
         if (changed) {
           existing.set({ ...doc, active: true });

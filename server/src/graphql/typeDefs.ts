@@ -14,10 +14,10 @@ const typeDefs = gql`
   }
 
   enum CommissionStatus {
-    unpaid       # default
-    processing   # transfer requested
-    paid         # transfer succeeded (money in connected acct)
-    reversed     # transfer reversed
+    unpaid # default
+    processing # transfer requested
+    paid # transfer succeeded (money in connected acct)
+    reversed # transfer reversed
     refunded
   }
 
@@ -91,9 +91,9 @@ const typeDefs = gql`
     refundStatus: RefundStatus
     refundAmount: Float
     refundId: String
-    refundAt: Date          # keep if you track "first/primary" refund moment
-    refundTotal: Float      # sum of all refund entries
-    refundedAt: Date        # time of last refund event
+    refundAt: Date # keep if you track "first/primary" refund moment
+    refundTotal: Float # sum of all refund entries
+    refundedAt: Date # time of last refund event
     refunds: [RefundEntry!]!
 
     # payout summary for the sale (optional but handy)
@@ -106,7 +106,7 @@ const typeDefs = gql`
 
   input RefundAffiliateSaleInput {
     saleId: ID!
-    amount: Float        # optional; if omitted => full remaining
+    amount: Float # optional; if omitted => full remaining
     reason: String
   }
 
@@ -125,7 +125,7 @@ const typeDefs = gql`
     paidCommission: Float
     productName: String
     date: Date!
-    method: String!            # consider a PaymentMethod enum later
+    method: String! # consider a PaymentMethod enum later
     transactionId: String
     notes: String
     currency: String
@@ -150,7 +150,7 @@ const typeDefs = gql`
 
     # Stripe sync (may be null until reconciled)
     status: PaymentStatus
-    transferId: String           # tr_...
+    transferId: String # tr_...
     balanceTransactionId: String
     payoutId: String
     payoutStatus: String
@@ -174,7 +174,7 @@ const typeDefs = gql`
     saleIds: [ID!]!
     saleAmount: Float
     notes: String
-    method: String!             # aligned with records
+    method: String! # aligned with records
     transactionId: String
   }
 
@@ -223,7 +223,7 @@ const typeDefs = gql`
   type StripeListPage {
     hasMore: Boolean!
     nextCursor: String
-    data: [JSON!]!   # raw Stripe objects (or define strong types later)
+    data: [JSON!]! # raw Stripe objects (or define strong types later)
   }
 
   input StripeListFilter {
@@ -271,8 +271,8 @@ const typeDefs = gql`
   }
 
   type AffiliateProduct {
-    id: ID!              # Mongo _id (string)
-    wooId: Int!          # Store API product id
+    id: ID! # Mongo _id (string)
+    wooId: Int! # Store API product id
     slug: String!
     name: String!
     permalink: String!
@@ -286,9 +286,12 @@ const typeDefs = gql`
     categorySlugs: [String!]!
     updatedAt: Date!
     hasOptions: Boolean! # true if Woo type = "variable"
-    active: Boolean!     # false if not seen in last sync
+    active: Boolean! # false if not seen in last sync
     createdAt: Date!
-    modifiedAt: Date!    # server-side last write
+    modifiedAt: Date! # server-side last write
+    description: String
+    shortDescription: String
+    plainDescription: String
   }
 
   type WooSyncSummary {

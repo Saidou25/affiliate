@@ -78,6 +78,8 @@ export type AffiliateProduct = {
   primaryImage?: string | null;
   price?: number | null;
   currency?: string | null;
+  description?: string;
+  shortDescription?: string;
 };
 // --- status helpers (optional but nice) ---
 export type CommissionStatus =
@@ -88,7 +90,7 @@ export type CommissionStatus =
   | "refunded";
 
 // --- existing types above unchanged ---
-  export interface AffiliateSale {
+export interface AffiliateSale {
   id: string;
   refId?: string | null;
 

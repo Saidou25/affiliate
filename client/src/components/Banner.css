@@ -1,0 +1,184 @@
+/* Prefix with pg- to avoid collisions */
+:root {
+  --pg-banner-radius: 12px;
+  --pg-banner-gap: 12px;
+  --pg-banner-pad-y: 12px;
+  --pg-banner-pad-x: 14px;
+
+  --pg-error-bg: #fef2f2;
+  --pg-error-br: #fecaca;
+  --pg-error-title: #991b1b;
+  --pg-error-text: #7f1d1d;
+
+  --pg-warning-bg: #fffbeb;
+  --pg-warning-br: #fde68a;
+  --pg-warning-title: #92400e;
+  --pg-warning-text: #713f12;
+
+  --pg-info-bg: #eff6ff;
+  --pg-info-br: #bfdbfe;
+  --pg-info-title: #1e3a8a;
+  --pg-info-text: #1e40af;
+
+  --pg-success-bg: #ecfdf5;
+  --pg-success-br: #a7f3d0;
+  --pg-success-title: #065f46;
+  --pg-success-text: #065f46;
+
+  --pg-btn-bg: #111827;
+  --pg-btn-text: #ffffff;
+  --pg-btn-br: #111827;
+}
+
+/* Mobile-first layout (stacks neatly on small screens) */
+.pg-banner {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  grid-template-areas:
+    "icon title action close"
+    ". message action close";
+  align-items: start;
+  gap: var(--pg-banner-gap);
+  padding: var(--pg-banner-pad-y) var(--pg-banner-pad-x);
+  border-radius: var(--pg-banner-radius);
+  border: 1px solid;
+}
+
+.pg-banner--compact {
+  --pg-banner-pad-y: 8px;
+  --pg-banner-pad-x: 10px;
+  --pg-banner-gap: 10px;
+  --pg-banner-radius: 10px;
+}
+
+.pg-banner--error {
+  background: var(--pg-error-bg);
+  border-color: var(--pg-error-br);
+}
+.pg-banner--warning {
+  background: var(--pg-warning-bg);
+  border-color: var(--pg-warning-br);
+}
+.pg-banner--info {
+  background: var(--pg-info-bg);
+  border-color: var(--pg-info-br);
+}
+.pg-banner--success {
+  background: var(--pg-success-bg);
+  border-color: var(--pg-success-br);
+}
+
+.pg-banner__icon {
+  grid-area: icon;
+  font-size: 20px;
+  line-height: 1;
+  margin-top: 2px;
+}
+.pg-banner__content {
+  grid-area: title / title / message / message;
+  min-width: 0;
+}
+.pg-banner__title {
+  display: block;
+  margin-bottom: 4px;
+}
+.pg-banner__message {
+  word-break: break-word;
+}
+
+.pg-banner--error .pg-banner__title {
+  color: var(--pg-error-title);
+}
+.pg-banner--warning .pg-banner__title {
+  color: var(--pg-warning-title);
+}
+.pg-banner--info .pg-banner__title {
+  color: var(--pg-info-title);
+}
+.pg-banner--success .pg-banner__title {
+  color: var(--pg-success-title);
+}
+
+.pg-banner--error .pg-banner__message {
+  color: var(--pg-error-text);
+}
+.pg-banner--warning .pg-banner__message {
+  color: var(--pg-warning-text);
+}
+.pg-banner--info .pg-banner__message {
+  color: var(--pg-info-text);
+}
+.pg-banner--success .pg-banner__message {
+  color: var(--pg-success-text);
+}
+
+/* Actions align right on desktop, full-width on small screens (Bootstrap-like) */
+.pg-banner__action {
+  grid-area: action;
+  appearance: none;
+  border: 1px solid var(--pg-btn-br);
+  background: var(--pg-btn-bg);
+  color: var(--pg-btn-text);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.06s ease, opacity 0.2s ease;
+  justify-self: end;
+}
+.pg-banner__action:hover {
+  opacity: 0.92;
+}
+.pg-banner__action:active {
+  transform: translateY(1px);
+}
+
+/* Dismiss button becomes an icon-like button, stays clickable on mobile */
+.pg-banner__close {
+  grid-area: close;
+  appearance: none;
+  font-size: 18px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 2px 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  justify-self: end;
+}
+.pg-banner__close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.pg-banner__close:active {
+  transform: translateY(1px);
+}
+
+/* --- Responsive tweaks aligned with Bootstrap breakpoints --- */
+/* xs → sm (<576px): show close in the top-right */
+@media (max-width: 575.98px) {
+  .pg-banner {
+    grid-template-columns: auto 1fr auto; /* icon | text | close */
+    grid-template-areas:
+      "icon title close" /* top row */
+      ". message ." /* message under title */
+      "action action action"; /* full-width action */
+  }
+
+  .pg-banner__action {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .pg-banner__close {
+    justify-self: end;
+    align-self: start; /* stick to the top */
+  }
+}
+
+/* md+ (≥768px): tighten layout slightly, keep actions inline */
+@media (min-width: 768px) {
+  .pg-banner {
+    align-items: center;
+  }
+}
