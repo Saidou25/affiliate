@@ -1,77 +1,130 @@
+/* =========================================
+   Navbar.css — audited & simplified (final)
+   Notes:
+   - One fixed top bar (.top-nav-div)
+   - One fixed secondary nav (.navbar)
+   - The container is a spacer in normal flow (not fixed)
+   - Scroll color is driven by --nav-overlay (0→1 set in JS)
+========================================= */
+
+:root {
+  /* Control heights in one place */
+  --top-nav-h: 56px;          /* height of the top bar with logo + icons */
+  --sub-nav-pad-y: 12px;      /* vertical padding for the secondary nav */
+
+  /* Scroll-driven overlay (set in JS): 0 → 1 */
+  --nav-overlay: 0;
+  --nav-overlay-color: #a3e4c3; /* brand tint over bg-dark */
+}
+
+/* ===== Top fixed bar: logo + profile/notifications + logout ===== */
 .top-nav-div {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: white;
+
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;                /* above navbar & header */
+  background-color: #fff;
+
+  height: var(--top-nav-h);    /* fixed height avoids fractional layout */
 }
 
+/* Right side of top bar (profile, notifications, logout) */
 .top-navbar {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-right: 2%;
-}
-.logo-nav {
-  margin-left: 1%;
-  width: 3%;
-  height: 3%;
-  padding-top: 1%;
-  padding-bottom: 1%;
+  padding-right: 2%;           /* fine to keep % horizontally */
+  z-index: 200;
 }
 
-.profile-nav {
-  display: flex;
-  align-items: center;
-  width: 80%;
-  justify-content: center;
+/* Logo link: fixed pixel rhythm (avoid % height/padding) */
+.logo-nav {
+  margin-left: 8px;                         /* replaces 1% for consistency */
+  height: calc(var(--top-nav-h) - 3px);     /* leaves ~3px breathing room */
+  width: auto;                              
+  padding: 8px 0;
 }
-.person-nav {
-  font-size: 32px;
-}
-.profile-div svg {
-  width: 100%;
-  height: auto;
-  max-width: 150px;
-}
-.log-out-nav {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
+.logo-nav .img-fluid { height: 100%; width: auto; }
+
+/* (Unused selectors trimmed) */
+.person-nav { font-size: 32px; }
+
+/* Logout icon sizing */
 .iomdlogout-nav {
-  padding-left: 7px;
-  height: 35px;
-  width: 35px;
-  color: black !important;
+  margin-left: 8px;
+  height: 35px; width: 35px;
+  color: black;
 }
+
+/* ===== Secondary nav container (SPACER ONLY, not fixed) =====
+   Keeps page content from jumping under the fixed navbar.
+*/
 .navigation-bar-container {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  /* padding: 0; */
-  padding-right: 2%;
-  position: sticky;
-  top: 70px;
-  z-index: 90;
+  position: relative;          /* not fixed */
+  width: 100%;
+
+  /* Reserve vertical space equal to the fixed navbar’s height */
+  --nav-h: calc(var(--sub-nav-pad-y) * 2 + 40px); /* ~40px link row; tweak if needed */
+  height: var(--nav-h);
 }
+
+/* ===== Secondary fixed nav with links ===== */
 .navbar {
-   height: 5%;
+  position: fixed !important;  /* stays fixed below top bar */
+  left: 0; right: 0;
+  top: var(--top-nav-h);
+  z-index: 150;                /* under top bar, above header */
+
   display: flex;
-  justify-content: flex-end !important;
+  justify-content: flex-end !important; /* links at the end (right) */
   gap: 20px;
-  /* position: fixed; */
+
+  box-sizing: border-box;
+  padding: var(--sub-nav-pad-y) 24px;
+  isolation: isolate;          /* creates stacking context for ::before */
+
+  /* Base stays exactly Bootstrap bg-dark */
+  background-color: rgba(var(--bs-dark-rgb, 33, 37, 41), 1);
+
+  padding-left: 24px !important;
+  padding-right: 24px !important;
 }
+
+/* Overlay that appears with scroll (no time animation) */
+.navbar::before {
+  content: "";
+  position: absolute;          /* relative to .navbar */
+  inset: 0;
+  pointer-events: none;        /* ensure links remain clickable */
+  z-index: 0;                  /* behind link text */
+
+  background: var(--nav-overlay-color);
+  opacity: var(--nav-overlay); /* 0 at top → 1 as you scroll */
+}
+
+/* Links above overlay */
 .navbar a {
+  position: relative;          /* ensures above ::before */
+  z-index: 1;
+
   text-decoration: none;
-  color: white;
+  color: #fff;
   font-weight: bold;
-  border-bottom: 2px solid transparent; /* fixes jump */
+  border-bottom: 2px solid transparent; /* prevents jump on activation */
+  padding: 4px 6px;                      /* nicer tap targets */
 }
 .navbar a.active {
   color: rgb(72, 137, 223);
   border-bottom: 2px solid rgb(80, 130, 229);
 }
+
+/* ===== Responsive — Navbar-specific only ===== */
+@media screen and (max-width: 570px) {
+  .navbar { justify-content: center !important; }
+}
+
+/* (Header-related styles live in Header.css) */

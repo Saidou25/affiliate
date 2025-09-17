@@ -14,6 +14,7 @@ import "./Navbar.css";
 export default function Navbar() {
   const [links, setLinks] = useState<string[]>([]);
   const [group, setGroup] = useState("");
+  const [navAlpha, setNavAlpha] = useState(0);
 
   const isLoggedIn = AuthService.loggedIn();
 
@@ -33,8 +34,30 @@ export default function Navbar() {
     }
   }, [me]);
 
+useEffect(() => {
+  let ticking = false;
+  const max = 240;
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const t = Math.min(1, Math.max(0, window.scrollY / max));
+      setNavAlpha(t);
+      // NEW: update global CSS var for everyone
+      document.documentElement.style.setProperty("--nav-overlay", String(t));
+      ticking = false;
+    });
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  return () => window.removeEventListener("scroll", onScroll);
+}, []);
+
+
   return (
-    <div className="navigation-height">
+    <div className="">
       {isLoggedIn && (
         <>
           <div className="top-nav-div">
@@ -59,18 +82,16 @@ export default function Navbar() {
             </div>
           </div>
 
-          <div className="navigation-bar-container bg-dark">
-            <nav className="navbar">
-              {links &&
-                links.map((link, index) => (
-                  <NavLink
-                    key={index}
-                    to={`/${group}/${link.toLowerCase()}`}
-                    // className={({ isActive }) => (isActive ? "active" : "")}
-                  >
-                    {link}
-                  </NavLink>
-                ))}
+          <div className="navigation-bar-container">
+            <nav
+              className="navbar"
+               style={{ ["--nav-overlay" as any]: navAlpha }} 
+            >
+              {links?.map((link, index) => (
+                <NavLink key={index} to={`/${group}/${link.toLowerCase()}`}>
+                  {link}
+                </NavLink>
+              ))}
             </nav>
           </div>
         </>

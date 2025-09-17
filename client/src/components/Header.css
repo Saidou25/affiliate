@@ -1,18 +1,52 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&family=Montserrat:wght@400;600&display=swap");
 
-.header-container {
+.header-container.bg-dark {
   /* margin: 0; */
-  height: 320px;
-  padding-top: 3%;
+  height: 360px;
+  padding-top: 100px;
   text-align: center;
   margin: auto;
+  background-color: rgba(17, 17, 17, var(--nav-alpha, 0));
+  position: relative;
+  z-index: 0;
+  /* isolation: isolate;  */
+  background-color: rgba(
+    var(--bs-dark-rgb, 33, 37, 41),
+    1
+  ); /* Bootstrap v5 bg-dark */
 }
-.header-not-loggedIn {
+.header-not-loggedIn.bg-dark {
   height: 380px;
   margin: auto;
   padding-top: 5%;
   text-align: center;
+  background-color: rgba(17, 17, 17, var(--nav-alpha, 0));
+  position: relative;
+  isolation: isolate; /* creates a new stacking context */
+  background-color: rgba(
+    var(--bs-dark-rgb, 33, 37, 41),
+    1
+  ); /* Bootstrap v5 bg-dark */
 }
+/* Shared overlay that follows scroll — same color & opacity as navbar */
+/* Background layer (BEHIND content) that tints with scroll */
+.header-container.bg-dark::before,
+.header-not-loggedIn.bg-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* behind text */
+  pointer-events: none;
+  background: var(--nav-overlay-color, #80deb1);
+  opacity: var(--nav-overlay, 0); /* 0 at top → 1 as you scroll */
+}
+/* Ensure header content sits above the background layer */
+.header-container.bg-dark > *,
+.header-not-loggedIn.bg-dark > * {
+  position: relative;
+  z-index: 1;
+}
+
 .text-spans {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
@@ -36,4 +70,72 @@
   text-align: center;
   font-size: 1.25rem;
   color: rgb(215, 207, 207);
+}
+
+@media screen and (max-width: 768px) {
+  .text-spans {
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 4rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .header-container {
+    /* margin: 0; */
+    height: 280px !important;
+    padding-top: 80px !important;
+    text-align: center;
+    margin: auto;
+  }
+  .header-not-loggedIn {
+    height: 280px;
+    margin: auto;
+    padding-top: 5%;
+    text-align: center;
+  }
+}
+@media screen and (max-width: 570px) {
+  .text-spans {
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+  }
+  .header-container {
+    /* margin: 0; */
+    height: 250px !important;
+    padding-top: 80px !important;
+    text-align: center;
+    /* margin: auto; */
+  }
+  .header-not-loggedIn {
+    height: 280px;
+    /* margin: auto; */
+    padding-top: 5%;
+    text-align: center;
+  }
+}
+@media screen and (max-width: 440px) {
+  .text-spans {
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+  }
+  .header-container {
+    /* margin: 0; */
+    height: 200px !important;
+    padding-top: 80px !important;
+    text-align: center;
+    /* margin: auto; */
+  }
+  .header-not-loggedIn {
+    height: 280px;
+    /* margin: auto; */
+    padding-top: 5%;
+    text-align: center;
+  }
 }
