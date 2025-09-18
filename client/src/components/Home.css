@@ -114,8 +114,16 @@
 .home-log {
   display: flex;
   justify-content: center;
-  margin-top: 3%;
+  width: 60%;
+  margin: auto;
+  padding: 4% 15% 0 15%;
 }
+
+.pgp-logo {
+  max-width: 50%;
+  height: auto;
+}
+
 .logout-message {
   background-color: #f8d7da;
   color: #721c24;
@@ -127,30 +135,8 @@
   font-weight: 500;
 }
 
-
 /* Enable 3D perspective for children */
 .image-wrapper {
   perspective: 1000px; /* 800–1200px looks good; tune to taste */
 }
-
-/* Apply the tilt to the <img>, not the container */
-/* .floating-image img {
-  transform: rotateX(10deg) rotateY(-8deg);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  transition: transform 400ms ease; 
-  will-change: transform;
-} */
-
-/* Optional: per-image tweaks */
-/* .right-img-top img {
-  transform: rotateX(28deg) rotateY(12deg) rotateZ(0deg);
- box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-.center-img img {
-  transform: rotateX(12deg) rotateY(4deg) rotateZ(-6deg);
-}
-.right-img-bottom img {
-  transform: rotateX(-6deg) rotateY(10deg) rotateZ(-6deg);
-} */
 

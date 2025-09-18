@@ -6,9 +6,9 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Notification } from "../types";
 
-import "./ViewAllNotifications.css";
+import "./NotificationsList.css";
 
-export default function ViewAllNotifications() {
+export default function NotificationsList() {
   const location = useLocation();
   const openedFromMenu = location.state?.openedFromMenu;
 

@@ -1,0 +1,147 @@
+/* SettingsLeftBar.css */
+
+/* Sidebar wrapper: fill the Bootstrap col instead of forcing fixed width */
+.leftbar-settings {
+  width: 100%; /* was 260px */
+  min-width: 0; /* was 220px */
+  background: transparent; /* avoid looking like it's inside a white card */
+  border-right: none; /* the separator is now on .settings-sidebar-col */
+}
+
+/* Inner panel keeps the card look + sticky behavior */
+.leftbar-settings__inner {
+  position: sticky;
+  top: 16px; /* a bit of breathing room below top header */
+  /* height: calc(100dvh - 32px); */
+  padding: 20px 12px;
+  overflow: auto;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  /* box-shadow: 0 8px 20px rgba(2, 6, 23, 0.05); */
+}
+
+.leftbar-settings__title {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 6px 8px 14px;
+}
+
+.leftbar-settings__nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.leftbar-settings__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #111827;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    transform 0.06s ease;
+}
+
+.leftbar-settings__item:hover {
+  background: #f3f4f6;
+}
+.leftbar-settings__item:active {
+  transform: scale(0.995);
+}
+
+.leftbar-settings__item.is-active {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}
+
+.leftbar-settings__icon {
+  font-size: 18px;
+  flex: 0 0 18px;
+}
+.leftbar-settings__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* .leftbar-settings__footer {
+  margin-top: 18px;
+  padding: 12px;
+  font-size: 12px;
+  color: #6b7280;
+  border-top: 1px dashed #e5e7eb;
+} */
+/* Mobile: single-row, horizontal scroll for settings links */
+@media (max-width: 767.98px) {
+  .leftbar-settings__inner {
+    position: static;
+    height: auto;
+    max-height: none;
+    padding: 10px 0;           /* tighter top/bottom so the strip feels compact */
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .leftbar-settings__nav ul {
+    display: flex;
+    flex-wrap: nowrap;         /* stay in one line */
+    gap: 8px;
+    margin: 0;
+    padding: 0 12px 6px 12px;  /* a little side padding */
+    overflow-x: auto;          /* enable horizontal scroll */
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch; /* smooth iOS scroll */
+    scrollbar-width: thin;     /* Firefox */
+  }
+
+  /* Optional: nicer webkit scrollbar */
+  .leftbar-settings__nav ul::-webkit-scrollbar {
+    height: 6px;
+  }
+  .leftbar-settings__nav ul::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 9999px;
+  }
+
+  /* Each item behaves like a pill and does not shrink */
+  .leftbar-settings__item {
+    flex: 0 0 auto;            /* critical: keep items inline, no shrink */
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  .leftbar-settings__item.is-active {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #3730a3;
+  }
+
+  /* Optional: hide icons for a cleaner chip look on small screens */
+  .leftbar-settings__icon {
+    display: none;
+  }
+}
+
+
+/* Offcanvas variant support you already had can stay as-is */
+.offcanvas .leftbar-settings__inner {
+  padding: 12px 8px;
+}

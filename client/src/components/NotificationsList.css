@@ -1,6 +1,6 @@
 .notifications-page {
   padding: 2rem;
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -27,4 +27,10 @@
 
 .notification-text {
   font-size: 0.95rem;
+}
+
+@media screen and (max-width: 750px) {
+  .notifications-page {
+    padding: 0;
+  }
 }

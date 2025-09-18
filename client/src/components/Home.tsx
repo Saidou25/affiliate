@@ -150,7 +150,7 @@ export default function Home() {
         </div>
       </div>
       <div className="home-log">
-        <img
+        <img className="img-fluid pgp-logo"
           src="https://assets.zyrosite.com/mP47Mwo0WQhVBkl5/pgp-logo-favicon-2025-mnlvrQoloKTvJvO7.png"
           alt="Pg logo"
         />

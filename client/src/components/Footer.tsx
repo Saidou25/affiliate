@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
+import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 import "./Footer.css";
 
@@ -22,15 +22,15 @@ export default function Footer() {
     { label: "Twitter", href: "https://twitter.com", icon: FaTwitter },
     { label: "Instagram", href: "https://instagram.com", icon: FaInstagram },
     { label: "LinkedIn", href: "https://linkedin.com", icon: FaLinkedin },
-    { label: "YouTube", href: "https://youtube.com", icon: FaYoutube },
+    // { label: "YouTube", href: "https://youtube.com", icon: FaYoutube },
   ];
 
   return (
     <footer className="footer-container bg-dark text-white">
-      <div className="container">
-        <div className="row">
+      <div className="">
+        <div className="row footer-row g-0">
           {/* Column 1 */}
-          <div className="col-md-4">
+          <div className="col-12 col-sm-4 col-md-4  col-lg-4">
             <h5 className="footer-h5">Company</h5>
             <ul className="list-unstyled">
               {footerLinks1.map((link) => (
@@ -44,7 +44,7 @@ export default function Footer() {
           </div>
 
           {/* Column 2 */}
-          <div className="col-md-4">
+          <div className="col-12 col-sm-4 col-md-4 col-lg-4">
             <h5 className="footer-h5">Resources</h5>
             <ul className="list-unstyled">
               {footerLinks2.map((link) => (
@@ -58,7 +58,7 @@ export default function Footer() {
           </div>
 
           {/* Column 3 */}
-          <div className="col-md-4">
+          <div className="col-12 col-sm-4 col-md-4 col-lg-4">
             <h5 className="footer-h5">Follow Us</h5>
             <ul className="list-inline">
               {socialLinks.map(({ label, href, icon: Icon }) => (
@@ -78,10 +78,10 @@ export default function Footer() {
           </div>
         </div>
 
+      </div>
         <div className="text-center mt-3">
           <small>&copy; {new Date().getFullYear()} Princetongreen, llc. All rights reserved.</small>
         </div>
-      </div>
     </footer>
   );
 }

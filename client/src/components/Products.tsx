@@ -103,12 +103,12 @@ export default function Products() {
               <hr className="my-3" />
 
               <div className="small text-muted">
-                <strong>Tips:</strong> Don’t edit or remove{" "}
-                <code>?refId=…</code>. If you shorten the URL, ensure the query
-                string is preserved. Want analytics? Append UTM tags after your
-                refId (e.g.,
-                <code>&amp;utm_source=youtube</code>). Always follow disclosure
-                rules (e.g., “#ad”).
+                <strong>Note:</strong> Don’t edit or remove{" "}
+                <code>?refId=…</code>.This little “refId” is your personal
+                affiliate ID. It tells our system that a visitor came from
+                **your** link so we can track clicks, sales, and pay you the
+                correct commission. If you delete or change it, we can’t credit
+                you for the traffic or purchases you send.
               </div>
             </div>
           </div>
@@ -186,7 +186,7 @@ export default function Products() {
 
               {productsLinks.some((p) => p.productTitle === product.name) ? (
                 <Button
-                  className="col-12 col-md-12 col-lg-2 col-xl-1 blue-btn"
+                  className="col-12 col-md-12 col-lg-2 col-xl-1 orange-btn"
                   onClick={() => removeUrl(product.name)}
                 >
                   Unselect

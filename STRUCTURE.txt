@@ -158,8 +158,8 @@ client
 │   │   ├── TotalCommissions.tsx
 │   │   ├── TotalSales.tsx
 │   │   ├── TriggerEmailButton.tsx
-│   │   ├── ViewAllNotifications.css
-│   │   ├── ViewAllNotifications.tsx
+│   │   ├── NotificationsList.css
+│   │   ├── NotificationsList.tsx
 │   │   ├── WooSyncCard.css
 │   │   └── WooSyncCard.tsx
 │   ├── data

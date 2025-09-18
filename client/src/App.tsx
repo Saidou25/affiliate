@@ -16,12 +16,13 @@ import AffiliatesLookUp from "./components/AffiliatesLookUp";
 import AffiliatesList from "./components/AffiliatesList";
 import AdminDashboard from "./components/AdminDashboard";
 import StripeReturn from "./components/StripeReturn";
-import ViewAllNotifications from "./components/ViewAllNotifications";
+import NotificationsList from "./components/NotificationsList";
 import Settings from "./components/Settings";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import WooSyncCard from "./components/WooSyncCard";
 import StripeChargesTable from "./components/StripeChargesListTable";
+import ProfileEdit from "./components/ProfileEdit";
 
 import "bootswatch/dist/lux/bootstrap.min.css";
 
@@ -71,11 +72,12 @@ function App() {
         </Route>
 
         <Route path="/affiliate" element={<AffiliateDashboard />}>
-          <Route path="notifications" element={<ViewAllNotifications />} />
+          <Route path="notifications" element={<NotificationsList />} />
           <Route path="products" element={<Products />} />
           <Route path="reports" element={<DetailedReport refId={refId} />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="profile-edit" element={<ProfileEdit />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

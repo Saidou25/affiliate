@@ -27,8 +27,8 @@ export default function Button({
       onClick={onClick}
       style={style}
       disabled={disabled}
-      type={type ?? "button"}   // (nice-to-have) default to "button"
-      title={title}             // ✅ forward title so hover tooltip shows
+      type={type ?? "button"} // (nice-to-have) default to "button"
+      title={title} // ✅ forward title so hover tooltip shows
     >
       {children}
     </button>

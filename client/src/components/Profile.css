@@ -1,20 +1,30 @@
 .modern-profile-card {
-  max-width: 480px;
+  /* max-width: 480px; */
   margin: 50px auto;
   background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  /* border-radius: 16px; */
+  /* box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); */
   padding: 32px;
-  text-align: center;
   font-family: "Segoe UI", sans-serif;
   transition: all 0.3s ease;
+}
+
+.settings-avatar {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
 }
 
 .avatar-section {
   margin-bottom: 24px;
   position: relative;
-}
+  text-align: center;
 
+}
 .avatar-img {
   width: 120px;
   height: 120px;
@@ -25,6 +35,15 @@
 
 .hidden-input {
   display: none;
+}
+
+.row-profile-settings {
+display: flex;
+align-items: center;
+}
+
+.profile-row {
+justify-content: space-between;
 }
 
 .profile-info {
@@ -50,16 +69,18 @@
 
 .input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 8px 10px !important;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
+  height: 40px !important;
 }
 
 .btn-row {
   margin-top: 5%;
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
 }
 
