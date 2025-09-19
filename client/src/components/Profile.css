@@ -1,9 +1,6 @@
 .modern-profile-card {
-  /* max-width: 480px; */
   margin: 50px auto;
   background-color: #ffffff;
-  /* border-radius: 16px; */
-  /* box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); */
   padding: 32px;
   font-family: "Segoe UI", sans-serif;
   transition: all 0.3s ease;
@@ -14,23 +11,22 @@
   justify-content: center;
 }
 
-.avatar-row {
-  display: flex;
+/* .avatar-row {
   align-items: center;
-}
+} */
 
 .avatar-section {
   margin-bottom: 24px;
   position: relative;
   text-align: center;
-
 }
+
 .avatar-img {
-  width: 120px;
-  height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid #e0e0e0;
+  width: clamp(84px, 12vw, 120px);
+  height: clamp(84px, 12vw, 120px);
 }
 
 .hidden-input {
@@ -38,12 +34,8 @@
 }
 
 .row-profile-settings {
-display: flex;
-align-items: center;
-}
-
-.profile-row {
-justify-content: space-between;
+  align-items: center;
+  justify-content: space-between !important;
 }
 
 .profile-info {
@@ -69,53 +61,106 @@ justify-content: space-between;
 
 .input {
   width: 100%;
-  padding: 8px 10px !important;
+  padding: 8px 10px !important; /* ❌ Prefer avoiding !important; increase selector specificity instead. */
   font-size: 16px;
   border: 1px solid #ccc;
+  color: gray;
   border-radius: 8px;
   box-sizing: border-box;
-  height: 40px !important;
+  margin-bottom: 2rem;
+  height: 40px !important; /* ❌ Consider min-height + line-height to avoid !important. */
 }
 
-.btn-row {
-  margin-top: 5%;
+.row-edit-cancel {
+  justify-content: space-between;
+}
+/* .avatar-btn-row {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+} */
+
+.btn-row {
+  display: flex;
+  justify-content: flex-end;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+/* simple inline error styling for update errors */
+.error-text {
+  color: #b91c1c;
+  font-size: 0.95rem;
 }
 
-.edit-btn {
-  background-color: #1e88e5;
-  color: white;
+.input.is-invalid {
+  border-color: #dc2626;
+  outline: none;
 }
 
-.edit-btn:hover {
-  background-color: #1565c0;
+.invalid-feedback {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin-top: 4px;
 }
 
-.save-btn {
-  background-color: #4caf50;
-  color: white;
+.profile-label-underline {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
 }
 
-.save-btn:hover {
-  background-color: #388e3c;
+/* .avatar-column {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+} */
+
+/* @media screen and (max-width: 992px) {
+  .avatar-column {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  .avatar-img {
+    
+    margin-left: 6rem !important;
+    }
+  .input {
+    margin-bottom: 0;
+    margin-bottom: 1rem;
+    color: gray;
+  }
+  .avatar-btn-row {
+    gap: 10px;
+  }
+} */
+
+@media screen and (max-width: 576px) {
+  .input {
+    margin-bottom: 0;
+    margin-bottom: 1rem;
+    color: gray;
+  }
+
+  .row-edit-cancel {
+    margin-top: 1rem !important;
+  }
+
+  .btn-row {
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 1rem;
+    /* margin-top: 1rem !important; */
+  }
 }
 
-.cancel-btn {
-  background-color: #e0e0e0;
-  color: #333;
+.profile-icon {
+  font-size: 16px;
+  color: #6b7280; /* gray-500 */
+  vertical-align: middle;
 }
 
-.cancel-btn:hover {
-  background-color: #cfcfcf;
+.icon-column {
+  display: flex;
+  align-items: center !important;
+  gap: 8px; /* space between icon/label/value */
+  flex-wrap: nowrap; /* keep in one line */
+  min-width: 0; /* allow text to shrink for truncation if needed */
 }

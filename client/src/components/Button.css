@@ -11,6 +11,7 @@
 .blue-btn:hover {
   background-color: rgb(13, 83, 175);
 }
+
 .blue-btn-settings,
 .blue-btn-profile {
   width: 180px;
@@ -29,11 +30,12 @@
 }
 
 .blue-btn-image-setting {
-   display: flex;
+  display: flex;
   align-items: center;
+  justify-content: center !important;
   height: 2.5rem !important;
-  background-color: rgb(72, 137, 223);
-  color: white;
+  background-color: transparent;
+  color: rgb(72, 137, 223);
   border: none;
   padding: 10px 20px;
   font-weight: 500;
@@ -41,15 +43,18 @@
   transition: background-color 0.3s ease;
 }
 .blue-btn-image-setting:hover {
-  background-color: rgb(13, 83, 175);
+  /* background-color: rgb(13, 83, 175); */
+  color: rgb(13, 83, 175);
 }
 
 .orange-btn-image-setting {
   display: flex;
   align-items: center;
   height: 2.5rem !important;
-  background-color: rgb(239, 153, 47);
-  color: white;
+  background-color: transparent;
+  /* background-color: rgb(239, 153, 47); */
+  /* color: white; */
+  color: rgb(239, 153, 47);
   border: none;
   padding: 10px 20px;
   font-weight: 500;
@@ -57,7 +62,8 @@
   transition: background-color 0.3s ease;
 }
 .orange-btn-image-setting:hover {
-  background-color: rgb(156, 110, 3);
+  /* background-color: rgb(156, 110, 3); */
+  color: rgb(156, 110, 3);
 }
 
 .orange-btn {
@@ -151,4 +157,29 @@
   color: #fff;
   border: none;
   padding: 4px 10px;
+}
+
+@media screen and (max-width: 576px) {
+  .blue-btn-image-setting {
+    border: 1px solid rgb(72, 137, 223);
+    color: rgb(72, 137, 223);
+    padding: 8px 16px;
+    border-radius: 8px;
+  }
+  .blue-btn-image-setting:hover {
+    border: 1px solid rgb(13, 83, 175);
+    color: rgb(13, 83, 175);
+  }
+
+  .orange-btn-image-setting {
+    color: rgb(239, 153, 47);
+    border: 1px solid rgb(239, 153, 47);
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+  .orange-btn-image-setting:hover {
+    /* background-color: rgb(156, 110, 3); */
+    color: rgb(156, 110, 3);
+    border: 1px solid rgb(156, 110, 3);
+  }
 }
