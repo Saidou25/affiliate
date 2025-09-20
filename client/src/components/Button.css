@@ -30,7 +30,7 @@
 }
 
 .blue-btn-image-setting {
-  display: flex;
+  display: inline-flex !important;   
   align-items: center;
   justify-content: center !important;
   height: 2.5rem !important;
@@ -39,6 +39,8 @@
   border: none;
   padding: 10px 20px;
   font-weight: 500;
+   max-width: 100%;
+   white-space: nowrap;  
   cursor: pointer;
   transition: background-color 0.3s ease;
 }

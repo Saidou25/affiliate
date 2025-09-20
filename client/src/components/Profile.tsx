@@ -2,31 +2,26 @@ import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useWindowWidth } from "../hooks/useWindowWith";
+import { IoPersonCircleOutline } from "react-icons/io5";
+import {
+  FiCalendar,
+  FiCamera,
+  FiHash,
+  FiMail,
+  FiPercent,
+  FiPhone,
+  FiUser,
+} from "react-icons/fi";
+import { SiStripe } from "react-icons/si";
+import { formatDateLocal } from "../utils/formatDateLocal";
 import Spinner from "./Spinner";
 import useUpdateAffiliate from "../hooks/useUpdateAffiliate";
 import Button from "./Button";
 import Banner from "./Banner";
-import { useWindowWidth } from "../hooks/useWindowWith";
-
-// Feather (general UI)
-import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiHash,
-  FiPercent,
-  FiCreditCard,
-  FiCalendar,
-  FiCamera, // handy for "Change photo"
-} from "react-icons/fi";
-
-// Ionicons (nice avatar circle)
-import { IoPersonCircleOutline } from "react-icons/io5";
-
-// Simple Icons (brand-specific)
-import { SiStripe } from "react-icons/si";
 
 import "./Profile.css";
+import { useLocation } from "react-router-dom";
 
 type EditableProfile = {
   name?: string;
@@ -34,31 +29,19 @@ type EditableProfile = {
   avatar?: string;
 };
 
-export const fieldIcons = {
-  avatar: IoPersonCircleOutline, // Profile picture
-  name: FiUser, // Username / full name
-  email: FiMail, // Email
-  phone: FiPhone, // Phone
-  refId: FiHash, // Reference ID
-  commissionRate: FiPercent, // Commission rate
-  stripeAccountId: SiStripe, // Stripe account (brand icon)
-  affiliateSince: FiCalendar, // Affiliate since (createdAt)
-  // optional extras:
-  creditCardAlt: FiCreditCard, // Alternative for payout/payment
-  changePhoto: FiCamera, // Use on "Choose/Change photo" button
-} as const;
-
 export default function Profile() {
   const [profile, setProfile] = useState<EditableProfile | null>(null);
   const [tempProfile, setTempProfile] = useState<EditableProfile | null>(null);
-  const [editRow, setEditRow] = useState(""); // which field is being edited ("" = none)
-  const isEditing = editRow !== "";
-
+  const [editingRow, setEditingRow] = useState(""); // which field is being edited ("" = none)
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [savedMsg, setSavedMsg] = useState<string | null>(null); // NEW: success banner state
-
+  const [isUploading, setIsUploading] = useState(false);
+  const [inProfile, setInProfile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const location = useLocation();
+  const pageUrl = `${window.location.origin}${location.pathname}${location.search}${location.hash}`;
 
   const { data } = useQuery(QUERY_ME);
   const me = data?.me || {};
@@ -101,11 +84,11 @@ export default function Profile() {
 
   const validateFields = (): boolean => {
     const next: typeof errors = {};
-    if (editRow === "name") {
+    if (editingRow === "name") {
       const val = (tempProfile?.name ?? "").trim();
       if (val.length < 2) next.name = "Name must be at least 2 characters.";
     }
-    if (editRow === "email") {
+    if (editingRow === "email") {
       const val = (tempProfile?.email ?? "").trim();
       if (!EMAIL_REGEX.test(val))
         next.email = "Please enter a valid email address.";
@@ -116,18 +99,6 @@ export default function Profile() {
 
   const clearFieldError = (field: keyof typeof errors) => {
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
-  };
-
-  // --- Handlers ---
-  const formatDate = (input: string | number | Date) => {
-    const d = new Date(input);
-    if (isNaN(d.getTime())) return "";
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      timeZone: "America/New_York",
-    }).format(d);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,14 +112,17 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setIsUploading(true);
+    setUploadError(null);
+
     const validation = validateAvatarFile(file);
     if (validation) {
       setUploadError(validation);
+      setIsUploading(false);
       e.target.value = ""; // allow reselecting same file
       return;
     }
-    setUploadError(null);
-    setEditRow("avatar");
+    setEditingRow("avatar");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -158,17 +132,24 @@ export default function Profile() {
       const res = await axios.post(uploadUrl, formData);
       const secureUrl = res.data.secure_url;
       setTempProfile((prev) => ({ ...(prev ?? {}), avatar: secureUrl }));
+      if (secureUrl) {
+        setIsUploading(false);
+      }
     } catch (err) {
       console.error("Upload failed:", err);
+      setIsUploading(false);
       setUploadError(
         "We couldn’t upload your photo. Try a smaller image or a different file type."
       );
       e.target.value = "";
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const saveChanges = async () => {
     if (!validateFields()) return;
+
     if (!me?.id || !tempProfile) return;
 
     try {
@@ -176,7 +157,7 @@ export default function Profile() {
       if (updated) {
         setProfile(updated);
         setTempProfile(updated);
-        setEditRow("");
+        setEditingRow("");
         setUploadError(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
 
@@ -189,8 +170,9 @@ export default function Profile() {
 
   const cancelEdit = () => {
     setTempProfile(profile);
-    setEditRow("");
+    setEditingRow("");
     setUploadError(null);
+    setIsUploading(false);
     setErrors({});
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -210,352 +192,391 @@ export default function Profile() {
     }
   }, [me]);
 
+  useEffect(() => {
+    if (pageUrl.includes("/profile")) {
+      console.log("there is profile in url: ", pageUrl);
+      setInProfile(true);
+    }
+  }, []);
+
   if (!me || !profile || !tempProfile) return <p>Loading...</p>;
 
-  // --- UI ---
   return (
-    <>
-      {/* Success banner (auto-hides) */}
-      {savedMsg && (
-        <Banner
-          variant="success"
-          title="Changes saved"
-          message={savedMsg}
-          dismissible
-          onClose={() => setSavedMsg(null)}
-          className="mb-3"
-          ariaLive="polite"
-          role="status"
-        />
-      )}
-
-      {/* Error banners */}
-      {uploadError && (
-        <Banner
-          variant="error"
-          title="Photo upload failed"
-          message={uploadError}
-          dismissible
-          onClose={() => setUploadError(null)}
-          className="mb-3"
-          ariaLive="assertive"
-          role="alert"
-        />
-      )}
-
-      {updateError && (
-        <Banner
-          variant="error"
-          title="Couldn't save your changes"
-          message={
-            typeof updateError === "string"
-              ? updateError
-              : updateError?.message || "Please try again in a moment."
-          }
-          dismissible
-          className="mb-3"
-          ariaLive="assertive"
-          role="alert"
-        />
-      )}
-
-      {/* Avatar */}
-      <div className="row row-profile-settings g-0 mb-3 align-items-center">
-        <div className="col-5 avatar-column icon-column gap-2">
-          <IoPersonCircleOutline className="profile-icon" aria-hidden />
-          <strong>Avatar - </strong>
-          {tempProfile.avatar ? (
-            <img src={tempProfile.avatar} alt="Avatar" className="avatar-img" />
-          ) : (
-            <IoPersonCircleOutline className="avatar-img" />
-          )}
-        </div>
-        <div className="col-3 btn-row">
-          {editRow !== "avatar" && !isEditing && (
-            <Button
-              className="blue-btn-image-setting"
-              onClick={() => setEditRow("avatar")}
-              type="button"
-            >
-              Edit
-            </Button>
-          )}
-        </div>
-        {editRow === "avatar" && (
-          <div className="row row-edit-cancel g-0">
-            {width > 576 && (
-              <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8 avatar-btn-row">
-                {/* <> */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  ref={fileInputRef}
-                  className="hidden-input"
-                />
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="blue-btn-image-setting"
-                  type="button"
-                >
-                  <FiCamera className="me-1" aria-hidden />
-                  Choose Photo
-                </Button>
-                {/* </> */}
-              </div>
+    // <div className="profile-container" style={{ maxWidth: `${profileContainerWidth}%`, border: "1px solid", borderColor: "info", margin: "auto"  }}>
+    <div className="row">
+      <div
+        // className="col-12"
+        className={
+          !inProfile
+            ? "col-12"
+            : "col-xm-12 col-sm-12 col-md-10 col-lg-9 col-xl-9"
+        }
+        style={{
+          margin: "auto",
+          justifyContent: "center",
+        }}
+      >
+        <div className="row">
+          <div className="col-xm-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+            {/* Success banner (auto-hides) */}
+            {savedMsg && (
+              <Banner
+                variant="success"
+                title="Changes saved"
+                message={savedMsg}
+                dismissible
+                onClose={() => setSavedMsg(null)}
+                className="mb-3"
+                ariaLive="polite"
+                role="status"
+              />
             )}
-            <div className="col-xs-12 col-sm-3 col-md-3 col-lg-3 btn-row">
-              {width < 576 && (
-                <>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    ref={fileInputRef}
-                    className="hidden-input"
-                  />
+
+            {/* Error banners */}
+            {uploadError && (
+              <Banner
+                variant="error"
+                title="Photo upload failed"
+                message={uploadError}
+                dismissible
+                onClose={() => setUploadError(null)}
+                className="mb-3"
+                ariaLive="assertive"
+                role="alert"
+              />
+            )}
+
+            {updateError && (
+              <Banner
+                variant="error"
+                title="Couldn't save your changes"
+                message={
+                  typeof updateError === "string"
+                    ? updateError
+                    : updateError?.message || "Please try again in a moment."
+                }
+                dismissible
+                className="mb-3"
+                ariaLive="assertive"
+                role="alert"
+              />
+            )}
+
+            {/* Avatar */}
+            <div className="row row-profile-settings g-0 mb-3 align-items-center">
+              <div className="col-xs-12 col-sm-5 col-md-4 icon-column">
+                <IoPersonCircleOutline className="profile-icon" aria-hidden />
+                <strong>Avatar - </strong>
+                <div className="avatar-box">
+                  {tempProfile.avatar && !isUploading ? (
+                    <img
+                      src={tempProfile.avatar}
+                      alt="Avatar"
+                      className="avatar-img"
+                    />
+                  ) : !tempProfile.avatar && !isUploading ? (
+                    <IoPersonCircleOutline className="avatar-img" />
+                  ) : (
+                    <Spinner message="full-page" />
+                  )}
+                </div>
+              </div>
+              <div className="col-xs-12 col-sm-4 col-md-3 col-lg-3 col-xl-3 edit-btn-row">
+                {editingRow !== "avatar" && !editingRow && (
                   <Button
-                    onClick={() => fileInputRef.current?.click()}
                     className="blue-btn-image-setting"
+                    onClick={() => setEditingRow("avatar")}
                     type="button"
                   >
-                    Choose Photo
+                    Edit
                   </Button>
-                </>
-              )}
-              <Button
-                className="blue-btn-image-setting"
-                onClick={saveChanges}
-                type="button"
-                disabled={updating}
-              >
-                {updating ? <Spinner /> : <span>Save</span>}
-              </Button>
-              <Button
-                className="orange-btn-image-setting"
-                onClick={cancelEdit}
-                type="button"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="profile-label-underline" />
+                )}
+              </div>
+              {editingRow === "avatar" && (
+                <div className="row avatar-row g-0">
+                  {width > 576 && (
+                    <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8 ">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        ref={fileInputRef}
+                        className="hidden-input"
+                      />
+                      <Button
+                        onClick={() => {
+                          fileInputRef.current?.click();
+                        }}
+                        className="blue-btn-image-setting"
+                        type="button"
+                        disabled={isUploading}
+                      >
+                        <FiCamera className="me-1" aria-hidden />
+                        Choose Photo
+                      </Button>
+                    </div>
+                  )}
+                  <div className="col-xs-12 col-sm-4 col-md-4 col-lg-3 avatar-btn">
+                    {width < 576 && (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarChange}
+                          ref={fileInputRef}
+                          className="hidden-input"
+                        />
 
-      {/* Name row */}
-      {me.name && (
-        <>
-          <div className="row row-profile-settings g-0 mb-3">
-            <div className="col-9 icon-column">
-              <FiUser className="profile-icon" aria-hidden />
-              <strong>Name - </strong>
-              <span>{me.name}</span>
-            </div>
-            <div className="col-3 btn-row">
-              {editRow !== "name" && !isEditing && (
-                <Button
-                  className="blue-btn-image-setting"
-                  onClick={() => setEditRow("name")}
-                  type="button"
-                >
-                  Edit
-                </Button>
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="blue-btn-image-setting m-0"
+                          type="button"
+                        >
+                          <FiCamera className="me-1" aria-hidden />
+                          Choose Photo
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      className="blue-btn-image-setting"
+                      onClick={saveChanges}
+                      type="button"
+                      disabled={updating || isUploading}
+                    >
+                      {updating ? <Spinner /> : <span>Save</span>}
+                    </Button>
+                    <Button
+                      className="orange-btn-image-setting"
+                      onClick={cancelEdit}
+                      type="button"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
+            <div className="profile-label-underline" />
 
-          {editRow === "name" && (
-            <div className="row row-edit-cancel g-0">
-              <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
-                <input
-                  name="name"
-                  value={tempProfile.name || ""}
-                  onChange={handleChange}
-                  className={`input ${errors.name ? "is-invalid" : ""}`}
-                  aria-invalid={errors.name ? "true" : undefined}
-                  aria-describedby={errors.name ? "name-error" : undefined}
-                />
-                {errors.name && (
-                  <div id="name-error" className="invalid-feedback">
-                    {errors.name}
+            {/* Name row */}
+            {me.name && (
+              <>
+                <div className="row row-profile-settings g-0 mb-3">
+                  <div className="col-sx-12 col-sm-9 col-md-8 col-lg-9 col-xl-9 icon-column">
+                    <FiUser className="profile-icon" aria-hidden />
+                    <strong>Name - </strong>
+                    <span>{me.name}</span>
+                  </div>
+                  <div className="col-3 edit-btn-row">
+                    {editingRow !== "name" && !editingRow && (
+                      <Button
+                        className="blue-btn-image-setting"
+                        onClick={() => setEditingRow("name")}
+                        type="button"
+                      >
+                        Edit
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {editingRow === "name" && (
+                  <div className="row btn-row g-0">
+                    <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
+                      <input
+                        name="name"
+                        value={tempProfile.name || ""}
+                        onChange={handleChange}
+                        className={`input ${errors.name ? "is-invalid" : ""}`}
+                        aria-invalid={errors.name ? "true" : undefined}
+                        aria-describedby={
+                          errors.name ? "name-error" : undefined
+                        }
+                      />
+                      {errors.name && (
+                        <div id="name-error" className="invalid-feedback">
+                          {errors.name}
+                        </div>
+                      )}
+                    </div>
+                    <div className="col-xs-12 col-sm-4 col-md-3 col-lg-3 row-edit-cancel">
+                      <Button
+                        className="blue-btn-image-setting"
+                        onClick={saveChanges}
+                        type="button"
+                        disabled={updating}
+                      >
+                        {updating ? <Spinner /> : <span>Save</span>}
+                      </Button>
+                      <Button
+                        className="orange-btn-image-setting"
+                        onClick={cancelEdit}
+                        type="button"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="profile-label-underline" />
+
+            {/* Email row */}
+            {me.email && (
+              <div className="row row-profile-settings g-0 mb-3">
+                <div className="col-sx-12 col-sm-9 col-md-9 col-lg-9 col-xl-9 icon-column">
+                  <FiMail className="profile-icon" aria-hidden />
+                  <strong>Email - </strong>
+                  {me.email}
+                </div>
+                <div className="col-3 edit-btn-row">
+                  {editingRow !== "email" && !editingRow && (
+                    <Button
+                      className="blue-btn-image-setting"
+                      onClick={() => setEditingRow("email")}
+                      type="button"
+                    >
+                      Edit
+                    </Button>
+                  )}
+                </div>
+
+                {editingRow === "email" && (
+                  <div className="row btn-row g-0 mt-3">
+                    <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
+                      <input
+                        name="email"
+                        type="email"
+                        value={tempProfile.email || ""}
+                        onChange={handleChange}
+                        className={`input ${errors.email ? "is-invalid" : ""}`}
+                        aria-invalid={errors.email ? "true" : undefined}
+                        aria-describedby={
+                          errors.email ? "email-error" : undefined
+                        }
+                      />
+                      {errors.email && (
+                        <div id="email-error" className="invalid-feedback">
+                          {errors.email}
+                        </div>
+                      )}
+                    </div>
+                    <div className="col-xs-12 col-sm-4 col-md-3 col-lg-3 row-edit-cancel">
+                      <Button
+                        className="blue-btn-image-setting"
+                        onClick={saveChanges}
+                        type="button"
+                        disabled={updating}
+                      >
+                        {updating ? <Spinner /> : <span>Save</span>}
+                      </Button>
+                      <Button
+                        className="orange-btn-image-setting"
+                        onClick={cancelEdit}
+                        type="button"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
-              <div className="col-xs-12 col-sm-3 col-md-3 col-lg-3 btn-row">
-                <Button
-                  className="blue-btn-image-setting"
-                  onClick={saveChanges}
-                  type="button"
-                  disabled={updating}
-                >
-                  {updating ? <Spinner /> : <span>Save</span>}
-                </Button>
-                <Button
-                  className="orange-btn-image-setting"
-                  onClick={cancelEdit}
-                  type="button"
-                >
-                  Cancel
-                </Button>
+            )}
+            <div className="profile-label-underline" />
+
+            {/* Phone row (display) */}
+            <div className="row row-profile-settings g-0 mb-3">
+              <div className="col-sx-12 col-sm-9 col-md-9 col-lg-9 col-xl-9 icon-column">
+                <FiPhone className="profile-icon" aria-hidden />
+                <strong>Phone - </strong>
+                {me.phone ? me.phone : "910-773-0646"}
+              </div>
+              <div className="col-3 edit-btn-row">
+                {editingRow !== "phone" && !editingRow && (
+                  <Button
+                    className="blue-btn-image-setting"
+                    onClick={() => setEditingRow("phone")}
+                    type="button"
+                  >
+                    Edit
+                  </Button>
+                )}
               </div>
             </div>
-          )}
-        </>
-      )}
-      <div className="profile-label-underline" />
 
-      {/* Email row */}
-      {me.email && (
-        <div className="row row-profile-settings g-0 mb-3">
-          <div className="col-9 icon-column">
-            <FiMail className="profile-icon" aria-hidden />
-            <strong>Contact Email - </strong>
-            {me.email}
-          </div>
-          <div className="col-3 btn-row">
-            {editRow !== "email" && !isEditing && (
-              <Button
-                className="blue-btn-image-setting"
-                onClick={() => setEditRow("email")}
-                type="button"
-              >
-                Edit
-              </Button>
+            {/* Phone row (edit) */}
+            {editingRow === "phone" && (
+              <div className="row btn-row g-0">
+                <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
+                  <input
+                    name="phone" // NOTE: ensure EditableProfile includes: phone?: string
+                    type="tel"
+                    // value={tempProfile.phone || ""}
+                    onChange={handleChange}
+                    className="input"
+                  />
+                </div>
+                <div className="col-xs-12 col-sm-4 col-md-3 col-lg-3 row-edit-cancel">
+                  <Button
+                    className="blue-btn-image-setting"
+                    onClick={saveChanges}
+                    type="button"
+                    disabled={updating}
+                  >
+                    {updating ? <Spinner /> : <span>Save</span>}
+                  </Button>
+                  <Button
+                    className="orange-btn-image-setting"
+                    onClick={cancelEdit}
+                    type="button"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="profile-label-underline" />
+
+            {/* Read-only extras */}
+            {me.refId && (
+              <div className="col-sx-12 col-sm-9 col-md-9 col-lg-9 col-xl-9 mb-3 icon-column">
+                <FiHash className="profile-icon" aria-hidden />
+                <strong>Reference id - </strong>
+                {me.refId}
+              </div>
+            )}
+            <div className="profile-label-underline" />
+
+            {me.commissionRate && (
+              <div className="mb-3 icon-column">
+                <FiPercent className="profile-icon" aria-hidden />
+                <strong>Commission Rate - </strong>
+                {me.commissionRate * 100}%
+              </div>
+            )}
+            <div className="profile-label-underline" />
+
+            {me.stripeAccountId && (
+              <div className="mb-3 icon-column">
+                <SiStripe className="profile-icon" aria-hidden />
+                <strong>Stripe Account Id - </strong>
+                {me.stripeAccountId}
+              </div>
+            )}
+            <div className="profile-label-underline" />
+
+            {me.createdAt && (
+              <div className="mb-3 icon-column">
+                <FiCalendar className="profile-icon" aria-hidden />
+                <strong>Affiliate since - </strong>
+                {formatDateLocal(me.createdAt)}
+              </div>
             )}
           </div>
-
-          {editRow === "email" && (
-            <div className="row row-edit-cancel g-0 mt-3">
-              <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
-                <input
-                  name="email"
-                  type="email"
-                  value={tempProfile.email || ""}
-                  onChange={handleChange}
-                  className={`input ${errors.email ? "is-invalid" : ""}`}
-                  aria-invalid={errors.email ? "true" : undefined}
-                  aria-describedby={errors.email ? "email-error" : undefined}
-                />
-                {errors.email && (
-                  <div id="email-error" className="invalid-feedback">
-                    {errors.email}
-                  </div>
-                )}
-              </div>
-              <div className="col-xs-12 col-sm-3 col-md-3 col-lg-3 btn-row">
-                <Button
-                  className="blue-btn-image-setting"
-                  onClick={saveChanges}
-                  type="button"
-                  disabled={updating}
-                >
-                  {updating ? <Spinner /> : <span>Save</span>}
-                </Button>
-                <Button
-                  className="orange-btn-image-setting"
-                  onClick={cancelEdit}
-                  type="button"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      <div className="profile-label-underline" />
-
-      {/* Phone row (display) */}
-      <div className="row row-profile-settings g-0 mb-3">
-        <div className="col-9 icon-column">
-          <FiPhone className="profile-icon" aria-hidden />
-          <strong>Contact Phone Number (optional) - </strong>
-          {me.phone ? me.phone : <span className="text-muted">Not set</span>}
-        </div>
-        <div className="col-3 btn-row">
-          {editRow !== "phone" && !isEditing && (
-            <Button
-              className="blue-btn-image-setting"
-              onClick={() => setEditRow("phone")}
-              type="button"
-            >
-              Edit
-            </Button>
-          )}
         </div>
       </div>
-
-      {/* Phone row (edit) */}
-      {editRow === "phone" && (
-        <div className="row row-edit-cancel g-0">
-          <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
-            <input
-              name="phone" // NOTE: ensure EditableProfile includes: phone?: string
-              type="tel"
-              // value={tempProfile.phone || ""}
-              onChange={handleChange}
-              className="input"
-            />
-          </div>
-          <div className="col-xs-12 col-sm-3 col-md-3 col-lg-3 btn-row">
-            <Button
-              className="blue-btn-image-setting"
-              onClick={saveChanges}
-              type="button"
-              disabled={updating}
-            >
-              {updating ? <Spinner /> : <span>Save</span>}
-            </Button>
-            <Button
-              className="orange-btn-image-setting"
-              onClick={cancelEdit}
-              type="button"
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="profile-label-underline" />
-
-      {/* Read-only extras */}
-      {me.refId && (
-        <div className="mb-3 icon-column">
-          <FiHash className="profile-icon" aria-hidden />
-          <strong>Reference id - </strong>
-          {me.refId}
-        </div>
-      )}
-      <div className="profile-label-underline" />
-
-      {me.commissionRate && (
-        <div className="mb-3 icon-column">
-          <FiPercent className="profile-icon" aria-hidden />
-          <strong>Commission Rate - </strong>
-          {me.commissionRate * 100}%
-        </div>
-      )}
-      <div className="profile-label-underline" />
-
-      {me.stripeAccountId && (
-        <div className="mb-3 icon-column">
-          <SiStripe className="profile-icon" aria-hidden />
-          <strong>Stripe Account Id - </strong>
-          {me.stripeAccountId}
-        </div>
-      )}
-      <div className="profile-label-underline" />
-
-      {me.createdAt && (
-        <div className="mb-3 icon-column">
-          <FiCalendar className="profile-icon" aria-hidden />
-          <strong>Affiliate since - </strong>
-          {formatDate(me.createdAt)}
-        </div>
-      )}
-    </>
+    </div>
   );
 }

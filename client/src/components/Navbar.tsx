@@ -57,7 +57,7 @@ useEffect(() => {
 
 
   return (
-    <div className="">
+    <>
       {isLoggedIn && (
         <>
           <div className="top-nav-div">
@@ -97,6 +97,6 @@ useEffect(() => {
         </>
       )}
       <Header isLoggedIn={isLoggedIn} />
-    </div>
+    </>
   );
 }

@@ -3,13 +3,13 @@
   margin: auto;
 }
 .my-profile {
-    border: 1px solid white;
-    border-radius: 10px;
-    margin-top: 2%;
+  border: 1px solid white;
+  border-radius: 10px;
+  margin-top: 2%;
 }
 .clicks-container {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
 }
 .log-out {
   display: flex;
@@ -28,4 +28,11 @@
   width: 40px;
   color: rgb(78, 135, 227);
   cursor: pointer;
+}
+
+@media screen and (max-width: 414px) {
+  .affiliate-dashboard {
+    width: 90%;
+    margin: auto;
+  }
 }

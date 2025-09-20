@@ -58,7 +58,7 @@ const resolvers = {
         throw new Error("Invalid credentials");
       }
       const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
-        expiresIn: "1h",
+        expiresIn: "3h",
       });
       console.log("✅ Login success. Token:", token);
       return { token, affiliate };
@@ -91,7 +91,7 @@ const resolvers = {
         await affiliate.save();
         // ✅ Sign a JWT with affiliateId
         const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
-          expiresIn: "1h",
+          expiresIn: "3h",
         });
         console.log("✅ Registered affiliate:", affiliate);
         console.log("📦 Token:", token);

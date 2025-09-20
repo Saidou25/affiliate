@@ -421,7 +421,7 @@ const resolvers = {
         { affiliateId: affiliate.id, role: affiliate.role },
         SECRET,
         {
-          expiresIn: "1h",
+          expiresIn: "3h",
         }
       );
       return { token, affiliate };
@@ -458,7 +458,7 @@ const resolvers = {
       await affiliate.save();
 
       const token = jwt.sign({ affiliateId: affiliate.id }, SECRET, {
-        expiresIn: "1h",
+        expiresIn: "3h",
       });
 
       return { token, affiliate };
