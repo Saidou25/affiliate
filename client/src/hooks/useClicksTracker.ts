@@ -1,7 +1,6 @@
 import { useQuery } from "@apollo/client";
 import { GET_AFFILIATECLICKLOGS, QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
-// import { toDate } from "date-fns";
 
 interface Affiliate {
   id: string;
@@ -36,7 +35,6 @@ export function useClicksTracker() {
     skip: !me?.refId,
   });
 
-  // console.log(clicksData);
   const getDateRange = (start: Date, end: Date) => {
     const range: string[] = [];
 
@@ -95,14 +93,6 @@ export function useClicksTracker() {
           (a: any, b: any) =>
             toDate(a.createdAt)!.getTime() - toDate(b.createdAt)!.getTime()
         );
-      // const allDateObjects = sortedClicks.map(
-      //   (click: any) =>
-      //     new Date(
-      //       new Date(click.createdAt).toLocaleString("en-US", {
-      //         timeZone: "America/New_York",
-      //       })
-      //     )
-      // );
 
       const allDateObjects: Date[] = sortedClicks
         .map((c: any) => toDate(c.createdAt))

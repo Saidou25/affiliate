@@ -1,13 +1,13 @@
 import TotalSales from "./TotalSales";
 import TotalClick from "./TotalClicks";
 import TotalCommissions from "./TotalCommissions";
-
-import "./Analytics.css";
 import { useSalesTracker } from "../hooks/useSalesTracker";
 import { useCommissionsTracker } from "../hooks/useCommissionsTracker";
 import { useClicksTracker } from "../hooks/useClicksTracker";
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
+
+import "./Analytics.css";
 
 export default function Analytics() {
   const { data } = useQuery(QUERY_ME);
@@ -37,18 +37,19 @@ export default function Analytics() {
   }
 
   return (
-    <div className="">
-      {/* <h1>Analytics</h1> */}
+    <div className="container-fluid g-0 p-0 m-0">
       <div className="row">
-        <div className="col-6">
+        <div className="col-12 col-md-12 col-lg-12 col-xl-6">
           <TotalClick />
         </div>
-        <div className="col-6">
+        <div className="col-12 col-md-12 col-lg-12 col-xl-6">
           <TotalSales />
         </div>
+        <div className="col-12">
+          <TotalCommissions />
+        </div>
+        <br />
       </div>
-      <br />
-      <TotalCommissions />
     </div>
   );
 }

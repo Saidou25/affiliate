@@ -1,19 +1,24 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { QUERY_ME } from "../utils/queries";
 import SettingsLeftBar, { SettingsItem, SettingsKey } from "./SettingsLeftBar";
 import StripeStatusCard from "./StripStatusCard";
 import Profile from "./Profile";
-import Button from "./Button";
+// import Button from "./Button";
 
 import "./SettingsLeftBar.css";
 import "./SettingsLayout.css";
+import NotificationsList from "./NotificationsList";
 
 export default function Settings() {
+  const [current, setCurrent] = useState<SettingsKey>("account");
   const { data, loading } = useQuery(QUERY_ME);
   const me = data?.me || {};
-  const navigate = useNavigate();
+
+  // const navigate = useNavigate();
+
+  const ref = useRef<HTMLHeadingElement>(null);
 
   const items = useMemo<SettingsItem[]>(
     () => [
@@ -27,9 +32,16 @@ export default function Settings() {
     []
   );
 
-  const [current, setCurrent] = useState<SettingsKey>("account");
   const currentLabel =
     items.find((i) => i.key === current)?.label ?? "Settings";
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.classList.remove("pg-fade-in");
+    void el.offsetWidth; // force reflow
+    el.classList.add("pg-fade-in"); // re-add to restart animation
+  }, [currentLabel]);
 
   if (loading) return <p>Loading settings...</p>;
 
@@ -49,55 +61,50 @@ export default function Settings() {
 
         {/* Content column */}
         <main
-          className="col-12 col-md-8 col-lg-9 settings-content"
+          className="col-12 col-md-8 col-lg-9 settings-content pg-fade-in"
           aria-live="polite"
         >
-          <header className="settings-content__header">
-            <h2>{currentLabel}</h2>
+          <header
+            key={currentLabel}
+            className="settings-content__header pg-fade-in"
+          >
+            <h2 className="pg-fade-in">{currentLabel}</h2>
             <div className="label-underline" />
           </header>
 
           {current === "account" && (
-            <section className="settings-card">
+            <section className="settings-card pg-fade-in">
               <StripeStatusCard affiliateId={me.id} />
             </section>
           )}
 
           {current === "profile" && (
-            <section className="settings-card">
-              {/* <h3>Profile</h3> */}
+            <section className="settings-card pg-fade-in">
               <Profile />
-              {/* <div className="settings-actions">
-                <Button
-                  onClick={() => navigate("/affiliate/profile")}
-                  className="blue-btn-profile"
-                >
-                  Edit Profile
-                </Button>
-              </div> */}
             </section>
           )}
 
           {current === "notifications" && (
-            <section className="settings-card">
+            <section className="settings-card pg-fade-in">
               {/* <h3>Notifications</h3> */}
-              <p>
+              {/* <p>
                 You’ll be notified here about your affiliate sales, commission
                 payments, and system updates.
               </p>
-              <div className="settings-actions">
+              <div className="settings-actions pg-fade-in">
                 <Button
                   onClick={() => navigate("/affiliate/notifications")}
                   className="blue-btn"
                 >
                   View Notifications
                 </Button>
-              </div>
+              </div> */}
+              <NotificationsList />
             </section>
           )}
 
           {current === "payouts" && (
-            <section className="settings-card">
+            <section className="settings-card pg-fade-in">
               {/* <h3>Payouts</h3> */}
               <p>
                 Manage payout methods, schedule preferences, and tax documents.
@@ -106,7 +113,7 @@ export default function Settings() {
           )}
 
           {current === "security" && (
-            <section className="settings-card">
+            <section className="settings-card pg-fade-in">
               {/* <h3>Security</h3> */}
               <ul className="settings-list">
                 <li>Change password</li>
@@ -117,7 +124,7 @@ export default function Settings() {
           )}
 
           {current === "connections" && (
-            <section className="settings-card">
+            <section className="settings-card pg-fade-in">
               {/* <h3>Connected Apps</h3> */}
               <p>
                 Connect or disconnect integrations (Stripe, WooCommerce, etc.).

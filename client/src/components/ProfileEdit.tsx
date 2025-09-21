@@ -118,7 +118,7 @@ export default function ProfileEdit() {
       </div>
 
       <div className="profile-info">
-        <div className="row field-group">
+        <div className="row g-0 field-group">
           <label>Name</label>
           {editing ? (
             <input

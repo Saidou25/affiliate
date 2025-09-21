@@ -64,7 +64,7 @@ export default function TotalClicks() {
   }, [clicksPerDay]);
 
   return (
-    <div className="">
+    <>
       <br />
       <h2>Total Clicks:</h2>
       {me.totalClicks && (
@@ -76,16 +76,15 @@ export default function TotalClicks() {
         </>
       )}
       <div className="res">
-        <div
-          className="select-range"
-          style={{ display: "flex", justifyContent: "space-between" }}
-        >
-          <h2 className="analytic-title">
-            {clicksRange[0]?.id || "Clicks Overview"}
-          </h2>
-          <div className="">
+        <div className="row g-0">
+          <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+            <h3 className="analytics-title">
+              {clicksRange[0]?.id || "Clicks Overview"}
+            </h3>
+          </div>
+          <div className="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6 analytics-btns">
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectClicksRange("day")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
               type="button"
@@ -93,7 +92,7 @@ export default function TotalClicks() {
               day
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectClicksRange("week")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
               type="button"
@@ -101,7 +100,7 @@ export default function TotalClicks() {
               week
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectClicksRange("month")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
               type="button"
@@ -117,6 +116,6 @@ export default function TotalClicks() {
           <BarChart propsData={clicksRange} />
         )}
       </div>
-    </div>
+    </>
   );
 }

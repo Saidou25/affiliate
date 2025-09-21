@@ -1,0 +1,25 @@
+.chart-container {
+  height: 400px;
+}
+
+/* @media screen and (max-width: 1200px) {
+  .chart-container {
+    height: 300px;
+  }
+} */
+@media screen and (max-width: 992px) {
+  .chart-container {
+    height: 350px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .chart-container {
+    height: 300px;
+  }
+}
+@media screen and (max-width: 576px) {
+  .chart-container {
+    height: 300px;
+  }
+}
+

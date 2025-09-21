@@ -1,11 +1,13 @@
 import { ResponsiveBar } from "@nivo/bar";
 
+import "./BarChart.css";
+
 interface Props {
   propsData?: any;
 }
 export default function BarChart({ propsData }: Props) {
   return (
-    <div style={{ height: "400px" }}>
+    <div className="chart-container">
       <ResponsiveBar
         data={propsData[0]?.data || []}
         keys={["y"]}

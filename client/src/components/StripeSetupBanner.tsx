@@ -14,15 +14,14 @@ export default function StripeSetupBanner({ affiliateId }: Props) {
   const [visible, setVisible] = useState(true);
   const navigate = useNavigate();
 
-  const { onboardingStatusMessage, onboardingStatusButtonMessage } =
-    useCheckOnboardingStatus(affiliateId);
+  const {
+    loading,
+    isFullyOnboarded,
+    onboardingStatusMessage,
+    onboardingStatusButtonMessage,
+  } = useCheckOnboardingStatus(affiliateId);
 
-  if (
-    !onboardingStatusMessage || // don't render while it's falsy
-    onboardingStatusMessage ===
-      "✅ Your Stripe account is connected and ready for payouts." ||
-    !visible
-  ) {
+  if (!visible || loading || isFullyOnboarded || !onboardingStatusMessage) {
     return null;
   }
 
@@ -35,8 +34,6 @@ export default function StripeSetupBanner({ affiliateId }: Props) {
           onClick={() => setVisible(false)}
           aria-label="Close"
         />
-        {/* ×
-        </button> */}
       </div>
       <div className="stripe-banner">
         <p className="stripe-text">{onboardingStatusMessage}</p>

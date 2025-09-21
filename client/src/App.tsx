@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import Home from "./components/Home";
@@ -29,6 +29,7 @@ import "bootswatch/dist/lux/bootstrap.min.css";
 import "./App.css";
 
 function App() {
+  const { pathname } = useLocation();
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || {};
 
@@ -41,49 +42,51 @@ function App() {
   return (
     <>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
-        <Route
-          path="/admin"
-          element={
-            <AdminDashboard
-              data={data}
-              loading={loading}
-              errorText={error?.message}
-            />
-          }
-        >
+      <div key={pathname} className="pg-fade-in">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/stripe-onboarding/return" element={<StripeReturn />} />
           <Route
-            path="affiliates"
+            path="/admin"
             element={
-              <AffiliatesList
+              <AdminDashboard
                 data={data}
                 loading={loading}
                 errorText={error?.message}
               />
             }
-          />
-          <Route path="look up" element={<AffiliatesLookUp />} />
-          <Route path="sales report" element={<AffiliatesSalesReport />} />
-          {/* <Route path="data center" element={<DataCenter />} /> */}
-          <Route path="/admin/wooproducts" element={<WooSyncCard />} />
-          <Route path="stripe list" element={<StripeChargesTable />} />
-        </Route>
+          >
+            <Route
+              path="affiliates"
+              element={
+                <AffiliatesList
+                  data={data}
+                  loading={loading}
+                  errorText={error?.message}
+                />
+              }
+            />
+            <Route path="look up" element={<AffiliatesLookUp />} />
+            <Route path="sales report" element={<AffiliatesSalesReport />} />
+            {/* <Route path="data center" element={<DataCenter />} /> */}
+            <Route path="/admin/wooproducts" element={<WooSyncCard />} />
+            <Route path="stripe list" element={<StripeChargesTable />} />
+          </Route>
 
-        <Route path="/affiliate" element={<AffiliateDashboard />}>
-          <Route path="notifications" element={<NotificationsList />} />
-          <Route path="products" element={<Products />} />
-          <Route path="reports" element={<DetailedReport refId={refId} />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="profile-edit" element={<ProfileEdit />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
+          <Route path="/affiliate" element={<AffiliateDashboard />}>
+            <Route path="notifications" element={<NotificationsList />} />
+            <Route path="products" element={<Products />} />
+            <Route path="reports" element={<DetailedReport refId={refId} />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="profile-edit" element={<ProfileEdit />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </div>
       <Footer />
     </>
   );

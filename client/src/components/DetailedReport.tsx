@@ -128,33 +128,23 @@ export default function DetailedReport({ refId }: Props) {
 
   return (
     <div className="detailed-report-container">
-      {me.role === "admin" ? (
+      {me.role === "admin" && monthlySales.length ? (
         <h3>Report for {findEmail()}</h3>
-      ) : (
+      ) : me.role === "affiliate" && monthlySales.length ? null : (
         <h2>Monthly Reports</h2>
       )}
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
           <div className="" key={monthSales.month}>
             {showReport === index && (
-              <>
-                {/* <DetailedReportView
-                  monthSales={monthSales.sales}
-                  currentMonth={monthSales.month}
-                  setShowReport={setShowReport}
-                  salesPerMonth={salesPerMonth}
-                  clicksPerMonth={clicksPerMonth}
-                  refetchSales={refetch}
-                /> */}
-                <ReusableTable
-                  monthSales={monthSales.sales}
-                  currentMonth={monthSales.month}
-                  setShowReport={setShowReport}
-                  salesPerMonth={salesPerMonth}
-                  clicksPerMonth={clicksPerMonth}
-                  refetchSales={refetch}
-                />
-              </>
+              <ReusableTable
+                monthSales={monthSales.sales}
+                currentMonth={monthSales.month}
+                setShowReport={setShowReport}
+                salesPerMonth={salesPerMonth}
+                clicksPerMonth={clicksPerMonth}
+                refetchSales={refetch}
+              />
             )}
             {showReport === null && (
               <div className="view-line-div">

@@ -11,37 +11,24 @@
   text-decoration: underline;
   padding-left: 1%;
 }
-.pis-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 1%;
-}
+
 .pdf-print-line {
-  width: 95%;
-  display: flex;
-  justify-content: center;
-}
-.pifile,
-.piprint {
-  color: rgb(77, 74, 74) !important;
-  cursor: pointer;
-  height: 8%;
-  width: 8%;
-  padding: 0 0 0 5%;
-}
-.close {
   display: flex;
   justify-content: flex-end;
-  width: 3%;
 }
+.pifile,
+.piprint,
 .ioclose {
-  color: rgb(119, 113, 113) !important;
+  color: rgb(77, 74, 74) !important;
   cursor: pointer;
-  height: 90%;
-  width: 90%;
+  height: 2rem;
+  width: 2rem;
+  padding-left: 4px;
+  margin-bottom: 0.75rem;
 }
-
+.table-table {
+  overflow: scroll;
+}
 thead {
   padding-top: 18px !important;
   background-color: #f8f9fa;
@@ -176,30 +163,17 @@ tbody tr:nth-child(even) {
     display: none !important;
   }
 }
-
 @media screen and (max-width: 768px) {
-  table,
-  thead,
-  tbody,
-  th,
-  td,
-  tr {
-    display: block;
-  }
-
-  th {
-    display: none;
-  }
-
-  td {
-    position: relative;
-    padding-left: 50%;
-  }
-
-  td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    font-weight: bold;
+  .pifile,
+  .piprint,
+  .ioclose {
+    color: rgb(77, 74, 74) !important;
+    cursor: pointer;
+    height: 2rem;
+    width: 2rem;
+    padding-left: 4px;
+    margin-top: 1rem;
   }
 }
+
+/* } */

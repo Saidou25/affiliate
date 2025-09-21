@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useCommissionsTracker } from "../hooks/useCommissionsTracker";
 import BarChart from "./BarChart";
+import Button from "./Button";
 
 import "./Analytics.css";
-import Button from "./Button";
 
 export default function TotalCommissions() {
   const { me, commissionPerDay, commissionsPerWeek, commissionsPerMonth } =
@@ -32,7 +32,7 @@ export default function TotalCommissions() {
   }, [commissionPerDay, setCommissionsRange]);
 
   return (
-    <div className="">
+    <>
       <br />
       <h2>Total Commissions:</h2>
       {me?.totalCommissions && (
@@ -44,30 +44,29 @@ export default function TotalCommissions() {
         </>
       )}
       <div className="res">
-        <div
-          className="select-range"
-          style={{ display: "flex", justifyContent: "space-between" }}
-        >
-          <h2 className="analytic-title">
-            {commissionsRange[0]?.id || "Commissions Overview"}
-          </h2>
-          <div className="">
+        <div className="row g-0">
+          <div className="col-12 col-md-12 col-lg-6 col-xl-6">
+            <h2 className="analytic-title">
+              {commissionsRange[0]?.id || "Commissions Overview"}
+            </h2>
+          </div>
+          <div className="col-12 col-md-12 col-lg-6 col-xl-6 analytics-btns">
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectCommissionsRange("day")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               day
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectCommissionsRange("week")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               week
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectCommissionsRange("month")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
@@ -82,6 +81,6 @@ export default function TotalCommissions() {
           <BarChart propsData={commissionsRange} />
         )}
       </div>
-    </div>
+    </>
   );
 }

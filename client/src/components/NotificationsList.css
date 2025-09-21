@@ -34,3 +34,52 @@
     padding: 0;
   }
 }
+
+/* Skeleton shimmer */
+:root {
+  --sk-bg: #eee;
+  --sk-highlight: #f7f7f7;
+  --sk-duration: 1.1s;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--sk-bg);
+  border-radius: 6px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--sk-highlight) 50%,
+    transparent 100%
+  );
+  animation: sk-shimmer var(--sk-duration) ease-in-out infinite;
+}
+
+/* sizes for each placeholder line */
+.skeleton-date  { height: 0.9rem;  width: 140px;   margin-bottom: 0.35rem; }
+.skeleton-title { height: 1rem;    width: 60%;     margin-bottom: 0.5rem;  }
+.skeleton-text  { height: 0.95rem; width: 100%;    margin-bottom: 0.4rem;  }
+.skeleton-text.short { width: 80%; }
+
+@keyframes sk-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; background: none; }
+}
+
+/* (keeps your existing responsive tweak) */
+@media screen and (max-width: 750px) {
+  .notifications-page { padding: 0; }
+}

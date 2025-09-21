@@ -5,6 +5,8 @@ import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import Button from "./Button";
 
+import "./Analytics.css";
+
 export default function TotalSales() {
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me || {};
@@ -36,7 +38,7 @@ export default function TotalSales() {
   }, [salesPerDay, setSalesRange]);
 
   return (
-    <div className="">
+    <>
       <br />
       <h2>Total Sales(Orders):</h2>
       <strong className="">
@@ -46,30 +48,29 @@ export default function TotalSales() {
       <br />
       <br />
       <div className="res">
-        <div
-          className="select-range"
-          style={{ display: "flex", justifyContent: "space-between" }}
-        >
-          <h2 className="analytic-title">
-            {salesRange[0]?.id || "Sales Overview"}
-          </h2>
-          <div className="">
+        <div className="row g-0">
+          <div className="col-12 col-md-12 col-lg-12 col-xl-6">
+            <h3 className="analytic-title">
+              {salesRange[0]?.id || "Sales Overview"}
+            </h3>
+          </div>
+          <div className="col-12 col-md-12 col-lg-12 col-xl-6 analytics-btns">
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectSalesRange("day")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               day
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectSalesRange("week")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
               week
             </Button>
             <Button
-              className="blue-btn"
+              className="chart-blue-btn"
               onClick={() => selectSalesRange("month")}
               style={{ marginRight: "2px", marginLeft: "2px" }}
             >
@@ -84,6 +85,6 @@ export default function TotalSales() {
           <BarChart propsData={salesRange} />
         )}
       </div>
-    </div>
+    </>
   );
 }

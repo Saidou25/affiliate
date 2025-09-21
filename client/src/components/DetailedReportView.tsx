@@ -132,7 +132,7 @@ export default function DetailedReportView({
 
   return (
     <div className="print">
-      <div className="">
+      {/* <div className=""> */}
         <div className="pis-container no-print">
           <div className="pdf-print-line">
             <PiFilePdfThin className="pifile" onClick={() => saveToPDF()} />
@@ -291,6 +291,6 @@ export default function DetailedReportView({
           <br />
         </div>
       </div>
-    </div>
+    // </div>
   );
 }

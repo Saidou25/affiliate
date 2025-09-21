@@ -203,7 +203,7 @@ export default function Profile() {
 
   return (
     // <div className="profile-container" style={{ maxWidth: `${profileContainerWidth}%`, border: "1px solid", borderColor: "info", margin: "auto"  }}>
-    <div className="row">
+    <div className="row g-0">
       <div
         // className="col-12"
         className={
@@ -216,7 +216,7 @@ export default function Profile() {
           justifyContent: "center",
         }}
       >
-        <div className="row">
+        <div className="row g-0">
           <div className="col-xm-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
             {/* Success banner (auto-hides) */}
             {savedMsg && (
@@ -226,7 +226,7 @@ export default function Profile() {
                 message={savedMsg}
                 dismissible
                 onClose={() => setSavedMsg(null)}
-                className="mb-3"
+                className="mb-3 pg-fade-in"
                 ariaLive="polite"
                 role="status"
               />
@@ -240,7 +240,7 @@ export default function Profile() {
                 message={uploadError}
                 dismissible
                 onClose={() => setUploadError(null)}
-                className="mb-3"
+                className="mb-3 pg-fade-in"
                 ariaLive="assertive"
                 role="alert"
               />
@@ -256,7 +256,7 @@ export default function Profile() {
                     : updateError?.message || "Please try again in a moment."
                 }
                 dismissible
-                className="mb-3"
+                className="mb-3 pg-fade-in"
                 ariaLive="assertive"
                 role="alert"
               />
@@ -293,7 +293,7 @@ export default function Profile() {
                 )}
               </div>
               {editingRow === "avatar" && (
-                <div className="row avatar-row g-0">
+                <div className="row avatar-row pg-fade-in g-0 pg-fade-in">
                   {width > 576 && (
                     <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8 ">
                       <input
@@ -338,7 +338,7 @@ export default function Profile() {
                       </>
                     )}
                     <Button
-                      className="blue-btn-image-setting"
+                      className="blue-btn-image-setting pg-fade-in"
                       onClick={saveChanges}
                       type="button"
                       disabled={updating || isUploading}
@@ -381,7 +381,7 @@ export default function Profile() {
                 </div>
 
                 {editingRow === "name" && (
-                  <div className="row btn-row g-0">
+                  <div className="row btn-row g-0 pg-fade-in">
                     <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
                       <input
                         name="name"
@@ -443,7 +443,7 @@ export default function Profile() {
                 </div>
 
                 {editingRow === "email" && (
-                  <div className="row btn-row g-0 mt-3">
+                  <div className="row btn-row g-0 mt-3 pg-fade-in">
                     <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
                       <input
                         name="email"
@@ -507,7 +507,7 @@ export default function Profile() {
 
             {/* Phone row (edit) */}
             {editingRow === "phone" && (
-              <div className="row btn-row g-0">
+              <div className="row btn-row g-0 pg-fade-in">
                 <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8">
                   <input
                     name="phone" // NOTE: ensure EditableProfile includes: phone?: string

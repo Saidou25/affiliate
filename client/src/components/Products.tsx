@@ -78,7 +78,7 @@ export default function Products() {
           className={`intro-panel mt-2 ${open ? "show" : ""}`}
           aria-hidden={open ? "false" : "true"}
         >
-          <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm pg-fade-in">
             <div className="card-body p-3">
               <ol className="m-0 ps-3">
                 <li className="mb-2">
@@ -170,7 +170,7 @@ export default function Products() {
                 {productsLinks?.some(
                   (p) => p.productTitle === product.name
                 ) && (
-                  <>
+                  <div className="pg-fade-in">
                     <RefferalLink productUrl={product.permalink} />
 
                     <br />
@@ -180,7 +180,7 @@ export default function Products() {
                         imageUrl={product.primaryImage!}
                       />
                     </ReferralImage>
-                  </>
+                  </div>
                 )}
               </div>
 

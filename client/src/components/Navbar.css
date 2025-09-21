@@ -37,7 +37,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-right: 2%;           /* fine to keep % horizontally */
+  padding-right: 2%;         
   z-index: 200;
 }
 

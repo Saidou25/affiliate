@@ -15,7 +15,7 @@ import { StatusChips } from "./StatusChip";
 import useCommissionTransfer from "../hooks/useCommissionTransfer";
 import { normalizeCommissionStatus } from "../utils/commission";
 
-// import "./DetailedReport.css";
+import "./DetailedReport.css";
 
 export type FieldKey =
   | "purchaseDate"
@@ -135,10 +135,7 @@ export default function ReusableTable({
     });
 
     return dedup.filter((f) =>
-      isAdmin
-        ? true
-        : f.key !== "enrolled" &&
-          f.key !== "actionOrStatus"
+      isAdmin ? true : f.key !== "enrolled" && f.key !== "actionOrStatus"
     );
   }, [fields, isAdmin]);
 
@@ -335,33 +332,23 @@ export default function ReusableTable({
   };
 
   return (
-    <div className="print">
-      <div className="">
-        <div className="pis-container no-print">
-          <div className="pdf-print-line">
-            <PiFilePdfThin className="pifile" onClick={() => saveToPDF()} />
-            <PiPrinterThin className="piprint" onClick={() => window.print()} />
-          </div>
-          <div className="close">
-            <IoMdClose
-              className="ioclose"
-              onClick={() => setShowReport(null)}
-            />
-          </div>
+    <div className="print pg-fade-in">
+      {error && (
+        <div className="alert error no-print" style={{ margin: "8px 0" }}>
+          {error}
         </div>
+      )}
 
-        {error && (
-          <div className="alert error no-print" style={{ margin: "8px 0" }}>
-            {error}
-          </div>
-        )}
-
-        <div id="pdf-content" style={{ padding: "2%", borderRadius: "10px" }}>
-          <h3 style={{ color: "black" }}>
-            {titleOverride ?? `Detailed Report for ${currentMonth}`}
-          </h3>
-          <br />
-          <br />
+      <div id="pdf-content" style={{ padding: "2%", borderRadius: "10px" }}>
+        <h3 style={{ color: "black" }}>
+          {titleOverride ?? `Detailed Report for ${currentMonth}`}
+        </h3>
+        <div className="pdf-print-line">
+          <PiFilePdfThin className="pifile" onClick={() => saveToPDF()} />
+          <PiPrinterThin className="piprint" onClick={() => window.print()} />
+          <IoMdClose className="ioclose" onClick={() => setShowReport(null)} />
+        </div>
+        <div className="table-table">
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
               <tr>
@@ -388,12 +375,13 @@ export default function ReusableTable({
               ))}
             </tbody>
           </table>
-
-          <br />
-          <br />
-          <h3 style={{ color: "black" }}>
-            {summaryTitleOverride ?? " Report summary"}
-          </h3>
+        </div>
+        <br />
+        <br />
+        <h3 style={{ color: "black" }}>
+          {summaryTitleOverride ?? " Report summary"}
+        </h3>
+        <div className="table-table">
           <TotalBar
             addedSales={addedSales()}
             addedCommissions={addedCommissions()}
@@ -411,33 +399,3 @@ export default function ReusableTable({
     </div>
   );
 }
-
-// -----------------------------
-// Quick presets (optional)
-// -----------------------------
-export const AdminDefaultFields: FieldKey[] = [
-  "purchaseDate",
-  "item",
-  "wooProductId",
-  "price",
-  "orderId",
-  "status",
-  "transferId",
-  "refId",
-  "commission",
-  "enrolled",
-  "actionOrStatus",
-];
-
-export const AffiliateDefaultFields: FieldKey[] = [
-  "purchaseDate",
-  "item",
-  "wooProductId",
-  "price",
-  "orderId",
-  "status",
-  "transferId",
-  "refId",
-  "commission",
-  // "actionOrStatus",
-];

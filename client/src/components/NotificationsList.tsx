@@ -28,8 +28,25 @@ export default function NotificationsList() {
     }
   }, [openedFromMenu, data, markRead]);
 
-  if (loading) return <p>Loading notifications...</p>;
   if (error) return <p>Error loading notifications.</p>;
+
+  if (loading) {
+    return (
+      <div className="notifications-page" aria-busy="true" aria-live="polite">
+        <h2>All Notifications</h2>
+        <ul className="notifications-list" aria-hidden="true">
+          {[...Array(4)].map((_, i) => (
+            <li key={i} className="notification-entry">
+              <div className="skeleton skeleton-date" />
+              <div className="skeleton skeleton-title" />
+              <div className="skeleton skeleton-text" />
+              <div className="skeleton skeleton-text short" />
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div className="notifications-page">

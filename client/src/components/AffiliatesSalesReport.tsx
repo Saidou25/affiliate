@@ -27,78 +27,43 @@ export default function AffiliatesSalesReport() {
     GET_ALLAFFILIATESALES
   );
 
-  // const { data } = useQuery(QUERY_ME);
-  // const me = data?.me || {};
-  // const refId = me.refId;
-  //    const {
-  //     data: salesResp,
-  //     loading: salesLoading,
-  //     error: salesError,
-  //     refetch,
-  //   } = useQuery(SINGLE_AFFILIATE_SALES, {
-  //     variables: { filter: { refId }, limit: 200, offset: 0 },
-  //     skip: !refId, // if refId is '', query won’t run
-  //     fetchPolicy: "cache-and-network",
-  //     onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
-  //     onError: (e) => console.error("[AFFILIATE_SALES error]", e),
-  //   });
-
   const { data: clicksData } = useQuery(GET_ALLAFFILIATESCLICKLOGS);
 
   const { monthlySales } = useSalesReport(salesData);
 
   return (
-    <div className="">
-      <h2>Monthly Reports</h2>
-      <div className="">
-        {monthlySales &&
-          monthlySales.map((monthSales, index) => (
-            <div className="" key={monthSales.month}>
-              {showReport === index && (
-                <>
-                  {/* <DetailedReportView
-                    monthSales={monthSales.sales}
-                    currentMonth={monthSales.month}
-                    setShowReport={setShowReport}
-                    clicksData={clicksData}
-                    refetchSales={refetch}
-                  /> */}
-                  <br />
-                  <br />
-                  <ReusableTable
-                    monthSales={monthSales.sales}
-                    currentMonth={monthSales.month}
-                    setShowReport={setShowReport}
-                    clicksData={clicksData}
-                    refetchSales={refetch}
-                  />
-                </>
-              )}
-              {showReport === null && (
-                <>
-                  {/* {monthSales.month === key ? <span>most rescent report</span> : <span>previous reports</span>} */}
-                  <span>📄</span>
-                  <span
-                    className="view-line"
-                    onClick={() => setShowReport(index)}
-                  >
-                    {monthSales.month} detailed report
-                  </span>
-                </>
-              )}
-            </div>
-          ))}
-      </div>
-      {/* {me.role === "admin" && ( */}
-      <>
-        {/* <h2>Payment Reports(commission paid for the current month):</h2> */}
-        {/* <PaymentsReports /> */}
-        {/* <h2>Paid commissions</h2> */}
-        {/* <PaidCommissions /> */}
-        {/* <h2>Unpaid commissions</h2> */}
-        {/* <UnpaidCommissions /> */}
-      </>
-      {/* )} */}
-    </div>
+    <>
+    {/* {!monthlySales && <h2>Monthly Reports</h2>} */}
+      
+      {monthlySales &&
+        monthlySales.map((monthSales, index) => (
+          <div className="" key={monthSales.month}>
+            {showReport === index && (
+              <>
+                <br />
+                <br />
+                <ReusableTable
+                  monthSales={monthSales.sales}
+                  currentMonth={monthSales.month}
+                  setShowReport={setShowReport}
+                  clicksData={clicksData}
+                  refetchSales={refetch}
+                />
+              </>
+            )}
+            {showReport === null && (
+              <>
+                <span>📄</span>
+                <span
+                  className="view-line"
+                  onClick={() => setShowReport(index)}
+                >
+                  {monthSales.month} detailed report
+                </span>
+              </>
+            )}
+          </div>
+        ))}
+    </>
   );
 }

@@ -16,7 +16,7 @@ export default function ProfileLookUp({ affiliateData }: Props) {
       <div className="card-title-profile-lookup">
         {affiliateData?.refId}
       </div>
-      <div className="row card-body-profile-lookup">
+      <div className="row card-body-profile-lookup g-0">
         <div className="col-6">
           <strong className="">id:&nbsp;</strong>
           {affiliateData?.id}
