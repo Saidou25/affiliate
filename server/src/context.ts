@@ -38,63 +38,69 @@ export interface Affiliate {
   notifications: INotification[];
 }
 
+type AffiliateCtx = Omit<Affiliate, "password">;
+
 // Define MyContext with affiliate (from JWT)
 export interface MyContext {
   req: Request;
-  affiliate?: Affiliate | null; // Allow null or undefined if no affiliate is found
+  affiliate: AffiliateCtx | null; // Allow null or undefined if no affiliate is found
 }
 
 const SECRET = process.env.JWT_SECRET;
 if (!SECRET) throw new Error("Missing JWT_SECRET in environment");
-
 export const createContext = async ({
   req,
 }: {
   req: Request;
 }): Promise<MyContext> => {
   const authHeader = req.headers.authorization || "";
+  const body: any = (req as any).body || {};
+  const isIntrospection =
+    body?.operationName === "IntrospectionQuery" ||
+    (typeof body?.query === "string" &&
+      body.query.includes("IntrospectionQuery"));
 
-  // Handle missing or invalid authorization header
+  // No token: stay quiet for introspection/preflight, return affiliate:null
   if (!authHeader.startsWith("Bearer ")) {
-    console.warn("⚠️ No Bearer token found");
-    return { req, affiliate: null }; // or { affiliate: null }
+    if (!isIntrospection && req.method !== "OPTIONS") {
+      // console.warn("⚠️ No Bearer token found");
+    }
+    return { req, affiliate: null };
   }
 
-  const token = authHeader.slice(7); // Remove "Bearer "
+  const token = authHeader.slice(7);
   try {
-    // Decode and verify the token
-    const payload = jwt.verify(token, SECRET) as { affiliateId: string };
+    const payload = jwt.verify(token, SECRET) as {
+      affiliateId?: string;
+      sub?: string;
+      id?: string;
+    };
+    const userId = payload.affiliateId || payload.sub || payload.id;
+    if (!userId) return { req, affiliate: null };
 
-    // Fetch the affiliate from the database using affiliateId
-    const foundAffiliate = await Affiliate.findById(payload.affiliateId);
-    if (!foundAffiliate) {
-      console.warn("⚠️ No affiliate found with ID:", payload.affiliateId);
-      return { req, affiliate: null }; // or return { affiliate: null }
-    }
+    const foundAffiliate = await Affiliate.findById(userId);
+    if (!foundAffiliate) return { req, affiliate: null };
 
-    // Create the affiliate object to return in the context
-    const affiliate: Affiliate = {
+    const affiliate: AffiliateCtx = {
       id: foundAffiliate.id.toString(),
       name: foundAffiliate.name ?? "Unnamed Affiliate",
       email: foundAffiliate.email,
       refId: foundAffiliate.refId,
       totalClicks: foundAffiliate.totalClicks,
       totalCommissions: foundAffiliate.totalCommissions,
-      role: foundAffiliate.role ?? "affiliate", // <-- fallback default
+      role: foundAffiliate.role ?? "affiliate",
       commissionRate: foundAffiliate.commissionRate,
       totalSales: foundAffiliate.totalSales,
       stripeAccountId: foundAffiliate.stripeAccountId,
       paymentHistory: (foundAffiliate.paymentHistory ??
         []) as unknown as IPaymentRecord[],
       notifications: foundAffiliate.notifications ?? [],
-      password: foundAffiliate.password,
     };
 
     console.log("👤 Context affiliate:", affiliate);
-
-    return { req, affiliate }; // This is the context being passed
+    return { req, affiliate };
   } catch (error) {
     console.warn("❌ Token verification failed:", error);
-    return { req, affiliate: null }; // or return { affiliate: null }
+    return { req, affiliate: null };
   }
 };

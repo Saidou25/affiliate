@@ -184,6 +184,7 @@ const typeDefs = gql`
   }
 
   type Notification {
+    id: ID!
     date: Date
     title: String
     text: String
@@ -451,19 +452,21 @@ const typeDefs = gql`
       refId: String!
       title: String!
       text: String!
+      date: Date
     ): Affiliate!
 
-    deleteNotification(refId: String!): Affiliate!
+    deleteNotification(refId: String!, notificationId: String!): Affiliate!
 
-    markNotificationsRead(refId: String!): Affiliate!
+    deleteOnboardingNotifications(refId: String!): Affiliate!
+
+    markAllNotificationsRead(refId: String!): Affiliate!
 
     updateNotificationReadStatus(
       refId: String!
-      title: String!
-      read: Boolean!
+      notificationId: ID!
     ): Affiliate!
 
-    disconnectStripeAccount(affiliateId: ID!): StripeDeletionResponse
+    disconnectStripeAccount(affiliateId: String!): StripeDeletionResponse
 
     recordAffiliateSale(
       refId: String!

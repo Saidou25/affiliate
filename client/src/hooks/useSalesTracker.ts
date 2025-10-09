@@ -2,17 +2,6 @@ import { useQuery } from "@apollo/client";
 import { GET_AFFILIATESALES } from "../utils/queries";
 import { useEffect, useState } from "react";
 
-// interface Affiliate {
-//   id: string;
-//   name?: string;
-//   email: string;
-//   refId?: string;
-//   totalClicks?: number;
-//   totalCommissions?: number;
-//   commissionRate?: number;
-//   totalSales?: number;
-// }
-
 type DataObj = {
   x: string; // label (date, week, or month)
   y: number; // count
@@ -24,17 +13,27 @@ type SaleObj = {
 };
 
 export function useSalesTracker(affiliateRefId: string) {
-  const [referenceId, setReferenceId] = useState("");
   const [totalSales, setTotalSales] = useState(0);
   const [salesPerDay, setSalesPerDay] = useState<SaleObj[]>([]);
   const [salesPerWeek, setSalesPerWeek] = useState<SaleObj[]>([]);
   const [salesPerMonth, setSalesPerMonth] = useState<SaleObj[]>([]);
 
-  // const { data } = useQuery(QUERY_ME);
-  const { data: salesData } = useQuery(GET_AFFILIATESALES, {
-    variables: { refId: referenceId },
-    skip: !referenceId,
+ const {
+    data: salesData,
+    // loading: salesLoading,
+    // error: salesError,
+    // refetch,
+  } = useQuery(GET_AFFILIATESALES, {
+    variables: { filter: { affiliateRefId }, limit: 200, offset: 0 },
+    skip: !affiliateRefId, // if refId is '', query won’t run
+    fetchPolicy: "cache-and-network",
+    // onCompleted: (d) => console.log("[AFFILIATE_SALES data]", d),
+    // onError: (e) => console.error("[AFFILIATE_SALES error]", e),
   });
+
+  // console.log(affiliateRefId);
+  // console.log(salesData);
+  // console.log(totalSales)
 
   const toEasternDate = (isoDate: string) =>
     new Date(isoDate).toLocaleDateString("en-US", {
@@ -70,7 +69,7 @@ export function useSalesTracker(affiliateRefId: string) {
   };
 
   useEffect(() => {
-    if (salesData?.getAffiliateSales && referenceId) {
+    if (salesData?.getAffiliateSales && affiliateRefId) {
       const sortedSales = [...salesData.getAffiliateSales].sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -129,14 +128,12 @@ export function useSalesTracker(affiliateRefId: string) {
       setSalesPerWeek([{ id: "Sales per week", data: weeklyData }]);
       setSalesPerMonth([{ id: "Sales per month", data: monthlyData }]);
     }
-  }, [salesData, referenceId]);
+  }, [salesData, affiliateRefId]);
 
   useEffect(() => {
-    setReferenceId(affiliateRefId);
-  }, [affiliateRefId]);
-
-  useEffect(() => {
+    // console.log(salesData?.getAffiliateSales);
     if (salesData?.getAffiliateSales) {
+      console.log(salesData?.getAffiliateSales);
       setTotalSales(salesData.getAffiliateSales.length);
     }
   }, [salesData]);

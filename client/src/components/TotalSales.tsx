@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import { useSalesTracker } from "../hooks/useSalesTracker";
 import BarChart from "./BarChart";
-import { useQuery } from "@apollo/client";
-import { QUERY_ME } from "../utils/queries";
 import Button from "./Button";
+import { useOutletContext } from "react-router-dom";
+import { AffiliateOutletContext } from "./AffiliateDashboard";
 
 import "./Analytics.css";
 
 export default function TotalSales() {
-  const { data: meData } = useQuery(QUERY_ME);
-  const me = meData?.me || {};
-
-  const refId = me?.refId;
+   const { refId } =
+    useOutletContext<AffiliateOutletContext>();
 
   const { totalSales, salesPerDay, salesPerWeek, salesPerMonth } =
-    useSalesTracker(refId);
+    useSalesTracker(refId || "");
 
+    // console.log(totalSales)
   const [salesRange, setSalesRange] = useState(salesPerDay);
 
   const selectSalesRange = (range: string) => {

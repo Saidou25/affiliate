@@ -1,17 +1,21 @@
 import { Link, NavLink } from "react-router-dom";
 import AuthService from "../utils/auth";
 import { RiLogoutCircleRLine } from "react-icons/ri";
-import { useQuery } from "@apollo/client";
-import { QUERY_ME } from "../utils/queries";
 import { useEffect, useState } from "react";
 import { affiliateLinks, adminLinks } from "../data/navData";
 import NotificationMenu from "./NotificationMenu";
 import ProfileMenu from "./ProfileMenu";
 import Header from "./Header";
+import { Affiliate } from "../types";
+import { AffiliateOutletContext } from "./AffiliateDashboard";
 
 import "./Navbar.css";
 
-export default function Navbar() {
+type Props = {
+  me?: Affiliate;
+  onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
+};
+export default function Navbar({ me, onboardingStatus }: Props) {
   const [links, setLinks] = useState<string[]>([]);
   const [group, setGroup] = useState("");
   const [navAlpha, setNavAlpha] = useState(0);
@@ -21,8 +25,6 @@ export default function Navbar() {
   const handleLogout: React.MouseEventHandler<SVGElement> = () => {
     AuthService.logout();
   };
-  const { data } = useQuery(QUERY_ME);
-  const me = data?.me;
 
   useEffect(() => {
     if (me?.role === "affiliate") {
@@ -34,27 +36,26 @@ export default function Navbar() {
     }
   }, [me]);
 
-useEffect(() => {
-  let ticking = false;
-  const max = 240;
+  useEffect(() => {
+    let ticking = false;
+    const max = 240;
 
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const t = Math.min(1, Math.max(0, window.scrollY / max));
-      setNavAlpha(t);
-      // NEW: update global CSS var for everyone
-      document.documentElement.style.setProperty("--nav-overlay", String(t));
-      ticking = false;
-    });
-  };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const t = Math.min(1, Math.max(0, window.scrollY / max));
+        setNavAlpha(t);
+        // NEW: update global CSS var for everyone
+        document.documentElement.style.setProperty("--nav-overlay", String(t));
+        ticking = false;
+      });
+    };
 
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
-  return () => window.removeEventListener("scroll", onScroll);
-}, []);
-
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
@@ -72,7 +73,10 @@ useEffect(() => {
               {me?.role !== "admin" && (
                 <>
                   <ProfileMenu />
-                  <NotificationMenu />
+                  <NotificationMenu
+                    me={me}
+                    onboardingStatus={onboardingStatus}
+                  />
                 </>
               )}
               <RiLogoutCircleRLine
@@ -85,7 +89,7 @@ useEffect(() => {
           <div className="navigation-bar-container">
             <nav
               className="navbar"
-               style={{ ["--nav-overlay" as any]: navAlpha }} 
+              style={{ ["--nav-overlay" as any]: navAlpha }}
             >
               {links?.map((link, index) => (
                 <NavLink key={index} to={`/${group}/${link.toLowerCase()}`}>

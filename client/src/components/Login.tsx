@@ -6,9 +6,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { QUERY_ME } from "../utils/queries";
 import AuthService from "../utils/auth";
 import Button from "./Button";
+import Banner, { BannerVariant } from "./Banner";
 
 export default function AffiliateLogin() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [bannerMessage, setBannerMessage] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   const isLoggedIn = AuthService.loggedIn();
@@ -18,24 +21,42 @@ export default function AffiliateLogin() {
   });
   const me = data?.me || {};
 
-  const [login, { loading, error }] = useMutation(LOGIN, {
+  const [login, { loading }] = useMutation(LOGIN, {
     onCompleted: ({ login }) => {
       localStorage.setItem("token", login.token);
       refetch(); // refetch user data
     },
   });
 
+  const bannerVariant: BannerVariant | undefined = bannerMessage
+    ? /fail/i.test(bannerMessage)
+      ? "error"
+      : /success/i.test(bannerMessage)
+      ? "success"
+      : undefined
+    : undefined;
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBannerMessage(null);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ variables: { email: form.email, password: form.password } });
+    try {
+      const loggedIn = await login({
+        variables: { email: form.email, password: form.password },
+      });
+      if (loggedIn) {
+        setBannerMessage("Successfully logged in.");
+      }
+    } catch (err) {
+      setBannerMessage("Failed loging.");
+    }
   };
 
   useEffect(() => {
-    if (me?.role) {
+    if (me?.role && !bannerMessage) {
       if (me.role === "admin") {
         navigate("/admin/affiliates");
         window.scrollTo(0, 0);
@@ -44,12 +65,32 @@ export default function AffiliateLogin() {
         window.scrollTo(0, 0);
       }
     }
-  }, [me, navigate]);
+  }, [me, navigate, bannerMessage]);
+
+  // Auto-hide success after 4s (optional)
+  useEffect(() => {
+    if (!bannerMessage || bannerMessage.includes("failed")) return;
+    const t = setTimeout(() => setBannerMessage(null), 2000);
+    return () => clearTimeout(t);
+  }, [bannerMessage]);
 
   return (
     <div className="login-container">
       {/* <h2>Log in to your account</h2> */}
       <form className="form-container" onSubmit={handleSubmit}>
+        {bannerVariant && (
+          <Banner
+            variant={bannerVariant}
+            title={bannerVariant === "error" ? "Login failed" : "Logged in"}
+            message={bannerMessage ?? ""}
+            dismissible
+            onClose={() => setBannerMessage(null)}
+            className="mb-3 "
+            ariaLive={bannerVariant === "error" ? "assertive" : "polite"}
+            role={bannerVariant === "error" ? "alert" : "status"}
+          />
+        )}
+
         <Link style={{ display: "flex", justifyContent: "flex-end" }} to="/">
           <AiOutlineClose
             // onClick={() => closeForm(false)}
@@ -58,12 +99,12 @@ export default function AffiliateLogin() {
           />
         </Link>
         <h1 className="title">Sign in to your account</h1>
-        <label htmlFor="email1">Email</label>
+        <label htmlFor="email">Email</label>
         <br />
         <input
-          id="email1"
+          id="email"
           name="email"
-          type="email1"
+          type="email"
           value={form.email}
           onChange={handleChange}
           required
@@ -73,12 +114,12 @@ export default function AffiliateLogin() {
         />
         <br />
         <br />
-        <label htmlFor="password1">Password</label>
+        <label htmlFor="password">Password</label>
         <br />
         <input
-          id="password1"
+          id="password"
           name="password"
-          type="password1"
+          type="password"
           value={form.password}
           onChange={handleChange}
           required
@@ -91,7 +132,7 @@ export default function AffiliateLogin() {
         <Button type="submit" disabled={loading} className="blue-btn">
           {loading ? "Logging in…" : "Log In"}
         </Button>
-        {error && <p style={{ color: "red" }}>{error.message}</p>}
+        {/* {error && <p style={{ color: "red" }}>{error.message}</p>} */}
       </form>
     </div>
   );

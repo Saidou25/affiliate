@@ -2,6 +2,7 @@ import { useQuery } from "@apollo/client";
 import {
   GET_ALLAFFILIATESALES,
   GET_ALLAFFILIATESCLICKLOGS,
+  QUERY_ME,
   // QUERY_ME,
   // SINGLE_AFFILIATE_SALES,
 } from "../utils/queries";
@@ -18,6 +19,8 @@ import ReusableTable from "./ReusableTable";
 
 export default function AffiliatesSalesReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
+   const { data: meData } = useQuery(QUERY_ME);
+    const me = meData?.me || {};
   const {
     data: salesData,
     refetch,
@@ -33,8 +36,8 @@ export default function AffiliatesSalesReport() {
 
   return (
     <>
-    {/* {!monthlySales && <h2>Monthly Reports</h2>} */}
-      
+    {me.role === "admin" && (showReport === null) ? <h2>Monthly Reports</h2> : null}
+      <br />
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
           <div className="" key={monthSales.month}>

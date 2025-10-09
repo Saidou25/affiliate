@@ -176,4 +176,81 @@ tbody tr:nth-child(even) {
   }
 }
 
-/* } */
+/* ===== Skeleton base ===== */
+.skel {
+  display: inline-block;
+  background: #eaecef;
+  border-radius: 8px;
+}
+
+/* Shimmer effect */
+.skel-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.skel-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.6) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  animation: skel-shimmer 1.2s infinite;
+}
+@keyframes skel-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ===== Shapes that fit your UI ===== */
+.skel-title {
+  width: 240px;
+  height: 22px;
+  margin-bottom: 18px;
+}
+
+.view-line-div {           /* you already have this; keep styles */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.skel-dot {
+  width: 20px;            /* mimics the 📄 icon */
+  height: 20px;
+  border-radius: 6px;
+}
+
+.skel-link {
+  height: 16px;
+  width: 260px;           /* “{month} detailed report” */
+  border-radius: 4px;
+}
+
+/* Card/table placeholder */
+.skel-card {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #f0f2f5;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.skel-row {
+  display: block;
+  height: 14px;
+  margin: 10px 0;
+  width: 100%;
+  border-radius: 6px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .skel-title { width: 55%; }
+  .skel-link  { width: 65%; }
+}
+

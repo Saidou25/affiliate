@@ -236,11 +236,30 @@ export const CREATE_AFFILIATE_STRIPE_ACCOUNT = gql`
   }
 `;
 
-export const MARK_NOTIFICATIONS_READ = gql`
-  mutation MarkNotificationsRead($refId: String!) {
-    markNotificationsRead(refId: $refId) {
+export const UPDATE_NOTIFICATION_READ_STATUS = gql`
+  mutation UpdateNotificationReadStatus($notificationId: ID!, $refId: String!) {
+    updateNotificationReadStatus(
+      notificationId: $notificationId
+      refId: $refId
+    ) {
       id
       notifications {
+        id
+        date
+        title
+        text
+        read
+      }
+    }
+  }
+`;
+
+export const MARK_ALL_NOTIFICATIONS_READ = gql`
+  mutation MarkAllNotificationsRead($refId: String!) {
+    markAllNotificationsRead(refId: $refId) {
+      id
+      notifications {
+        id
         title
         read
         text
@@ -259,6 +278,7 @@ export const CREATE_NOTIFICATION = gql`
     createNotification(refId: $refId, title: $title, text: $text) {
       id
       notifications {
+        id
         date
         title
         text
@@ -268,44 +288,42 @@ export const CREATE_NOTIFICATION = gql`
   }
 `;
 
-export const UPDATE_NOTIFICATION_READ_STATUS = gql`
-  mutation UpdateNotificationReadStatus(
-    $refId: String!
-    $title: String!
-    $read: Boolean!
-  ) {
-    updateNotificationReadStatus(refId: $refId, title: $title, read: $read) {
+export const DELETE_NOTIFICATION = gql`
+  mutation DeleteNotification($refId: String!, $notificationId: String!) {
+    deleteNotification(refId: $refId, notificationId: $notificationId) {
       id
+      refId
       notifications {
+        id
+        title
+        read
         date
+        text
+      }
+    }
+  }
+`;
+
+export const DELETE_ONBOARDING_NOTIFICATIONS = gql`
+  mutation DeleteOnboardingNotifications($refId: String!) {
+    deleteOnboardingNotifications(refId: $refId) {
+      refId
+      notifications {
+        id
         title
         text
         read
+        date
       }
     }
   }
 `;
 
 export const DISCONNECT_STRIPE_ACCOUNT = gql`
-  mutation DisconnectStripeAccount($affiliateId: ID!) {
+  mutation DisconnectStripeAccount($affiliateId: String!) {
     disconnectStripeAccount(affiliateId: $affiliateId) {
       success
       deleted
-    }
-  }
-`;
-
-export const DELETE_NOTIFICATION = gql`
-  mutation DeleteNotification($refId: String!) {
-    deleteNotification(refId: $refId) {
-      id
-      refId
-      notifications {
-        title
-        read
-        date
-        text
-      }
     }
   }
 `;

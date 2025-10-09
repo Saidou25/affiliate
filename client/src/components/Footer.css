@@ -1,6 +1,8 @@
 .footer-container {
   margin-top: 5%;
   padding: 5% 0 2% 0;
+  background-color: black;
+  width: 100vw !important;
 }
 .list-unstyled,
 .list-inline {

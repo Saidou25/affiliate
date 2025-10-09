@@ -8,7 +8,7 @@ interface MonthlySalesGroup {
 export default function useSalesReport(salesData: any) {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
-
+console.log(salesData)
   useEffect(() => {
     if (salesData?.getAllAffiliateSales) {
       const organizedDates = [...salesData?.getAllAffiliateSales].sort(

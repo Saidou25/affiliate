@@ -1,32 +1,29 @@
-import { useMutation, useQuery } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { useEffect, useState } from "react";
 import {
   CREATE_AFFILIATE_STRIPE_ACCOUNT,
-  DELETE_NOTIFICATION,
   DISCONNECT_STRIPE_ACCOUNT,
 } from "../utils/mutations";
-import { QUERY_ME } from "../utils/queries";
-import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus";
 import Spinner from "./Spinner";
 import Button from "./Button";
 import ConfirmCloseConnectionModal from "./ConfirmCloseConnectionModal";
+import { AffiliateOutletContext } from "./AffiliateDashboard";
+import { useResetOnboardingCycle } from "../hooks/resetOnboardingCycle";
 
 interface Props {
+  refId?: string;
   affiliateId?: string;
+  onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
 }
 
-export default function StripeStatusCard({ affiliateId }: Props) {
+export default function StripeStatusCard({
+  refId,
+  affiliateId,
+  onboardingStatus,
+}: Props) {
   const [showStripeMessage, setShowStripeMessage] = useState(false);
   const [stripeMessage, setStripeMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  const {
-    state, // "not_started" | "in_progress" | "complete"
-    onboardingStatusMessage,
-    onboardingStatusButtonMessage,
-    onboardingDangerButtonMessage,
-    loading,
-  } = useCheckOnboardingStatus(affiliateId);
 
   const [createStripeAccount, { loading: createLoading }] = useMutation(
     CREATE_AFFILIATE_STRIPE_ACCOUNT
@@ -34,11 +31,8 @@ export default function StripeStatusCard({ affiliateId }: Props) {
   const [disconnectStripeAccount, { loading: disconnectLoading }] = useMutation(
     DISCONNECT_STRIPE_ACCOUNT
   );
-  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
 
-  // Only needed for clearing notifications after disconnect
-  const { data: meData } = useQuery(QUERY_ME);
-  const me = meData?.me ?? {};
+  const deleteOnboarding = useResetOnboardingCycle();
 
   const startOrResume = async () => {
     try {
@@ -61,21 +55,19 @@ export default function StripeStatusCard({ affiliateId }: Props) {
   };
 
   const closeConnection = async () => {
-    const idToUse = affiliateId ?? me?.id;
-    if (!idToUse) return;
+    if (!affiliateId) return;
 
     try {
       const { data } = await disconnectStripeAccount({
-        variables: { affiliateId: idToUse },
+        variables: { affiliateId: affiliateId },
       });
 
       if (data?.disconnectStripeAccount?.success) {
-        setStripeMessage("Stripe account successfully disconnected.");
-        setShowStripeMessage(true);
-
-        if (me?.refId) {
-          await deleteNotification({ variables: { refId: me.refId } });
-          console.log("🧹 Onboarding notifications removed.");
+        if (!refId) return;
+        const ok = await deleteOnboarding(refId);
+        if (ok) {
+          setStripeMessage("Stripe account successfully disconnected.");
+          setShowStripeMessage(true);
         }
       } else {
         console.warn("⚠️ Stripe disconnection did not complete.");
@@ -95,31 +87,31 @@ export default function StripeStatusCard({ affiliateId }: Props) {
     }
   }, [stripeMessage]);
 
-  if (loading) return <p>Loading Stripe status...</p>;
+  if (onboardingStatus?.loading) return <p>Loading Stripe status...</p>;
 
   return (
     <div style={{ borderRadius: "8px", color: "white" }}>
       <h3>Stripe Payment Setup</h3>
-      <p>{onboardingStatusMessage}</p>
+      <p>{onboardingStatus?.onboardingStatusMessage}</p>
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        {state === "not_started" && (
+        {onboardingStatus?.state === "not_started" && (
           <Button className="blue-btn-settings" onClick={startOrResume}>
             {createLoading ? (
               <Spinner />
             ) : (
-              <span>{onboardingStatusButtonMessage}</span>
+              <span>{onboardingStatus.onboardingStatusButtonMessage}</span>
             )}
           </Button>
         )}
 
-        {state === "in_progress" && (
+        {onboardingStatus?.state === "in_progress" && (
           <>
             <Button className="blue-btn-settings" onClick={startOrResume}>
               {createLoading ? (
                 <Spinner />
               ) : (
-                <span>{onboardingStatusButtonMessage}</span>
+                <span>{onboardingStatus.onboardingStatusButtonMessage}</span>
               )}
             </Button>
             <Button
@@ -129,13 +121,13 @@ export default function StripeStatusCard({ affiliateId }: Props) {
               {disconnectLoading ? (
                 <Spinner />
               ) : (
-                <span>{onboardingDangerButtonMessage}</span>
+                <span>{onboardingStatus.onboardingDangerButtonMessage}</span>
               )}
             </Button>
           </>
         )}
 
-        {state === "complete" && (
+        {onboardingStatus?.state === "complete" && (
           <Button
             className="blue-btn-settings danger-btn"
             onClick={() => setShowModal(true)}
@@ -143,7 +135,7 @@ export default function StripeStatusCard({ affiliateId }: Props) {
             {disconnectLoading ? (
               <Spinner />
             ) : (
-              <span>{onboardingStatusButtonMessage}</span>
+              <span>{onboardingStatus?.onboardingStatusButtonMessage}</span>
             )}
           </Button>
         )}

@@ -3,7 +3,7 @@ dotenv.config();
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { SECRET } from "../config/env";
-import { Types } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { dateScalar } from "../dateScalar";
 import { MyContext } from "../context";
 import { sendConfirmationEmail } from "../utils/sendConfirmationEmail";
@@ -79,6 +79,12 @@ type PaymentInputArg = {
 //   saleAmount?: number; // allow new name too (from GraphQL)
 // }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+
+const ONBOARDING_TITLES = [
+  "Stripe account not connected",
+  "Finish your Stripe onboarding",
+  "Onboarding complete",
+];
 
 function toCents(amount: number) {
   return Math.max(0, Math.round(Number((amount ?? 0).toFixed(2)) * 100));
@@ -786,71 +792,118 @@ const resolvers = {
       _: unknown,
       { refId, title, text }: { refId: string; title: string; text: string }
     ) => {
-      console.log("💥 Creating notification for:", refId);
-      const affiliate = await Affiliate.findOne({ refId });
-      if (!affiliate) throw new Error("Affiliate not found");
-      const newNotification = {
-        date: new Date(),
-        title: title,
-        text: text,
-        read: false,
-      };
-      affiliate.notifications = affiliate.notifications ?? [];
-      affiliate?.notifications?.push(newNotification);
-      await affiliate.save();
-
-      return affiliate;
-    },
-
-    deleteNotification: async (_: unknown, { refId }: { refId: string }) => {
-      console.log("🗑️ Deleting notification:", title, "for:", refId);
-
-      const affiliate = await Affiliate.findOne({ refId });
-      if (!affiliate) throw new Error("Affiliate not found");
-
-      const titlesToDelete = [
-        "Stripe account not connected",
-        "Finish your Stripe onboarding",
-        "Success, Stripe onBoarding complete",
-      ];
-      // Remove notifications matching the given title
-      affiliate.notifications = affiliate.notifications?.filter(
-        (note: any) => !titlesToDelete.includes(note.title)
+      const normTitle =
+        typeof title === "string"
+          ? title.trim().replace(/^"+|"+$/g, "")
+          : title;
+      //  only push if a notification with the same title doesn't exist
+      await Affiliate.updateOne(
+        {
+          refId,
+          notifications: { $not: { $elemMatch: { title } } }, // only insert if no match
+        },
+        {
+          $push: {
+            notifications: {
+              _id: new Types.ObjectId(),
+              title: normTitle,
+              text,
+              read: false,
+              date: new Date(),
+            },
+          },
+        },
+        { runValidators: true }
       );
 
-      await affiliate.save();
-      return affiliate;
+      // Return the updated affiliate with notifications
+      return Affiliate.findOne({ refId });
     },
 
-    markNotificationsRead: async (_: unknown, { refId }: { refId: string }) => {
-      const affiliate = await Affiliate.findOne({ refId });
-      if (!affiliate) throw new Error("Affiliate not found");
-
-      // ✅ Update only unread notifications
-      affiliate.notifications = affiliate?.notifications?.map((n: any) =>
-        n.read ? n : { ...n.toJSON(), read: true }
+    deleteOnboardingNotifications: async (
+      _: unknown,
+      { refId }: { refId: string }
+    ) => {
+      // 1) remove prior onboarding notifications
+      await Affiliate.updateOne(
+        { refId },
+        { $pull: { notifications: { title: { $in: ONBOARDING_TITLES } } } }
       );
 
-      await affiliate.save();
-      return affiliate;
+      // 2) seed fresh "not connected" (guard to avoid dup if racing)
+      await Affiliate.updateOne(
+        {
+          refId,
+          "notifications.title": { $ne: "Stripe account not connected" },
+        },
+        {
+          $push: {
+            notifications: {
+              _id: new Types.ObjectId(),
+              title: "Stripe account not connected",
+              text: "You haven't connected a payment method yet. To receive your commissions, please link your Stripe account.",
+              read: false,
+              date: new Date(),
+            },
+          },
+        }
+      );
+
+      return Affiliate.findOne({ refId });
+    },
+
+    deleteNotification: async (
+      _: unknown,
+      { refId, notificationId }: { refId: string; notificationId: string }
+    ) => {
+      if (!isValidObjectId(notificationId)) {
+        throw new Error("Invalid notificationId");
+      }
+
+      console.log(
+        "🗑️ Deleting notification for:",
+        refId,
+        "notification id:",
+        notificationId
+      );
+
+      await Affiliate.updateOne(
+        { refId },
+        {
+          $pull: { notifications: { _id: new Types.ObjectId(notificationId) } },
+        }
+      );
+
+      // Re-fetch to return the updated doc
+      return Affiliate.findOne({ refId });
+    },
+
+    // Marks a single notification (by _id) as read
+    markAllNotificationsRead: async (
+      _: unknown,
+      { refId }: { refId: string }
+    ) => {
+      const updated = await Affiliate.findOneAndUpdate(
+        { refId },
+        { $set: { "notifications.$[].read": true } },
+        { new: true, runValidators: true }
+      );
+
+      if (!updated) throw new Error("There was an error");
+      return updated;
     },
 
     updateNotificationReadStatus: async (
       _: unknown,
-      { refId, title, read }: { refId: string; title: string; read: boolean }
+      { refId, notificationId }: { refId: string; notificationId: string }
     ) => {
-      const affiliate = await Affiliate.findOne({ refId });
-      if (!affiliate) throw new Error("Affiliate not found");
-
-      const notification = affiliate.notifications?.find(
-        (n: any) => n.title === title
+      const updated = await Affiliate.findOneAndUpdate(
+        { refId, "notifications._id": new Types.ObjectId(notificationId) },
+        { $set: { "notifications.$.read": false } }, // <-- set it
+        { new: true }
       );
-      if (notification) {
-        notification.read = read;
-        await affiliate.save();
-      }
-
-      return affiliate;
+      if (!updated) throw new Error("Affiliate or notification not found");
+      return updated;
     },
 
     disconnectStripeAccount: async (

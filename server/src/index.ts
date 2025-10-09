@@ -9,9 +9,12 @@
 
 import path from "path";
 import dotenv from "dotenv";
+// at the top of server.ts
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 
 // Load env file early (production vs dev)
-const envFile = process.env.NODE_ENV === "production" ? ".env.production" : ".env";
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.production" : ".env";
 dotenv.config({ path: path.resolve(__dirname, "../", envFile) });
 
 import express from "express";
@@ -32,6 +35,8 @@ import stripeWebhook from "./routes/stripeWebhook";
 // Models referenced in Woo ingest
 import Affiliate from "./models/Affiliate";
 import AffiliateSale from "./models/AffiliateSale";
+
+console.log("NODE_ENV =", process.env.NODE_ENV);
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -77,11 +82,6 @@ async function startServer() {
   );
   // Handle all preflight OPTION requests
   app.options(/.*/, cors());
-
-  // Simple healthcheck (handy for Render/uptime probes)
-  app.get("/healthz", (_req, res) =>
-    res.status(200).json({ ok: true, uptime: process.uptime() })
-  );
 
   // ───────────────────────────────────────────────────────────────────────────
   // 3) WOO INGEST — SCOPE JSON PARSER + API KEY GUARD
@@ -133,19 +133,27 @@ async function startServer() {
       };
 
       // Minimal payload validation (adjust as needed)
-      if (!p?.orderId || !p?.orderNumber || !p?.orderDate || typeof p.total !== "number") {
+      if (
+        !p?.orderId ||
+        !p?.orderNumber ||
+        !p?.orderDate ||
+        typeof p.total !== "number"
+      ) {
         return res.status(400).json({ ok: false, error: "Bad payload" });
       }
 
       // Resolve affiliate (if any) and choose commission rate
       let affiliateId: any = null;
       if (p.refId) {
-        const aff = await Affiliate.findOne({ refId: p.refId }).select("_id commissionRate");
+        const aff = await Affiliate.findOne({ refId: p.refId }).select(
+          "_id commissionRate"
+        );
         if (aff) affiliateId = aff._id;
       }
       const rateOverride = num(p.meta?.commissionRate);
       const affiliateRate = num(
-        (await Affiliate.findOne({ refId: p.refId }).select("commissionRate"))?.commissionRate
+        (await Affiliate.findOne({ refId: p.refId }).select("commissionRate"))
+          ?.commissionRate
       );
       const commissionRate = rateOverride || affiliateRate || DEFAULT_RATE;
 
@@ -232,8 +240,32 @@ async function startServer() {
   // 4) GRAPHQL — SCOPE JSON PARSER ON /graphql BEFORE expressMiddleware
   //    Do NOT mount a global express.json() above; keep it localized here.
   // ───────────────────────────────────────────────────────────────────────────
-  const server = new ApolloServer<MyContext>({ typeDefs, resolvers });
+  const server = new ApolloServer<MyContext>({
+    typeDefs,
+    resolvers,
+    plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
+  });
+
   await server.start();
+
+  app.all("/graphql", (req, res, next) => {
+    if (process.env.NODE_ENV === "production" && req.method !== "POST") {
+      return res.status(405).json({ ok: false, error: "Method Not Allowed" });
+    }
+    next();
+  });
+
+  // 1) Hard-block non-JSON POSTs
+  app.post("/graphql", (req, res, next) => {
+    const ct = req.headers["content-type"] || "";
+    if (!ct.startsWith("application/json")) {
+      console.warn("[/graphql 415]", req.method, ct);
+      return res
+        .status(415)
+        .json({ ok: false, error: "Unsupported Media Type" });
+    }
+    next();
+  });
 
   app.use(
     "/graphql",
@@ -244,8 +276,46 @@ async function startServer() {
       }
       next();
     },
+    (req, _res, next) => {
+      console.log(
+        "[/graphql pre-parse]",
+        "method=",
+        req.method,
+        "content-type=",
+        req.headers["content-type"]
+      );
+      next();
+    },
+    // ensure req.body is at least an empty object for GET/OPTIONS/etc.
+    (req, _res, next) => {
+      if (req.body === undefined) (req as any).body = {};
+      next();
+    },
+
     cors({ origin: "*", credentials: false }),
-    express.json({ limit: "1mb" }), // ✅ ensures req.body exists for Apollo
+    express.urlencoded({ extended: false }),
+    // Guard A: handle preflight here so Apollo never sees OPTIONS
+    (req, res, next) => {
+      if (req.method === "OPTIONS") return res.sendStatus(204);
+      next();
+    },
+
+    // Guard B: reject non-JSON POSTs early (helps pinpoint offender)
+    (req, res, next) => {
+      if (req.method === "POST" && !req.is("application/json")) {
+        console.warn(
+          "[/graphql] Non-JSON POST blocked:",
+          req.headers["content-type"]
+        );
+        return res
+          .status(415)
+          .json({ ok: false, error: "Unsupported Media Type" });
+      }
+      next();
+    },
+
+    express.json({ limit: "1mb", type: "application/json" }), // ensures req.body exists for Apollo
+
     expressMiddleware(server, { context: createContext as any })
   );
 
@@ -255,7 +325,9 @@ async function startServer() {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
     console.log(`🚀 GraphQL ready at http://localhost:${PORT}/graphql`);
-    console.log(`✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`);
+    console.log(
+      `✅ Stripe webhook at http://localhost:${PORT}/api/stripe/webhook`
+    );
     console.log(`📥 Woo ingest at http://localhost:${PORT}/api/woo/order`);
   });
 }

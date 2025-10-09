@@ -26,7 +26,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="footer-container bg-dark text-white">
+    <footer className="footer-container text-white">
       <div className="">
         <div className="row footer-row g-0">
           {/* Column 1 */}

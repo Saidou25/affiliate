@@ -15,13 +15,13 @@ import {
 } from "react-icons/fi";
 import { SiStripe } from "react-icons/si";
 import { formatDateLocal } from "../utils/formatDateLocal";
+import { useLocation } from "react-router-dom";
 import Spinner from "./Spinner";
 import useUpdateAffiliate from "../hooks/useUpdateAffiliate";
 import Button from "./Button";
 import Banner from "./Banner";
 
 import "./Profile.css";
-import { useLocation } from "react-router-dom";
 
 type EditableProfile = {
   name?: string;
@@ -35,7 +35,7 @@ export default function Profile() {
   const [editingRow, setEditingRow] = useState(""); // which field is being edited ("" = none)
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [savedMsg, setSavedMsg] = useState<string | null>(null); // NEW: success banner state
+  const [bannerMessage, setBannerMessage] = useState<string | null>(null); // NEW: success banner state
   const [isUploading, setIsUploading] = useState(false);
   const [inProfile, setInProfile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -161,7 +161,7 @@ export default function Profile() {
         setUploadError(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
 
-        setSavedMsg("Your profile has been updated."); // NEW: trigger success banner
+        setBannerMessage("Your profile has been updated."); // NEW: trigger success banner
       }
     } catch (err) {
       console.error("Failed to save changes:", err);
@@ -179,10 +179,10 @@ export default function Profile() {
 
   // Auto-hide success after 4s (optional)
   useEffect(() => {
-    if (!savedMsg) return;
-    const t = setTimeout(() => setSavedMsg(null), 4000); // NEW
-    return () => clearTimeout(t); // NEW
-  }, [savedMsg]); // NEW
+    if (!bannerMessage) return;
+    const t = setTimeout(() => setBannerMessage(null), 4000); 
+    return () => clearTimeout(t); 
+  }, [bannerMessage]); 
 
   // --- Init ---
   useEffect(() => {
@@ -194,7 +194,6 @@ export default function Profile() {
 
   useEffect(() => {
     if (pageUrl.includes("/profile")) {
-      console.log("there is profile in url: ", pageUrl);
       setInProfile(true);
     }
   }, []);
@@ -219,13 +218,13 @@ export default function Profile() {
         <div className="row g-0">
           <div className="col-xm-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
             {/* Success banner (auto-hides) */}
-            {savedMsg && (
+            {bannerMessage && (
               <Banner
                 variant="success"
                 title="Changes saved"
-                message={savedMsg}
+                message={bannerMessage}
                 dismissible
-                onClose={() => setSavedMsg(null)}
+                onClose={() => setBannerMessage(null)}
                 className="mb-3 pg-fade-in"
                 ariaLive="polite"
                 role="status"
@@ -293,7 +292,7 @@ export default function Profile() {
                 )}
               </div>
               {editingRow === "avatar" && (
-                <div className="row avatar-row pg-fade-in g-0 pg-fade-in">
+                <div className="row avatar-row  g-0 pg-fade-in">
                   {width > 576 && (
                     <div className="col-xs-12 col-sm-6 col-md-8 col-lg-8 ">
                       <input
@@ -329,7 +328,7 @@ export default function Profile() {
 
                         <Button
                           onClick={() => fileInputRef.current?.click()}
-                          className="blue-btn-image-setting m-0"
+                          className="blue-btn-image-setting m-0 pg-fade-in"
                           type="button"
                         >
                           <FiCamera className="me-1" aria-hidden />
@@ -338,7 +337,7 @@ export default function Profile() {
                       </>
                     )}
                     <Button
-                      className="blue-btn-image-setting pg-fade-in"
+                      className="blue-btn-image-setting "
                       onClick={saveChanges}
                       type="button"
                       disabled={updating || isUploading}

@@ -23,6 +23,7 @@ export const GET_AFFILIATES = gql`
       #   notes
       # }
       notifications {
+        id
         date
         title
         text
@@ -55,6 +56,7 @@ export const GET_AFFILIATE = gql`
       #   notes
       # }
       notifications {
+        id
         date
         title
         text
@@ -87,6 +89,7 @@ export const GET_AFFILIATE_BY_REFID = gql`
       #   notes
       # }
       notifications {
+        id
         date
         title
         text
@@ -119,6 +122,7 @@ export const QUERY_ME = gql`
       #   notes
       # }
       notifications {
+        id
         date
         title
         text

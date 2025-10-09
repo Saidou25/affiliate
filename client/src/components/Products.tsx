@@ -49,7 +49,7 @@ export default function Products() {
     const [open, setOpen] = useState(false);
 
     return (
-      <section className="mb-3">
+      <section className="mb-3 ">
         <h2 className="mb-2">Promote &amp; Earn — Quick Start</h2>
         {/* <h3 className="mb-2 lead-intro">Quick Start, How to Promote & Get Credit, Getting Started.</h3> */}
         {/* <br /> */}
@@ -78,7 +78,7 @@ export default function Products() {
           className={`intro-panel mt-2 ${open ? "show" : ""}`}
           aria-hidden={open ? "false" : "true"}
         >
-          <div className="card border-0 shadow-sm pg-fade-in">
+          <div className="card border-0 shadow-sm ">
             <div className="card-body p-3">
               <ol className="m-0 ps-3">
                 <li className="mb-2">
@@ -170,7 +170,7 @@ export default function Products() {
                 {productsLinks?.some(
                   (p) => p.productTitle === product.name
                 ) && (
-                  <div className="pg-fade-in">
+                  <div className="">
                     <RefferalLink productUrl={product.permalink} />
 
                     <br />

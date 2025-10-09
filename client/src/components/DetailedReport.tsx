@@ -1,20 +1,24 @@
 import { useQuery } from "@apollo/client";
-import { GET_AFFILIATES, GET_AFFILIATESALES, QUERY_ME } from "../utils/queries";
+import { GET_AFFILIATES, GET_AFFILIATESALES } from "../utils/queries";
 import { useEffect, useState } from "react";
 import { useClicksTracker } from "../hooks/useClicksTracker";
 import { useSalesTracker } from "../hooks/useSalesTracker";
 import { Affiliate, AffiliateSale } from "../types";
+import ReusableTable from "./ReusableTable";
+import DetailedReportSkeleton from "./DetailedReportSkeleton";
+import { AffiliateOutletContext } from "./AffiliateDashboard";
+import { useOutletContext } from "react-router-dom";
 
 import "./DetailedReport.css";
-import ReusableTable from "./ReusableTable";
 
 interface MonthlySalesGroup {
   month: string;
   sales: AffiliateSale[];
 }
-type Props = {
-  refId: string;
-};
+// type Props = {
+//     me: Affiliate;
+//    onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
+// };
 
 // put this above your component
 const formatDate = (value: any): Date | null => {
@@ -32,10 +36,14 @@ const formatDate = (value: any): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 
-export default function DetailedReport({ refId }: Props) {
+export default function DetailedReport() {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
+  const [dataReady, setDataReady] = useState(false);
+
+    const { me, refId } =
+    useOutletContext<AffiliateOutletContext>();
 
   const {
     data: salesData,
@@ -52,11 +60,11 @@ export default function DetailedReport({ refId }: Props) {
 
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
 
-  const { data: meData } = useQuery(QUERY_ME);
-  const me = meData?.me || {};
 
-  const { salesPerMonth } = useSalesTracker(refId);
+  const { salesPerMonth } = useSalesTracker(refId ?? "");
   const { clicksPerMonth } = useClicksTracker();
+
+  // console.log(salesPerMonth);
 
   const findEmail = () => {
     if (affiliatesData) {
@@ -114,7 +122,15 @@ export default function DetailedReport({ refId }: Props) {
     setMonthlySales(groupedArray);
   }, [sortedDates]);
 
-  if (!monthlySales?.length) {
+  useEffect(() => {
+    if (monthlySales.length) {
+      setTimeout(() => {
+        setDataReady(true);
+      }, 1000);
+    }
+  }, [monthlySales]);
+
+  if (!monthlySales?.length && dataReady) {
     return (
       <div className="empty-state">
         {/* <img src="https://cdn.pixabay.com/photo/2016/03/31/20/53/analytics-1294847_1280.png"  alt="No reports" /> */}
@@ -126,13 +142,16 @@ export default function DetailedReport({ refId }: Props) {
     );
   }
 
+  if (!dataReady) {
+    return <DetailedReportSkeleton />;
+  }
+
   return (
     <div className="detailed-report-container">
-      {me.role === "admin" && monthlySales.length ? (
-        <h3>Report for {findEmail()}</h3>
-      ) : me.role === "affiliate" && monthlySales.length ? null : (
+      {me?.role === "affiliate" && showReport === null ? (
         <h2>Monthly Reports</h2>
-      )}
+      ) : null}
+      <br />
       {monthlySales &&
         monthlySales.map((monthSales, index) => (
           <div className="" key={monthSales.month}>

@@ -14,7 +14,7 @@
 
   /* Scroll-driven overlay (set in JS): 0 → 1 */
   --nav-overlay: 0;
-  --nav-overlay-color: #a3e4c3; /* brand tint over bg-dark */
+  --nav-overlay-color: #E37D37; /* brand tint over bg-dark */
 }
 
 /* ===== Top fixed bar: logo + profile/notifications + logout ===== */
@@ -88,8 +88,8 @@
   isolation: isolate;          /* creates stacking context for ::before */
 
   /* Base stays exactly Bootstrap bg-dark */
-  background-color: rgba(var(--bs-dark-rgb, 33, 37, 41), 1);
-
+  /* background-color: rgba(var(--bs-dark-rgb, 33, 37, 41), 1); */
+background-color: black;
   padding-left: 24px !important;
   padding-right: 24px !important;
 }

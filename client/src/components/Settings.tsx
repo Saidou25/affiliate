@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@apollo/client";
-// import { useNavigate } from "react-router-dom";
-import { QUERY_ME } from "../utils/queries";
 import SettingsLeftBar, { SettingsItem, SettingsKey } from "./SettingsLeftBar";
-import StripeStatusCard from "./StripStatusCard";
+import StripeStatusCard from "./StripeStatusCard";
 import Profile from "./Profile";
 // import Button from "./Button";
+import NotificationsList from "./NotificationsList";
+import { AffiliateOutletContext } from "./AffiliateDashboard";
+import { useOutletContext } from "react-router-dom";
 
 import "./SettingsLeftBar.css";
 import "./SettingsLayout.css";
-import NotificationsList from "./NotificationsList";
 
 export default function Settings() {
-  const [current, setCurrent] = useState<SettingsKey>("account");
-  const { data, loading } = useQuery(QUERY_ME);
-  const me = data?.me || {};
+  const { affiliateId, refId, onboardingStatus } =
+    useOutletContext<AffiliateOutletContext>();
 
-  // const navigate = useNavigate();
+  const [current, setCurrent] = useState<SettingsKey>("account");
 
   const ref = useRef<HTMLHeadingElement>(null);
 
@@ -43,7 +41,7 @@ export default function Settings() {
     el.classList.add("pg-fade-in"); // re-add to restart animation
   }, [currentLabel]);
 
-  if (loading) return <p>Loading settings...</p>;
+  if (onboardingStatus?.loading) return <p>Loading settings...</p>;
 
   return (
     <div className="container-fluid settings-layout">
@@ -68,13 +66,19 @@ export default function Settings() {
             key={currentLabel}
             className="settings-content__header pg-fade-in"
           >
-            <h2 className="pg-fade-in">{currentLabel}</h2>
+            <h2 ref={ref} className="pg-fade-in">
+              {currentLabel}
+            </h2>
             <div className="label-underline" />
           </header>
 
           {current === "account" && (
             <section className="settings-card pg-fade-in">
-              <StripeStatusCard affiliateId={me.id} />
+              <StripeStatusCard
+                refId={refId}
+                affiliateId={affiliateId}
+                onboardingStatus={onboardingStatus}
+              />
             </section>
           )}
 

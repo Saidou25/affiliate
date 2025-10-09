@@ -1,129 +1,183 @@
-import { useMutation, useQuery } from "@apollo/client";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { Affiliate } from "../types";
+import { AffiliateOutletContext } from "../components/AffiliateDashboard";
+import { useMutation } from "@apollo/client";
 import {
   CREATE_NOTIFICATION,
+  DELETE_NOTIFICATION,
+  UPDATE_NOTIFICATION_READ_STATUS,
 } from "../utils/mutations";
-import { QUERY_ME } from "../utils/queries";
-import useCheckOnboardingStatus from "./useCheckOnboardingStatus";
+import { useResetOnboardingCycle } from "./resetOnboardingCycle";
 
-type Phase = "not_started" | "in_progress" | "complete";
+type State = "not_started" | "in_progress" | "complete";
 
-// Deterministic titles by state
-const TITLE_BY_STATE: Record<Phase, string> = {
-  not_started: "Stripe account not connected",
-  in_progress: "Finish your Stripe onboarding",
-  complete: "Success, Stripe onboarding complete",
-};
+export function useOnBoardingNotifications(
+  me: Affiliate | undefined,
+  onboardingStatus?: AffiliateOutletContext["onboardingStatus"]
+) {
+  const [createNotification] = useMutation(CREATE_NOTIFICATION);
+  const [deleteNotification] = useMutation(DELETE_NOTIFICATION);
+  const [updateNotificationReadStatus] = useMutation(
+    UPDATE_NOTIFICATION_READ_STATUS
+  );
 
-export function useOnBoardingNotifications() {
-  const [createNotification] = useMutation(CREATE_NOTIFICATION, {
-    refetchQueries: [{ query: QUERY_ME }],
-  });
+  const deleteOnboarding = useResetOnboardingCycle();
+  // derives status once, optionally override in dev
+  // Always concrete (no undefined)
+  const status: State = (onboardingStatus?.state ?? "not_started") as State;
+  // if (import.meta.env?.DEV ?? process.env.NODE_ENV !== "production") {
+  //   status = "complete"; // for testing this path
+  // }
 
-  const { data, loading } = useQuery(QUERY_ME);
-  const me = data?.me || {};
-  const notifications = me?.notifications ?? [];
-
-  const {
-    state, // "not_started" | "in_progress" | "complete"
-    onboardingStatusMessage,
-    onboardingNotificationTitle,
-    loading: statusLoading,
-  } = useCheckOnboardingStatus(me.id);
-
-  // Avoid duplicate creates from React Strict Mode double-invoke (dev)
-  const hasHandledNotification = useRef(false);
-
-  // Helper: get latest timestamp among notifications with any title in the set
-  const latestTsForTitles = (titles: Set<string>) => {
-    let latest = 0;
-    for (const n of notifications as any[]) {
-      const t = n?.title;
-      if (!t || !titles.has(t)) continue;
-      const raw = (n as any)?.date ?? (n as any)?.createdAt;
-      const ts =
-        typeof raw === "string" || typeof raw === "number"
-          ? new Date(raw).getTime()
-          : new Date(
-              // tolerate Mongo-ish shapes if ever passed through
-              (raw as any)?.$date?.$numberLong
-                ? Number((raw as any).$date.$numberLong)
-                : Date.now()
-            ).getTime();
-      if (Number.isFinite(ts) && ts > latest) latest = ts;
-    }
-    return latest; // 0 means none found
-  };
+  // hase guard: remember the last processed phase to prevent re-running on cache churn
+  const lastPhaseRef = useRef<State | null>(null);
 
   useEffect(() => {
-    if (
-      !me?.refId ||
-      hasHandledNotification.current ||
-      loading ||
-      statusLoading ||
-      !onboardingNotificationTitle ||
-      !onboardingStatusMessage
-    ) {
+    if (!me?.refId) return;
+
+    // Skip if we already processed this phase
+    if (lastPhaseRef.current === status) return;
+
+    const notifications = me?.notifications ?? [];
+
+    const notConnected = notifications.find(
+      (n: any) => (n?.title ?? "") === "Stripe account not connected"
+    );
+    const finishOnboarding = notifications.find(
+      (n: any) => (n?.title ?? "") === "Finish your Stripe onboarding"
+    );
+    const onboardingComplete = notifications.find(
+      (n: any) => (n?.title ?? "") === "Onboarding complete"
+    );
+
+    // --- 1) Regression detection: previously "complete" but now NOT complete
+    const regressed =
+      onboardingComplete &&
+      (status === "not_started" || status === "in_progress");
+
+    if (regressed) {
+      void deleteOnboarding(me.refId);
+      lastPhaseRef.current = status; // record processed phase
       return;
     }
 
-    const run = async () => {
-      try {
-        // Special-case: success should NOT be recreated on every login.
-        // Only create a new success notification if there was a NEW onboarding cycle
-        // after the last success (i.e., a newer "not_started" or "in_progress" event).
-        if (state === "complete") {
-          const successTitle = TITLE_BY_STATE.complete;
-          const resetTitles = new Set<string>([
-            TITLE_BY_STATE.not_started,
-            TITLE_BY_STATE.in_progress,
-          ]);
+    let acted = false;
 
-          const lastSuccessTs = latestTsForTitles(new Set([successTitle]));
-          const lastResetTs = latestTsForTitles(resetTitles);
+    for (const notification of notifications.length
+      ? notifications
+      : [null as any]) {
+      if (acted) break;
 
-          const shouldCreateSuccess =
-            lastSuccessTs === 0 || lastResetTs > lastSuccessTs;
+      switch (status) {
+        case "not_started": {
+          const exists = !!notConnected;
 
-          if (shouldCreateSuccess) {
-            await createNotification({
+          if (!exists) {
+            createNotification({
               variables: {
                 refId: me.refId,
-                title: successTitle,
-                text: onboardingStatusMessage, // "✅ Your Stripe account is connected and ready for payouts."
-                read: false,
+                title: "Stripe account not connected",
+                text: "You haven't connected a payment method yet. To receive your commissions, please link your Stripe account.",
               },
             });
+            acted = true;
+            break;
           }
-        } else {
-          // Default behavior for everything else:
-          // systematically create a new unread notification each time
-          await createNotification({
-            variables: {
-              refId: me.refId,
-              title: onboardingNotificationTitle,
-              text: onboardingStatusMessage,
-              read: false,
-            },
-          });
-        }
-      } finally {
-        // Prevent double-create in Strict Mode on this mount
-        hasHandledNotification.current = true;
-      }
-    };
 
-    run();
+          if (
+            notification &&
+            notification.title === "Stripe account not connected" &&
+            notification.read !== false
+          ) {
+            const notificationId =
+              (notification as any).id ?? String((notification as any)._id);
+            if (notificationId) {
+              updateNotificationReadStatus({
+                variables: { refId: me.refId, notificationId },
+              });
+              acted = true;
+            }
+          }
+          break;
+        }
+
+        case "in_progress": {
+          const exists = !!finishOnboarding;
+
+          if (!exists) {
+            createNotification({
+              variables: {
+                refId: me.refId,
+                title: "Finish your Stripe onboarding",
+                text: "Almost there! Please finish setting up your Stripe account to start receiving payouts.",
+              },
+            });
+            acted = true;
+            break;
+          }
+
+          if (
+            notification &&
+            notification.title === "Finish your Stripe onboarding" &&
+            notification.read !== false
+          ) {
+            const notificationId =
+              (notification as any).id ?? String((notification as any)._id);
+            if (notificationId) {
+              updateNotificationReadStatus({
+                variables: { refId: me.refId, notificationId },
+              });
+              acted = true;
+            }
+          }
+          break;
+        }
+
+        case "complete": {
+          // ✅ Create a single "Onboarding complete" notification if it doesn't exist
+          if (!onboardingComplete) {
+            createNotification({
+              variables: {
+                refId: me.refId,
+                title: "Onboarding complete",
+                text: "Congratulations! Your Stripe account has been fully set up. You’re ready to receive payouts.",
+              },
+            });
+            acted = true;
+          }
+          break;
+        }
+
+        default:
+          if (typeof import.meta !== "undefined" && import.meta.env?.DEV) {
+            console.debug(
+              "[notifications] unhandled onboarding status:",
+              status
+            );
+          }
+          break;
+      }
+    }
+    // record processed phase so we don't run again unless phase changes
+    lastPhaseRef.current = status;
   }, [
     me?.refId,
-    state,
-    onboardingNotificationTitle,
-    onboardingStatusMessage,
-    notifications, // needed for success dedupe logic
-    loading,
-    statusLoading,
+    status,
     createNotification,
+    deleteNotification,
+    updateNotificationReadStatus,
+    deleteOnboarding,
   ]);
 
-  return null;
+  // Return all notifications, newest first
+  const sorted = useMemo(() => {
+    const list = me?.notifications ?? [];
+    return [...list].sort(
+      (a: any, b: any) =>
+        new Date(b?.date ?? b?.createdAt ?? 0).getTime() -
+        new Date(a?.date ?? a?.createdAt ?? 0).getTime()
+    );
+  }, [me?.notifications]);
+
+  return sorted;
 }

@@ -332,7 +332,7 @@ export default function ReusableTable({
   };
 
   return (
-    <div className="print pg-fade-in">
+    <div className="print ">
       {error && (
         <div className="alert error no-print" style={{ margin: "8px 0" }}>
           {error}

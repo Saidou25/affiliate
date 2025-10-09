@@ -26,7 +26,12 @@ const useCheckOnboardingStatus = (affiliateId?: string) => {
   }>(CHECK_STRIPE_STATUS, {
     variables: { affiliateId: effectiveAffiliateId },
     skip: !effectiveAffiliateId, // only if we truly have no id
-    fetchPolicy: "network-only", // status is volatile
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    // ↓ don't toggle loading=true for background refetch
+    notifyOnNetworkStatusChange: false,
+    // ↓ allow partial cached data without going "loading"
+    returnPartialData: true,
   });
 
   const stripeStatus = data?.checkStripeStatus;

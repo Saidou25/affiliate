@@ -12,7 +12,7 @@ body,
   /* background-color: black; */
   width: 100%; /* instead of 100vw */
   min-height: 100dvh;
-  --fade-in-ms: .25s;
+  --fade-in-ms: .50s;
 }
 
 h1 {

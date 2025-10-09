@@ -3,6 +3,7 @@ import mongoose, { CallbackError, Document, Schema, Types } from "mongoose";
 import * as bcrypt from "bcrypt";
 
 interface INotification {
+  _id?: Types.ObjectId;
   date: Date;
   title: string;
   text: string;
@@ -12,20 +13,25 @@ interface INotification {
 // Snapshot of a Payment stored on Affiliate.paymentHistory
 // Mirrors fields you'll need in reconcile/webhook updates
 export interface IPaymentSnapshot {
-  paymentId?: Types.ObjectId;                  // ref -> Payment
-  refId?: string;                              // affiliate refId (denormalized)
-  affiliateId?: Types.ObjectId;                // ref -> Affiliate (denormalized)
-  saleIds?: Types.ObjectId[];                  // refs -> AffiliateSale[]
+  paymentId?: Types.ObjectId; // ref -> Payment
+  refId?: string; // affiliate refId (denormalized)
+  affiliateId?: Types.ObjectId; // ref -> Affiliate (denormalized)
+  saleIds?: Types.ObjectId[]; // refs -> AffiliateSale[]
   saleAmount?: number;
   paidCommission?: number;
   productName?: string;
-  date?: Date;                                 // when record was created (or paidAt)
-  method?: string;                             // "stripe_transfer" | "bank" | ...
-  transactionId?: string;                      // tr_..., MANUAL-...
+  date?: Date; // when record was created (or paidAt)
+  method?: string; // "stripe_transfer" | "bank" | ...
+  transactionId?: string; // tr_..., MANUAL-...
   notes?: string;
-  currency?: string;                           // e.g., "usd"
-  status?: "processing" | "paid" | "failed" | "transfer_created" | "transfer_reversed";
-  paidAt?: Date | null;                        // Stripe-confirmed settlement time
+  currency?: string; // e.g., "usd"
+  status?:
+    | "processing"
+    | "paid"
+    | "failed"
+    | "transfer_created"
+    | "transfer_reversed";
+  paidAt?: Date | null; // Stripe-confirmed settlement time
 }
 
 export interface IAffiliate extends Document {
@@ -62,7 +68,13 @@ const PaymentSnapshotSchema = new Schema<IPaymentSnapshot>(
     currency: { type: String },
     status: {
       type: String,
-      enum: ["processing", "paid", "failed", "transfer_created", "transfer_reversed"],
+      enum: [
+        "processing",
+        "paid",
+        "failed",
+        "transfer_created",
+        "transfer_reversed",
+      ],
       default: "processing",
     },
     paidAt: { type: Date, default: null },
@@ -72,10 +84,30 @@ const PaymentSnapshotSchema = new Schema<IPaymentSnapshot>(
 
 const NotificationSchema = new Schema<INotification>(
   {
-    date: { type: Date },
-    title: { type: String },
-    text: { type: String },
+    title: {
+      type: String,
+      required: true,
+      set: (s: any) =>
+        typeof s === "string" ? s.trim().replace(/^"+|"+$/g, "") : s,
+    },
+    text: {
+      type: String,
+      default: "",
+      set: (s: any) =>
+        typeof s === "string" ? s.trim().replace(/^"+|"+$/g, "") : s,
+    },
     read: { type: Boolean, default: false },
+    date: {
+      type: Date,
+      required: true,
+      default: Date.now,
+      // Be forgiving: trim strings, parse, and fallback instead of throwing
+      set: (v: any) => {
+        if (!v) return new Date();
+        const d = new Date(String(v).trim());
+        return Number.isNaN(d.getTime()) ? new Date() : d;
+      },
+    },
   },
   { _id: true }
 );

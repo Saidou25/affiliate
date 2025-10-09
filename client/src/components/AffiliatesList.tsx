@@ -4,20 +4,17 @@
 import { Affiliate } from "../types";
 import { useEffect, useState } from "react";
 import useFetchStripeStatusByRefId from "../hooks/useFetchStripeStatusByRefId";
-import { useNavigate } from "react-router-dom";
-
-import "./DetailedReport.css";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import Button from "./Button";
 
-type Props = {
-  data: any;
-  loading: boolean;
-  errorText: string | undefined;
-};
+import "./DetailedReport.css";
+import { AdminOutletContext } from "./AdminDashboard";
 
-export default function AffiliatesList({ data, loading, errorText }: Props) {
+export default function AffiliatesList() {
   const [refIdsArr, setRefIdsArr] = useState<string[]>([]);
-  // const refIds = data?.getAffiliates?.map((a: Affiliate) => a.refId) || [];
+
+    const { data, loading, errorText } = useOutletContext<AdminOutletContext>();
+
   const stripeReadyArr = useFetchStripeStatusByRefId(refIdsArr);
   const navigate = useNavigate();
 
