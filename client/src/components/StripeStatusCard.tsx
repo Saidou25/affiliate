@@ -4,11 +4,11 @@ import {
   CREATE_AFFILIATE_STRIPE_ACCOUNT,
   DISCONNECT_STRIPE_ACCOUNT,
 } from "../utils/mutations";
-import Spinner from "./Spinner";
-import Button from "./Button";
 import ConfirmCloseConnectionModal from "./ConfirmCloseConnectionModal";
 import { AffiliateOutletContext } from "./AffiliateDashboard";
-import { useResetOnboardingCycle } from "../hooks/resetOnboardingCycle";
+import { useResetOnboardingCycle } from "../hooks/useResetOnboardingCycle";
+import Spinner from "./Spinner";
+import Button from "./Button";
 
 interface Props {
   refId?: string;
@@ -28,13 +28,36 @@ export default function StripeStatusCard({
   const [createStripeAccount, { loading: createLoading }] = useMutation(
     CREATE_AFFILIATE_STRIPE_ACCOUNT
   );
+
   const [disconnectStripeAccount, { loading: disconnectLoading }] = useMutation(
-    DISCONNECT_STRIPE_ACCOUNT
+    DISCONNECT_STRIPE_ACCOUNT,
+    {
+      // runs only after the mutation succeeds on the server
+      update(cache, { data }) {
+        const ok = data?.disconnectStripeAccount?.success;
+        if (!ok || !refId) return;
+
+        const cacheId = cache.identify({ __typename: "Affiliate", refId });
+
+        cache.modify({
+          id: cacheId,
+          fields: {
+            // only flip the Stripe connection locally
+            stripeAccountId() {
+              return null;
+            },
+            // notifications are handled by  deleteOnboarding hook's own update()
+            // so we don't touch them here.
+          },
+        });
+      },
+    }
   );
 
   const deleteOnboarding = useResetOnboardingCycle();
 
   const startOrResume = async () => {
+    console.log(affiliateId);
     try {
       const { data } = await createStripeAccount({
         variables: { affiliateId },
@@ -56,24 +79,58 @@ export default function StripeStatusCard({
 
   const closeConnection = async () => {
     if (!affiliateId) return;
-
     try {
-      const { data } = await disconnectStripeAccount({
-        variables: { affiliateId: affiliateId },
-      });
+      const res = await disconnectStripeAccount({ variables: { affiliateId } });
 
-      if (data?.disconnectStripeAccount?.success) {
+      // while debugging
+      console.log("[disconnectStripeAccount] data:", res.data);
+      console.log("[disconnectStripeAccount] errors:", res.errors);
+
+      const payload = res.data?.disconnectStripeAccount;
+      const success = payload?.success === true;
+
+      if (success) {
         if (!refId) return;
+
+        // Reset onboarding notifications (hook updates cache for notifications)
         const ok = await deleteOnboarding(refId);
         if (ok) {
           setStripeMessage("Stripe account successfully disconnected.");
           setShowStripeMessage(true);
+          setShowModal(false);
         }
-      } else {
-        console.warn("⚠️ Stripe disconnection did not complete.");
+        return;
       }
+
+      // Not success → surface why
+      const reason =
+        payload?.reason || res.errors?.[0]?.message || "unknown-error";
+      console.warn("⚠️ Stripe disconnection did not complete. reason:", reason);
+
+      if (reason === "standard-account") {
+        setStripeMessage(
+          "This is a Standard Stripe account. Please disconnect it from your Stripe Dashboard (OAuth deauthorize)."
+        );
+        setShowStripeMessage(true);
+        return;
+      }
+
+      if (reason === "retrieve-failed") {
+        setStripeMessage(
+          "We couldn’t retrieve the Stripe account. Check test vs live mode and that the account ID exists."
+        );
+        setShowStripeMessage(true);
+        return;
+      }
+
+      setStripeMessage(
+        "Stripe disconnection did not complete. Please try again."
+      );
+      setShowStripeMessage(true);
     } catch (error) {
       console.error("❌ Error disconnecting Stripe account:", error);
+      setStripeMessage("Unexpected error. Please try again.");
+      setShowStripeMessage(true);
     }
   };
 
@@ -82,7 +139,7 @@ export default function StripeStatusCard({
       const timer = setTimeout(() => {
         setStripeMessage("");
         setShowModal(false);
-      }, 3000);
+      }, 4500);
       return () => clearTimeout(timer);
     }
   }, [stripeMessage]);
@@ -96,7 +153,11 @@ export default function StripeStatusCard({
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         {onboardingStatus?.state === "not_started" && (
-          <Button className="blue-btn-settings" onClick={startOrResume}>
+          <Button
+            className="blue-btn-settings"
+            onClick={startOrResume}
+            disabled={disconnectLoading}
+          >
             {createLoading ? (
               <Spinner />
             ) : (
@@ -107,7 +168,11 @@ export default function StripeStatusCard({
 
         {onboardingStatus?.state === "in_progress" && (
           <>
-            <Button className="blue-btn-settings" onClick={startOrResume}>
+            <Button
+              className="blue-btn-settings"
+              onClick={startOrResume}
+              disabled={disconnectLoading}
+            >
               {createLoading ? (
                 <Spinner />
               ) : (
@@ -131,6 +196,7 @@ export default function StripeStatusCard({
           <Button
             className="blue-btn-settings danger-btn"
             onClick={() => setShowModal(true)}
+            disabled={disconnectLoading}
           >
             {disconnectLoading ? (
               <Spinner />

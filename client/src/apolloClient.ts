@@ -10,7 +10,7 @@ const API_BASE_URL = import.meta.env.DEV
 // Create an HTTP link to your server
 const httpLink = createHttpLink({
   uri: API_BASE_URL,
-   headers: { "Content-Type": "application/json" },
+  headers: { "Content-Type": "application/json" },
 });
 
 // Create a middleware link that reads your token from localStorage
@@ -26,11 +26,33 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
+const cache = new InMemoryCache({
+  typePolicies: {
+    Affiliate: {
+      keyFields: ["refId"],
+      fields: {
+        notifications: {
+          // ⬇️ Always overwrite the array with whatever the server returns
+          merge: false,
+        },
+      },
+    },
+    Notification: {
+      keyFields: ["id"],
+    },
+    Query: {
+      fields: {
+        me: { merge: false },
+      },
+    },
+  },
+});
+
 //  Compose the links and create the Apollo Client
 const client = new ApolloClient({
   // authLink runs first, then httpLink sends the request
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache,
 });
 
 export default client;

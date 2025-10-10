@@ -1,4 +1,3 @@
-// utils/useResetOnboardingCycle.ts
 import { useMutation } from "@apollo/client";
 import { DELETE_ONBOARDING_NOTIFICATIONS } from "../utils/mutations";
 

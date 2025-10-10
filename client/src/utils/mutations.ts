@@ -243,6 +243,7 @@ export const UPDATE_NOTIFICATION_READ_STATUS = gql`
       refId: $refId
     ) {
       id
+      refId
       notifications {
         id
         date
@@ -258,11 +259,28 @@ export const MARK_ALL_NOTIFICATIONS_READ = gql`
   mutation MarkAllNotificationsRead($refId: String!) {
     markAllNotificationsRead(refId: $refId) {
       id
+      refId
       notifications {
         id
         title
         read
         text
+        date
+      }
+    }
+  }
+`;
+
+export const MARK_NOTIFICATION_READ = gql`
+  mutation MarkNotificationRead($refId: String!, $notificationId: String!) {
+    markNotificationRead(refId: $refId, notificationId: $notificationId) {
+      id
+      refId
+      notifications {
+        id
+        title
+        text
+        read
         date
       }
     }
@@ -277,6 +295,7 @@ export const CREATE_NOTIFICATION = gql`
   ) {
     createNotification(refId: $refId, title: $title, text: $text) {
       id
+      refId
       notifications {
         id
         date
@@ -327,6 +346,17 @@ export const DISCONNECT_STRIPE_ACCOUNT = gql`
     }
   }
 `;
+
+// utils/mutations.ts
+// export const DISCONNECT_STRIPE_ACCOUNT = gql`
+//   mutation DisconnectStripeAccount($affiliateId: String!) {
+//     disconnectStripeAccount(affiliateId: $affiliateId) {
+//       success
+//       stripeId
+//       reason
+//     }
+//   }
+// `;
 
 export const SEND_EMAIL = gql`
   mutation SendEmail($input: SendEmailInput!) {

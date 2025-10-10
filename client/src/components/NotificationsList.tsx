@@ -1,40 +1,20 @@
-// import { useMutation, useQuery } from "@apollo/client";
 import { format } from "date-fns";
-// import { QUERY_ME } from "../utils/queries";
-// import { MARK_ALL_NOTIFICATIONS_READ } from "../utils/mutations";
-// import { useEffect } from "react";
-// import { useLocation } from "react-router-dom";
 import { Notification } from "../types";
-
-import "./NotificationsList.css";
+import useSortNotifications from "../hooks/useSortNotifications";
+import { useNotifications } from "../hooks/useNotifications";
 import { useOutletContext } from "react-router-dom";
 import { AffiliateOutletContext } from "./AffiliateDashboard";
+import { IoMdNotificationsOff } from "react-icons/io";
+
+import "./NotificationsList.css";
 
 export default function NotificationsList() {
-   const { me } =
-    useOutletContext<AffiliateOutletContext>();
-  // const location = useLocation();
-  // const openedFromMenu = location.state?.openedFromMenu;
+  const { me } = useOutletContext<AffiliateOutletContext>();
+  const { notifications, loading } = useSortNotifications();
 
-  // const [markRead] = useMutation(MARK_ALL_NOTIFICATIONS_READ);
+  const { markNotificationRead } = useNotifications(me);
 
-  // const { data, loading, error } = useQuery(QUERY_ME, {
-  //   fetchPolicy: "network-only",
-  // });
-
-  // const notifications: Notification[] = [
-  //   ...(data?.me?.notifications ?? []),
-  // ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  // useEffect(() => {
-  //   if (openedFromMenu && data?.me?.refId) {
-  //     markRead({ variables: { refId: data?.me.refId } });
-  //   }
-  // }, [openedFromMenu, data, markRead]);
-
-  // if (error) return <p>Error loading notifications.</p>;
-
-  if (!me?.notifications) {
+  if (loading) {
     return (
       <div className="notifications-page" aria-busy="true" aria-live="polite">
         <h2>All Notifications</h2>
@@ -52,20 +32,51 @@ export default function NotificationsList() {
     );
   }
 
+  if (!notifications?.length) {
+    return (
+         <div className="empty-state">
+           <IoMdNotificationsOff  size={64} className="opacity-60" aria-hidden />
+           <h3>No Notifications Found</h3>
+           {/* <p>
+             Once you start generating clicks and sales, analytics will appear
+             here.
+           </p> */}
+         </div>
+       );
+  }
+
   return (
     <div className="notifications-page">
       <h2>All Notifications</h2>
-      {me?.notifications?.length === 0 ? (
+      <br />
+      {notifications?.length === 0 ? (
         <p>No notifications found.</p>
       ) : (
         <ul className="notifications-list">
-          {me?.notifications?.map((note: Notification, index: number) => (
-            <li key={index} className="notification-entry">
-              <div className="notification-date">
-                {format(new Date(note.date), "MMM dd, yyyy HH:mm")}
+          {notifications?.map((note: Notification, index: number) => (
+            <li
+              key={String(note?.id ?? note?.id ?? index)}
+              className="row g-0 notification-entry"
+              style={{ justifyContent: "space-between" }}
+            >
+              <div className="col-md-9">
+                <div className="notification-date">
+                  {format(new Date(note.date), "MMM dd, yyyy HH:mm")}
+                </div>
+                <div className="notification-title">{note.title}</div>
+                <div className="notification-text">{note.text}</div>
               </div>
-              <div className="notification-title">{note.title}</div>
-              <div className="notification-text">{note.text}</div>
+              <div className="col-md-2 button-marked-div">
+                {note?.read === false && (
+                  <button
+                    className="marked-red"
+                    type="button"
+                    onClick={() => markNotificationRead(note.id)}
+                  >
+                    mark as read
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>

@@ -461,6 +461,8 @@ const typeDefs = gql`
 
     markAllNotificationsRead(refId: String!): Affiliate!
 
+    markNotificationRead(refId: String!, notificationId: String): Affiliate!
+
     updateNotificationReadStatus(
       refId: String!
       notificationId: ID!

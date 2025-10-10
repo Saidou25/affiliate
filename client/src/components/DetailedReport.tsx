@@ -10,6 +10,7 @@ import { AffiliateOutletContext } from "./AffiliateDashboard";
 import { useOutletContext } from "react-router-dom";
 
 import "./DetailedReport.css";
+import { FiBarChart2 } from "react-icons/fi";
 
 interface MonthlySalesGroup {
   month: string;
@@ -42,8 +43,7 @@ export default function DetailedReport() {
   const [showReport, setShowReport] = useState<number | null>(null);
   const [dataReady, setDataReady] = useState(false);
 
-    const { me, refId } =
-    useOutletContext<AffiliateOutletContext>();
+  const { me, refId } = useOutletContext<AffiliateOutletContext>();
 
   const {
     data: salesData,
@@ -59,7 +59,6 @@ export default function DetailedReport() {
   });
 
   const { data: affiliatesData } = useQuery(GET_AFFILIATES);
-
 
   const { salesPerMonth } = useSalesTracker(refId ?? "");
   const { clicksPerMonth } = useClicksTracker();
@@ -130,25 +129,23 @@ export default function DetailedReport() {
     }
   }, [monthlySales]);
 
-  if (!monthlySales?.length && dataReady) {
+  if (!dataReady && monthlySales?.length) {
+    return <DetailedReportSkeleton />;
+  }
+
+  if (!dataReady && !monthlySales?.length) {
     return (
       <div className="empty-state">
-        {/* <img src="https://cdn.pixabay.com/photo/2016/03/31/20/53/analytics-1294847_1280.png"  alt="No reports" /> */}
+      <FiBarChart2 size={64} className="opacity-60" aria-hidden />
         <h3>No Reports Available</h3>
-        <p>
-          Once you start generating clicks and sales, reports will appear here.
-        </p>
+        <p>Once you start generating sales, reports will appear here.</p>
       </div>
     );
   }
 
-  if (!dataReady) {
-    return <DetailedReportSkeleton />;
-  }
-
   return (
     <div className="detailed-report-container">
-      {me?.role === "affiliate" && showReport === null ? (
+      {dataReady && me?.role === "affiliate" && showReport === null ? (
         <h2>Monthly Reports</h2>
       ) : null}
       <br />

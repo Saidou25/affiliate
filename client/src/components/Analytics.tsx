@@ -6,6 +6,7 @@ import { useCommissionsTracker } from "../hooks/useCommissionsTracker";
 import { useClicksTracker } from "../hooks/useClicksTracker";
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
+import { AiOutlineAreaChart } from "react-icons/ai";
 
 import "./Analytics.css";
 
@@ -26,7 +27,7 @@ export default function Analytics() {
   ) {
     return (
       <div className="empty-state">
-        {/* <img src="https://cdn.pixabay.com/photo/2016/03/31/20/53/analytics-1294847_1280.png"  alt="No reports" /> */}
+        <AiOutlineAreaChart  size={64} className="opacity-60" aria-hidden />
         <h3>No Analytics Available</h3>
         <p>
           Once you start generating clicks and sales, analytics will appear

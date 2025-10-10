@@ -1,12 +1,12 @@
 import { useQuery } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
 import { Outlet } from "react-router-dom";
-import StripeSetupBanner from "./StripeSetupBanner";
+// import StripeSetupBanner from "./StripeSetupBanner";
 import useCheckOnboardingStatus from "../hooks/useCheckOnboardingStatus"; // NEW
 import { useMemo } from "react";
 import { Affiliate } from "../types";
 import Navbar from "./Navbar";
-import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
+// import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
 
 import "./AffiliateDashboard.css";
 // import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
@@ -17,6 +17,7 @@ export type AffiliateOutletContext = {
   refId?: string;
   affiliateId?: string;
   me?: Affiliate;
+  meLoading: boolean;
   onboardingStatus?: {
     state: "not_started" | "in_progress" | "complete";
     isStripeMissing: boolean;
@@ -31,7 +32,7 @@ export type AffiliateOutletContext = {
 };
 
 export default function AffiliateDashboard() {
-  const { data: meData } = useQuery(QUERY_ME, {
+  const { data: meData, loading: meLoading } = useQuery(QUERY_ME, {
     fetchPolicy: "cache-first",
     nextFetchPolicy: "cache-first",
     notifyOnNetworkStatusChange: false,
@@ -70,7 +71,7 @@ export default function AffiliateDashboard() {
     ]
   );
 
-  useOnBoardingNotifications(me, onboardingStatus);
+  // useOnBoardingNotifications(me, onboardingStatus);
 
   return (
     <>
@@ -78,12 +79,14 @@ export default function AffiliateDashboard() {
       <br />
       <br />
       <div className="affiliate-dashboard">
-        {status.state ? (
+        {/* {status.state ? (
           <StripeSetupBanner onboardingStatus={onboardingStatus} />
-         ) : null} 
+         ) : null}  */}
         <br />
         {/* Expose both refId and onboarding to all nested routes */}
-        <Outlet context={{ me, affiliateId, refId, onboardingStatus }} />
+        <Outlet
+          context={{ me, meLoading, affiliateId, refId, onboardingStatus }}
+        />
       </div>
     </>
   );

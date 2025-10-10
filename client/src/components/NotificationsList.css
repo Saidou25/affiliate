@@ -1,6 +1,6 @@
 .notifications-page {
   padding: 2rem;
-  max-width: 900px;
+  /* max-width: 900px; */
   margin: 0 auto;
 }
 
@@ -27,6 +27,33 @@
 
 .notification-text {
   font-size: 0.95rem;
+}
+
+.unread-button {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.button-list {
+  background-color: red;
+  border: none;
+  padding: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.button-marked-div {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 0.5rem;
+  width: auto;
+}
+
+.marked-red {
+  border: none;
+  color: rgb(77, 74, 74);
+  padding: 4px 15px 4px 15px;
 }
 
 @media screen and (max-width: 750px) {
@@ -64,22 +91,45 @@
 }
 
 /* sizes for each placeholder line */
-.skeleton-date  { height: 0.9rem;  width: 140px;   margin-bottom: 0.35rem; }
-.skeleton-title { height: 1rem;    width: 60%;     margin-bottom: 0.5rem;  }
-.skeleton-text  { height: 0.95rem; width: 100%;    margin-bottom: 0.4rem;  }
-.skeleton-text.short { width: 80%; }
+.skeleton-date {
+  height: 0.9rem;
+  width: 140px;
+  margin-bottom: 0.35rem;
+}
+.skeleton-title {
+  height: 1rem;
+  width: 60%;
+  margin-bottom: 0.5rem;
+}
+.skeleton-text {
+  height: 0.95rem;
+  width: 100%;
+  margin-bottom: 0.4rem;
+}
+.skeleton-text.short {
+  width: 80%;
+}
 
 @keyframes sk-shimmer {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton::after { animation: none; background: none; }
+  .skeleton::after {
+    animation: none;
+    background: none;
+  }
 }
 
 /* (keeps your existing responsive tweak) */
 @media screen and (max-width: 750px) {
-  .notifications-page { padding: 0; }
+  .notifications-page {
+    padding: 0;
+  }
 }

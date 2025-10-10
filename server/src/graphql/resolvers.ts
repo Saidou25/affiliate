@@ -788,6 +788,84 @@ const resolvers = {
       };
     },
 
+    disconnectStripeAccount: async (
+      _: unknown,
+      { affiliateId }: { affiliateId: string }
+    ): Promise<{ success: boolean; stripeId?: string; reason?: string }> => {
+      const affiliate = await Affiliate.findById(affiliateId);
+
+      if (!affiliate) {
+        return { success: false, reason: "affiliate-not-found" };
+      }
+      if (!affiliate.stripeAccountId) {
+        return { success: false, reason: "no-linked-stripe-account" };
+      }
+
+      const stripeKey = process.env.STRIPE_SECRET_KEY!;
+      const stripe = new Stripe(stripeKey);
+      const stripeId = affiliate.stripeAccountId;
+
+      // console.log("[disconnectStripeAccount] affiliateId=", affiliateId);
+      // console.log("[disconnectStripeAccount] stripeId=", stripeId);
+      // console.log(
+      //   "[disconnectStripeAccount] usingKeyMode=",
+      //   stripeKey.startsWith("sk_test") ? "TEST" : "LIVE"
+      // );
+
+      // Check account type (standard cannot be deleted by platform)
+      try {
+        const acct = await stripe.accounts.retrieve(stripeId);
+        console.log(
+          "[disconnectStripeAccount] retrieved acct.type=",
+          acct.type
+        );
+
+        if (acct.type === "standard") {
+          return {
+            success: false,
+            stripeId,
+            reason: "standard-account", // deauthorize via OAuth, not deletable
+          };
+        }
+      } catch (e: any) {
+        console.error(
+          "[disconnectStripeAccount] retrieve failed:",
+          e?.message || e
+        );
+        // surface a reason so the client can show a helpful message
+        return { success: false, stripeId, reason: "retrieve-failed" };
+      }
+
+      // Try to delete
+      try {
+        const deleted = await stripe.accounts.del(stripeId);
+        console.log("[disconnectStripeAccount] delete result:", deleted);
+
+        if (deleted?.deleted === true) {
+          await Affiliate.updateOne(
+            { _id: affiliateId, stripeAccountId: stripeId },
+            { $unset: { stripeAccountId: "" } }
+          );
+          return { success: true, stripeId };
+        }
+
+        console.warn(
+          "[disconnectStripeAccount] Stripe did not confirm deletion"
+        );
+        return {
+          success: false,
+          stripeId,
+          reason: "stripe-did-not-confirm-deletion",
+        };
+      } catch (e: any) {
+        console.error(
+          "[disconnectStripeAccount] delete failed:",
+          e?.message || e
+        );
+        return { success: false, stripeId, reason: "delete-failed" };
+      }
+    },
+
     createNotification: async (
       _: unknown,
       { refId, title, text }: { refId: string; title: string; text: string }
@@ -852,6 +930,19 @@ const resolvers = {
       return Affiliate.findOne({ refId });
     },
 
+    markNotificationRead: async (
+      _: unknown,
+      { refId, notificationId }: { refId: string; notificationId: string }
+    ) => {
+      const updated = await Affiliate.findOneAndUpdate(
+        { refId, "notifications._id": new Types.ObjectId(notificationId) },
+        { $set: { "notifications.$.read": true } }, // 👈 set to TRUE
+        { new: true }
+      );
+      if (!updated) throw new Error("Affiliate or notification not found");
+      return updated;
+    },
+
     deleteNotification: async (
       _: unknown,
       { refId, notificationId }: { refId: string; notificationId: string }
@@ -893,41 +984,46 @@ const resolvers = {
       return updated;
     },
 
+    // updateNotificationReadStatus: async (
+    //   _: unknown,
+    //   { refId, notificationId }: { refId: string; notificationId: string }
+    // ) => {
+    //   const updated = await Affiliate.findOneAndUpdate(
+    //     { refId, "notifications._id": new Types.ObjectId(notificationId) },
+    //     { $set: { "notifications.$.read": false } },
+    //     { new: true }
+    //   );
+    //   if (!updated) throw new Error("Affiliate or notification not found");
+    //   return updated;
+    // },
     updateNotificationReadStatus: async (
       _: unknown,
       { refId, notificationId }: { refId: string; notificationId: string }
     ) => {
+      // Safely construct ObjectId (in case a bad id sneaks in)
+      let _id: Types.ObjectId;
+      try {
+        _id = new Types.ObjectId(notificationId);
+      } catch {
+        // If the id is invalid, just return the current doc (don’t throw)
+        const fallback = await Affiliate.findOne({ refId });
+        if (!fallback) throw new Error("Affiliate not found");
+        return fallback;
+      }
+
+      // Try to flip the specific notification to read:false
       const updated = await Affiliate.findOneAndUpdate(
-        { refId, "notifications._id": new Types.ObjectId(notificationId) },
-        { $set: { "notifications.$.read": false } }, // <-- set it
+        { refId, "notifications._id": _id },
+        { $set: { "notifications.$.read": false } }, // keep your current intent
         { new: true }
       );
-      if (!updated) throw new Error("Affiliate or notification not found");
-      return updated;
-    },
 
-    disconnectStripeAccount: async (
-      _: any,
-      { affiliateId }: { affiliateId: string }
-    ) => {
-      const affiliate = await Affiliate.findById(affiliateId);
-      if (!affiliate || !affiliate.stripeAccountId) {
-        throw new Error("Stripe account not found.");
-      }
+      if (updated) return updated;
 
-      try {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-        const deleted = await stripe.accounts.del(affiliate.stripeAccountId);
-
-        affiliate.stripeAccountId = undefined;
-        await affiliate.save();
-
-        return { success: true, deleted };
-      } catch (err) {
-        console.error("Error disconnecting Stripe:", err);
-        throw new Error("Stripe disconnection failed.");
-      }
+      // If not found (likely removed by another mutation), just return latest Affiliate
+      const fallback = await Affiliate.findOne({ refId });
+      if (!fallback) throw new Error("Affiliate not found");
+      return fallback;
     },
 
     sendEmail: async (
