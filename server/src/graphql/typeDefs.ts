@@ -13,6 +13,12 @@ const typeDefs = gql`
     affiliate
   }
 
+  enum OnboardingState {
+    NOT_STARTED
+    IN_PROGRESS
+    COMPLETE
+  }
+
   enum CommissionStatus {
     unpaid # default
     processing # transfer requested
@@ -453,6 +459,11 @@ const typeDefs = gql`
       title: String!
       text: String!
       date: Date
+    ): Affiliate!
+
+    createOnboardingNotification(
+      refId: String!
+      state: OnboardingState!
     ): Affiliate!
 
     deleteNotification(refId: String!, notificationId: String!): Affiliate!

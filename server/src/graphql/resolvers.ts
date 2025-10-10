@@ -86,6 +86,21 @@ const ONBOARDING_TITLES = [
   "Onboarding complete",
 ];
 
+const TITLE_BY_STATE = {
+  NOT_STARTED: "Stripe account not connected",
+  IN_PROGRESS: "Finish your Stripe onboarding",
+  COMPLETE: "Onboarding complete",
+} as const;
+
+const TEXT_BY_STATE = {
+  NOT_STARTED:
+    "You haven't connected a payment method yet. To receive your commissions, please link your Stripe account.",
+  IN_PROGRESS:
+    "Almost there! Please finish setting up your Stripe account to start receiving payouts.",
+  COMPLETE:
+    "Congratulations! Your Stripe account has been fully set up. You’re ready to receive payouts.",
+} as const;
+
 function toCents(amount: number) {
   return Math.max(0, Math.round(Number((amount ?? 0).toFixed(2)) * 100));
 }
@@ -805,13 +820,6 @@ const resolvers = {
       const stripe = new Stripe(stripeKey);
       const stripeId = affiliate.stripeAccountId;
 
-      // console.log("[disconnectStripeAccount] affiliateId=", affiliateId);
-      // console.log("[disconnectStripeAccount] stripeId=", stripeId);
-      // console.log(
-      //   "[disconnectStripeAccount] usingKeyMode=",
-      //   stripeKey.startsWith("sk_test") ? "TEST" : "LIVE"
-      // );
-
       // Check account type (standard cannot be deleted by platform)
       try {
         const acct = await stripe.accounts.retrieve(stripeId);
@@ -878,7 +886,7 @@ const resolvers = {
       await Affiliate.updateOne(
         {
           refId,
-          notifications: { $not: { $elemMatch: { title } } }, // only insert if no match
+          notifications: { $not: { $elemMatch: { title: normTitle } } }, // only insert if no match
         },
         {
           $push: {
@@ -895,6 +903,40 @@ const resolvers = {
       );
 
       // Return the updated affiliate with notifications
+      return Affiliate.findOne({ refId });
+    },
+
+    createOnboardingNotification: async (
+      _: unknown,
+      { refId, state }: { refId: string; state: keyof typeof TITLE_BY_STATE }
+    ) => {
+      const rawTitle = TITLE_BY_STATE[state];
+      const normTitle =
+        typeof rawTitle === "string"
+          ? rawTitle.trim().replace(/^"+|"+$/g, "")
+          : rawTitle;
+
+      // Dedupe rule: skip insert if a notification with the SAME TITLE already exists (read or unread)
+      await Affiliate.updateOne(
+        {
+          refId,
+          notifications: { $not: { $elemMatch: { title: normTitle } } }, // <-- use normalized title
+        },
+        {
+          $push: {
+            notifications: {
+              _id: new Types.ObjectId(),
+              title: normTitle,
+              text: TEXT_BY_STATE[state],
+              read: false,
+              date: new Date(),
+            },
+          },
+        },
+        { runValidators: true }
+      );
+
+      // Return updated affiliate (used by client to refresh cache)
       return Affiliate.findOne({ refId });
     },
 

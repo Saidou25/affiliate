@@ -9,6 +9,7 @@ import Navbar from "./Navbar";
 // import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
 
 import "./AffiliateDashboard.css";
+// import { useOnboardingNotifications } from "../hooks/useOnBoardingNotifications";
 // import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
 // import { useOnBoardingNotifications } from "../hooks/useOnBoardingNotifications";
 
@@ -71,7 +72,6 @@ export default function AffiliateDashboard() {
     ]
   );
 
-  // useOnBoardingNotifications(me, onboardingStatus);
 
   return (
     <>

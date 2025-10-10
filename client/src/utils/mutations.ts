@@ -307,6 +307,27 @@ export const CREATE_NOTIFICATION = gql`
   }
 `;
 
+export const CREATE_ONBOARDING_NOTIFICATION = gql`
+  mutation CreateOnboardingNotification(
+    $refId: String!
+    $state: OnboardingState!
+  ) {
+    createOnboardingNotification(refId: $refId, state: $state) {
+      id
+      refId
+      notifications {
+        id
+        date
+        title
+        text
+        read
+        __typename
+      }
+      __typename
+    }
+  }
+`;
+
 export const DELETE_NOTIFICATION = gql`
   mutation DeleteNotification($refId: String!, $notificationId: String!) {
     deleteNotification(refId: $refId, notificationId: $notificationId) {

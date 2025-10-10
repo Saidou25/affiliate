@@ -2,6 +2,7 @@ import { useMutation } from "@apollo/client";
 import { useEffect, useState } from "react";
 import {
   CREATE_AFFILIATE_STRIPE_ACCOUNT,
+  CREATE_ONBOARDING_NOTIFICATION,
   DISCONNECT_STRIPE_ACCOUNT,
 } from "../utils/mutations";
 import ConfirmCloseConnectionModal from "./ConfirmCloseConnectionModal";
@@ -9,12 +10,16 @@ import { AffiliateOutletContext } from "./AffiliateDashboard";
 import { useResetOnboardingCycle } from "../hooks/useResetOnboardingCycle";
 import Spinner from "./Spinner";
 import Button from "./Button";
+import { QUERY_ME } from "../utils/queries";
 
 interface Props {
   refId?: string;
   affiliateId?: string;
   onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
 }
+
+type State = "not_started" | "in_progress" | "complete";
+type MeResult = { me?: { notifications?: any[] } };
 
 export default function StripeStatusCard({
   refId,
@@ -57,7 +62,6 @@ export default function StripeStatusCard({
   const deleteOnboarding = useResetOnboardingCycle();
 
   const startOrResume = async () => {
-    console.log(affiliateId);
     try {
       const { data } = await createStripeAccount({
         variables: { affiliateId },
@@ -83,8 +87,8 @@ export default function StripeStatusCard({
       const res = await disconnectStripeAccount({ variables: { affiliateId } });
 
       // while debugging
-      console.log("[disconnectStripeAccount] data:", res.data);
-      console.log("[disconnectStripeAccount] errors:", res.errors);
+      // console.log("[disconnectStripeAccount] data:", res.data);
+      // console.log("[disconnectStripeAccount] errors:", res.errors);
 
       const payload = res.data?.disconnectStripeAccount;
       const success = payload?.success === true;
@@ -143,6 +147,53 @@ export default function StripeStatusCard({
       return () => clearTimeout(timer);
     }
   }, [stripeMessage]);
+
+  // ---- NEW: create-notification mutation (writes back to QUERY_ME) ----
+
+  const [createOnboardingNotification] = useMutation(
+    CREATE_ONBOARDING_NOTIFICATION,
+    {
+      update(cache, { data }) {
+        const next = (data as any)?.createOnboardingNotification;
+        if (!next?.notifications) return;
+        const prev = cache.readQuery<MeResult>({ query: QUERY_ME });
+        if (!prev?.me) return;
+
+        cache.writeQuery<MeResult>({
+          query: QUERY_ME,
+          data: { me: { ...prev.me, notifications: next.notifications } },
+        });
+      },
+    }
+  );
+
+  useEffect(() => {
+    if (!refId) return;
+    if (!onboardingStatus || onboardingStatus.loading) return;
+
+    const mapState = (s: State) =>
+      s === "not_started"
+        ? "NOT_STARTED"
+        : s === "in_progress"
+        ? "IN_PROGRESS"
+        : "COMPLETE";
+
+    (async () => {
+      try {
+        await createOnboardingNotification({
+          variables: { refId, state: mapState(onboardingStatus.state) },
+        });
+        // server will dedupe; if title exists, insert is skipped (by design)
+      } catch (e) {
+        console.error("CREATE_ONBOARDING_NOTIFICATION failed:", e);
+      }
+    })();
+  }, [
+    refId,
+    onboardingStatus?.loading,
+    onboardingStatus?.state,
+    createOnboardingNotification,
+  ]);
 
   if (onboardingStatus?.loading) return <p>Loading Stripe status...</p>;
 
