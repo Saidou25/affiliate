@@ -35,8 +35,7 @@ import stripeWebhook from "./routes/stripeWebhook";
 // Models referenced in Woo ingest
 import Affiliate from "./models/Affiliate";
 import AffiliateSale from "./models/AffiliateSale";
-
-console.log("NODE_ENV =", process.env.NODE_ENV);
+import { startOnboardingReminderCron } from "./jobs/onboardingReminders";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -318,6 +317,9 @@ async function startServer() {
 
     expressMiddleware(server, { context: createContext as any })
   );
+
+  // start daily reminders (09:05 America/New_York by default)
+  startOnboardingReminderCron();
 
   // ───────────────────────────────────────────────────────────────────────────
   // 5) START SERVER

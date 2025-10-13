@@ -330,6 +330,10 @@ const typeDefs = gql`
     updatedAt: Date
   }
 
+  type StripeLoginLinkPayload {
+    url: String!
+  }
+
   type Query {
     getAffiliates: [Affiliate!]!
     getAffiliate(id: ID!): Affiliate
@@ -499,6 +503,8 @@ const typeDefs = gql`
     ): Payment!
 
     refundAffiliateSale(input: RefundAffiliateSaleInput!): RefundResult!
+
+    createStripeExpressDashboardLink(refId: String!): StripeLoginLinkPayload!
   }
 
   type AuthPayload {

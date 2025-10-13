@@ -8,6 +8,7 @@ interface INotification {
   title: string;
   text: string;
   read: boolean;
+  id: string;
 }
 
 // Snapshot of a Payment stored on Affiliate.paymentHistory
@@ -79,7 +80,7 @@ const PaymentSnapshotSchema = new Schema<IPaymentSnapshot>(
     },
     paidAt: { type: Date, default: null },
   },
-  { _id: false } // snapshots don't need their own _id unless you want it
+  { _id: false }
 );
 
 const NotificationSchema = new Schema<INotification>(
@@ -106,6 +107,12 @@ const NotificationSchema = new Schema<INotification>(
         if (!v) return new Date();
         const d = new Date(String(v).trim());
         return Number.isNaN(d.getTime()) ? new Date() : d;
+      },
+    },
+    id: {
+      type: String,
+      default: function () {
+        return this?._id ? String(this._id) : undefined;
       },
     },
   },

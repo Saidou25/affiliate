@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client";
+import { useApolloClient, useQuery } from "@apollo/client";
 import { useMemo } from "react";
 import { CHECK_STRIPE_STATUS, QUERY_ME } from "../utils/queries";
 
@@ -14,6 +14,7 @@ export type StripeStatus = {
 type OnboardingState = "not_started" | "in_progress" | "complete";
 
 const useCheckOnboardingStatus = (affiliateId?: string) => {
+  const client = useApolloClient();
   // Who am I?
   const { data: meData } = useQuery(QUERY_ME);
   const me = meData?.me ?? {};
@@ -32,6 +33,11 @@ const useCheckOnboardingStatus = (affiliateId?: string) => {
     notifyOnNetworkStatusChange: false,
     // ↓ allow partial cached data without going "loading"
     returnPartialData: true,
+    // 🔁 After we check status (which may create a notification on the server),
+    // pull fresh me{notifications} so the UI reflects it immediately.
+    onCompleted: () => {
+      client.refetchQueries({ include: [QUERY_ME] });
+    },
   });
 
   const stripeStatus = data?.checkStripeStatus;
@@ -43,7 +49,6 @@ const useCheckOnboardingStatus = (affiliateId?: string) => {
     return stripeStatus.payouts_enabled ? "complete" : "in_progress";
   }, [me?.stripeAccountId, stripeStatus]);
 
-  // Optional: human-friendly copy & primary button label
   const { message, buttonLabel, buttonDangerLabel } = useMemo(() => {
     if (state === "not_started") {
       return {

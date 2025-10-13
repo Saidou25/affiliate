@@ -35,7 +35,7 @@
     "moment-timezone": "^0.6.0",
     "mongodb": "^6.16.0",
     "mongoose": "^8.13.3",
-    "node-cron": "^4.0.7",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.3",
     "path-to-regexp": "^8.2.0",
     "puppeteer": "^24.9.0",

@@ -34,6 +34,12 @@ import {
   toStripeListPage,
   toStripeSearchPage,
 } from "../utils/stripeListFunctions";
+import { GraphQLError } from "graphql";
+import {
+  handleDisconnect,
+  recordState,
+} from "../services/notifications/onboarding";
+import { TITLES } from "../constants/onboarding";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -51,6 +57,8 @@ function requireAdmin(context: MyContext) {
   }
 }
 
+type StripeLoginLinkPayload = { url: string };
+
 // interface PaymentInput {
 //   amount: number;
 //   date: Date;
@@ -58,6 +66,7 @@ function requireAdmin(context: MyContext) {
 //   transactionId?: string;
 //   notes?: string;
 // }
+
 type PaymentInputArg = {
   saleAmount?: number; // new (SDL)
   amount?: number; // legacy (if some callers still send it)
@@ -235,8 +244,20 @@ const resolvers = {
         );
       }
 
-      // 2) Looks up the most recent transfer to this connected account
-      // (Platform-side: transfers are created against the platform; we filter by destination)
+      const state: "in_progress" | "complete" = result.payouts_enabled
+        ? "complete"
+        : "in_progress";
+
+      // ✅ Only seed if we don’t already have the target-state notice
+      const hasTarget = await Affiliate.exists({
+        _id: affiliate._id,
+        "notifications.title": TITLES[state],
+      });
+      if (!hasTarget) {
+        await recordState(affiliate.refId, state);
+      }
+
+      // (unchanged) latest transfer lookup...
       let lastTransfer: {
         id: string;
         amount: number;
@@ -247,10 +268,9 @@ const resolvers = {
 
       try {
         const list = await stripe.transfers.list({
-          destination: affiliate.stripeAccountId, // acct_...
+          destination: affiliate.stripeAccountId,
           limit: 1,
         });
-
         const t = list.data[0];
         if (t) {
           lastTransfer = {
@@ -262,13 +282,12 @@ const resolvers = {
           };
         }
       } catch (e) {
-        // Don’t fail the whole status call on transfer lookup issues
         console.warn(
           "[checkStripeStatus] transfers.list failed:",
           (e as Error)?.message || e
         );
       }
-      // Return a consistent shape regardless of success
+
       return {
         id: result.id,
         charges_enabled: result.charges_enabled,
@@ -281,6 +300,76 @@ const resolvers = {
         lastTransferReversed: lastTransfer?.reversed ?? null,
       };
     },
+
+    // checkStripeStatus: async (
+    //   _: any,
+    //   { affiliateId }: { affiliateId: string }
+    // ) => {
+    //   const affiliate = await Affiliate.findById(affiliateId);
+    //   if (!affiliate || !affiliate.stripeAccountId) {
+    //     throw new Error("Affiliate or Stripe account not found.");
+    //   }
+
+    //   const result = await checkStripeAccountStatus(affiliate.stripeAccountId);
+    //   if (!result.success) {
+    //     throw new Error(
+    //       result.message || "Unable to fetch Stripe account status."
+    //     );
+    //   }
+
+    //   const state: "in_progress" | "complete" = result.payouts_enabled
+    //     ? "complete"
+    //     : "in_progress";
+
+    //   //  Seed the notification idempotently (and normalize on complete if your recordState implements that)
+    //   await recordState(affiliate.refId, state);
+
+    //   // 2) Looks up the most recent transfer to this connected account
+    //   // (Platform-side: transfers are created against the platform; we filter by destination)
+    //   let lastTransfer: {
+    //     id: string;
+    //     amount: number;
+    //     currency: string;
+    //     createdAt: Date;
+    //     reversed: boolean;
+    //   } | null = null;
+
+    //   try {
+    //     const list = await stripe.transfers.list({
+    //       destination: affiliate.stripeAccountId, // acct_...
+    //       limit: 1,
+    //     });
+
+    //     const t = list.data[0];
+    //     if (t) {
+    //       lastTransfer = {
+    //         id: t.id,
+    //         amount: t.amount / 100,
+    //         currency: t.currency,
+    //         createdAt: new Date(t.created * 1000),
+    //         reversed: Boolean(t.reversed),
+    //       };
+    //     }
+    //   } catch (e) {
+    //     // Don’t fail the whole status call on transfer lookup issues
+    //     console.warn(
+    //       "[checkStripeStatus] transfers.list failed:",
+    //       (e as Error)?.message || e
+    //     );
+    //   }
+    //   // Return a consistent shape regardless of success
+    //   return {
+    //     id: result.id,
+    //     charges_enabled: result.charges_enabled,
+    //     payouts_enabled: result.payouts_enabled,
+    //     details_submitted: result.details_submitted,
+    //     lastTransferId: lastTransfer?.id ?? null,
+    //     lastTransferAmount: lastTransfer?.amount ?? null,
+    //     lastTransferCurrency: lastTransfer?.currency ?? null,
+    //     lastTransferCreatedAt: lastTransfer?.createdAt ?? null,
+    //     lastTransferReversed: lastTransfer?.reversed ?? null,
+    //   };
+    // },
 
     affiliateProducts: async (
       _: any,
@@ -750,6 +839,36 @@ const resolvers = {
     //   return sale;
     // },
 
+    createStripeExpressDashboardLink: async (
+      _parent: unknown,
+      { refId }: { refId: string },
+      context: MyContext
+    ): Promise<StripeLoginLinkPayload> => {
+      // 1) Basic auth/ownership check
+      if (!context?.affiliate || context.affiliate.refId !== refId) {
+        throw new Error("Forbidden");
+      }
+
+      // 2) Look up connected account
+      const affiliate = await Affiliate.findOne({ refId });
+      if (!affiliate?.stripeAccountId) {
+        throw new GraphQLError("Stripe account not connected", {
+          extensions: {
+            code: "STRIPE_NOT_CONNECTED",
+            http: { status: 400 }, // optional, helps in logs
+          },
+        });
+      }
+
+      // 3) Create short-lived Express Dashboard login link
+      const linkResp = await stripe.accounts.createLoginLink(
+        affiliate.stripeAccountId
+      );
+
+      // 4) Return the URL as per your SDL
+      return { url: linkResp.url };
+    },
+
     createAffiliateStripeAccount: async (
       _: any,
       { affiliateId }: { affiliateId: string }
@@ -848,6 +967,8 @@ const resolvers = {
       try {
         const deleted = await stripe.accounts.del(stripeId);
         console.log("[disconnectStripeAccount] delete result:", deleted);
+
+        await handleDisconnect(affiliate.refId);
 
         if (deleted?.deleted === true) {
           await Affiliate.updateOne(
@@ -976,13 +1097,24 @@ const resolvers = {
       _: unknown,
       { refId, notificationId }: { refId: string; notificationId: string }
     ) => {
-      const updated = await Affiliate.findOneAndUpdate(
-        { refId, "notifications._id": new Types.ObjectId(notificationId) },
-        { $set: { "notifications.$.read": true } }, // 👈 set to TRUE
+      // 1) Primary: match by client-facing id
+      let updated = await Affiliate.findOneAndUpdate(
+        { refId, "notifications.id": notificationId },
+        { $set: { "notifications.$.read": true } },
         { new: true }
       );
+
+      // 2) Fallback: if the string is a valid ObjectId, try _id
+      if (!updated && Types.ObjectId.isValid(notificationId)) {
+        updated = await Affiliate.findOneAndUpdate(
+          { refId, "notifications._id": new Types.ObjectId(notificationId) },
+          { $set: { "notifications.$.read": true } },
+          { new: true }
+        );
+      }
+
       if (!updated) throw new Error("Affiliate or notification not found");
-      return updated;
+      return updated; // Affiliate!
     },
 
     deleteNotification: async (

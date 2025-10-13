@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { Affiliate } from "../types";
@@ -6,6 +6,7 @@ import { AffiliateOutletContext } from "./AffiliateDashboard";
 import { useNotifications } from "../hooks/useNotifications";
 
 import "./NotificationMenu.css";
+import { sortNotifications } from "../utils/sortedNotification";
 
 type Props = {
   me?: Affiliate;
@@ -18,6 +19,11 @@ export default function NotificationMenu({ me, onboardingStatus }: Props) {
   const navigate = useNavigate();
 
   const { notifications, unreadCount } = useNotifications(me);
+
+  const sorted = useMemo(
+    () => sortNotifications(notifications),
+    [notifications]
+  );
 
   const handleClick = async () => {
     setOpen(false);
@@ -68,7 +74,7 @@ export default function NotificationMenu({ me, onboardingStatus }: Props) {
         >
           <div className="dropdown-header p-3">Notifications</div>
           <ul className="notification-list">
-            {notifications?.map((n: any, i: number) => {
+            {sorted?.map((n: any, i: number) => {
               const isUnread = n?.read === false || n?.read === "false";
               const ts = n?.date ?? n?.createdAt;
               return (

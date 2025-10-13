@@ -37,10 +37,6 @@ export default function NotificationsList() {
          <div className="empty-state">
            <IoMdNotificationsOff  size={64} className="opacity-60" aria-hidden />
            <h3>No Notifications Found</h3>
-           {/* <p>
-             Once you start generating clicks and sales, analytics will appear
-             here.
-           </p> */}
          </div>
        );
   }

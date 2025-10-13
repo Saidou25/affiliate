@@ -4,6 +4,10 @@ import Stripe from "stripe";
 import { Types } from "mongoose";
 import AffiliateSale from "../models/AffiliateSale";
 import Payment from "../models/Payment";
+import {
+  handleDisconnect,
+  recordState,
+} from "../services/notifications/onboarding";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
@@ -42,6 +46,41 @@ export default async function stripeWebhook(req: Request, res: Response) {
 
   try {
     switch (event.type) {
+      // ===================== ONBOARDING EVENTS =====================
+      case "account.updated": {
+        const acct = event.data.object as Stripe.Account;
+        const ref = await (await import("../models/Affiliate")).default
+          .findOne({ stripeAccountId: acct.id }, { refId: 1 })
+          .lean();
+        if (ref?.refId) {
+          const due = acct.requirements?.currently_due ?? [];
+          const complete =
+            (acct.charges_enabled && acct.payouts_enabled) ||
+            (due.length === 0 && acct.details_submitted);
+
+          await recordState(ref.refId, complete ? "complete" : "in_progress");
+          // (optional) log
+          console.log(
+            `[WH] account.updated → ${ref.refId} state=${
+              complete ? "complete" : "in_progress"
+            }`
+          );
+        }
+        break;
+      }
+
+      case "account.application.deauthorized": {
+        const accountId = (event.account as string) || "";
+        const ref = await (await import("../models/Affiliate")).default
+          .findOne({ stripeAccountId: accountId }, { refId: 1 })
+          .lean();
+        if (ref?.refId) {
+          await handleDisconnect(ref.refId);
+          console.log(`[WH] deauthorized → reset cycle for ${ref.refId}`);
+        }
+        break;
+      }
+
       // --------- TRANSFERS (platform → connected account) ---------
       case "transfer.created": {
         const t = event.data.object as Stripe.Transfer;
@@ -395,4 +434,15 @@ function iso(unixSeconds?: number) {
 
 function round2(n: number) {
   return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+function mapStripeAccountToState(
+  acct: Stripe.Account | null
+): "not_started" | "in_progress" | "complete" {
+  if (!acct) return "not_started";
+  const due = acct.requirements?.currently_due ?? [];
+  const complete =
+    (acct.charges_enabled && acct.payouts_enabled) ||
+    (due.length === 0 && acct.details_submitted);
+  return complete ? "complete" : "in_progress";
 }
