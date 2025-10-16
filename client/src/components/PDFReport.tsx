@@ -5,8 +5,9 @@ import {
 } from "../utils/queries";
 import { useState } from "react";
 import { AffiliateSale } from "../types";
-import DetailedReportView from "./DetailedReportView";
+// import DetailedReportView from "./DetailedReportView";
 import useSalesReport from "../hooks/useSalesReport";
+import ReusableTable from "./ReusableTable";
 // import PaymentsReports from "./PaymentsReports";
 // import PaidCommissions from "./PaidCommissions";
 // import UnpaidCommissions from "./UnpaidCommissions";
@@ -37,7 +38,7 @@ export default function PDFReport() {
           monthlySales.map((monthSales, index) => (
             <div className="" key={monthSales.month}>
               {showReport === index && (
-                <DetailedReportView
+                <ReusableTable
                   monthSales={monthSales.sales}
                   currentMonth={monthSales.month}
                   setShowReport={setShowReport}
