@@ -18,58 +18,58 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 // app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 
 export default async function stripeWebhook(req: Request, res: Response) {
-  console.log(
-    "→ webhook TOP | __test =",
-    req.query.__test,
-    "| UA =",
-    req.headers["user-agent"]
-  );
+  
+  // // ── DEV TEST SHIM (must be first!) ─────────────────────────────
+  // console.log(
+  //   "→ webhook TOP | __test =",
+  //   req.query.__test,
+  //   "| UA =",
+  //   req.headers["user-agent"]
+  // );
+  // if (typeof req.query.__test === "string") {
+  //   try {
+  //     const t = String(req.query.__test);
+  //     console.log(`[DEV TEST] __test=${t}`);
 
-  // ── DEV TEST SHIM (must be first!) ─────────────────────────────
-  if (typeof req.query.__test === "string") {
-    try {
-      const t = String(req.query.__test);
-      console.log(`[DEV TEST] __test=${t}`);
+  //     const {
+  //       notifyTransferInitiated,
+  //       notifyTransferPaid,
+  //       notifyTransferReversed,
+  //     } = await import("../services/notifications/payments");
 
-      const {
-        notifyTransferInitiated,
-        notifyTransferPaid,
-        notifyTransferReversed,
-      } = await import("../services/notifications/payments");
-
-      const refId = process.env.TEST_REFID || "TEST-REFID-123";
-      if (t === "transfer.created") {
-        await notifyTransferInitiated({
-          refId,
-          amount: 12.34,
-          currency: "usd",
-          transferId: "tr_test_123",
-          productName: "Test Product",
-        });
-      } else if (t === "transfer.updated") {
-        await notifyTransferPaid({
-          refId,
-          amount: 12.34,
-          currency: "usd",
-          transferId: "tr_test_123",
-        });
-      } else if (t === "transfer.reversed") {
-        await notifyTransferReversed({
-          refId,
-          amount: 12.34,
-          currency: "usd",
-          transferId: "tr_test_123",
-          reversalId: "trr_test_001",
-        });
-      } else {
-        return res.status(400).send("Unknown __test");
-      }
-      return res.status(200).send("dev test OK ✅");
-    } catch (e: any) {
-      console.error("[DEV TEST] error:", e?.message || e);
-      return res.status(500).send("dev test error");
-    }
-  }
+  //     const refId = process.env.TEST_REFID || "TEST-REFID-123";
+  //     if (t === "transfer.created") {
+  //       await notifyTransferInitiated({
+  //         refId,
+  //         amount: 12.34,
+  //         currency: "usd",
+  //         transferId: "tr_test_123",
+  //         productName: "Test Product",
+  //       });
+  //     } else if (t === "transfer.updated") {
+  //       await notifyTransferPaid({
+  //         refId,
+  //         amount: 12.34,
+  //         currency: "usd",
+  //         transferId: "tr_test_123",
+  //       });
+  //     } else if (t === "transfer.reversed") {
+  //       await notifyTransferReversed({
+  //         refId,
+  //         amount: 12.34,
+  //         currency: "usd",
+  //         transferId: "tr_test_123",
+  //         reversalId: "trr_test_001",
+  //       });
+  //     } else {
+  //       return res.status(400).send("Unknown __test");
+  //     }
+  //     return res.status(200).send("dev test OK ✅");
+  //   } catch (e: any) {
+  //     console.error("[DEV TEST] error:", e?.message || e);
+  //     return res.status(500).send("dev test error");
+  //   }
+  // }
   // ───────────────────────────────────────────────────────────────
   console.log("🔔 Received webhook call...");
   // const sig = req.headers["stripe-signature"] as string | undefined;
