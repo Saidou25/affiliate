@@ -18,8 +18,8 @@ interface MonthlySalesGroup {
 }
 type Props = {
     // me: Affiliate;
-    refId: string;
-    affiliateRole: string;
+    refId?: string;
+    affiliateRole?: string;
   //  onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
 };
 
