@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Affiliate } from "../types";
 import { AffiliateOutletContext } from "./AffiliateDashboard";
 import { useNotifications } from "../hooks/useNotifications";
+import { sortNotifications } from "../utils/sortedNotification";
 
 import "./NotificationMenu.css";
-import { sortNotifications } from "../utils/sortedNotification";
 
 type Props = {
   me?: Affiliate;

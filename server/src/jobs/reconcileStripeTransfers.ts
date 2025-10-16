@@ -3,6 +3,10 @@ import Stripe from "stripe";
 import Payment from "../models/Payment";
 import AffiliateSale from "../models/AffiliateSale";
 import Affiliate from "../models/Affiliate";
+import {
+  notifyTransferPaid,
+  notifyTransferReversed,
+} from "../services/notifications/payments";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -12,14 +16,15 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
 
   // Only Stripe-originated transfers created recently
   const candidates = await Payment.find({
-    method: "stripe_transfer",          // <-- ensure resolver sets this
+    method: "stripe_transfer", // <-- ensure resolver sets this
     createdAt: { $gte: cutoff },
-    transactionId: { $regex: /^tr_/ },  // Stripe transfer ids
+    transactionId: { $regex: /^tr_/ }, // Stripe transfer ids
   }).lean();
 
   for (const p of candidates) {
     try {
-      const txId = typeof p.transactionId === "string" ? p.transactionId : undefined;
+      const txId =
+        typeof p.transactionId === "string" ? p.transactionId : undefined;
       if (!txId || !txId.startsWith("tr_")) continue;
 
       const tr = await stripe.transfers.retrieve(txId);
@@ -30,7 +35,13 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
         // 1) mark related sales reversed (idempotent)
         await AffiliateSale.updateMany(
           { _id: { $in: p.saleIds }, commissionStatus: { $ne: "reversed" } },
-          { $set: { commissionStatus: "reversed", paidAt: undefined, paymentId: p._id } }
+          {
+            $set: {
+              commissionStatus: "reversed",
+              paidAt: undefined,
+              paymentId: p._id,
+            },
+          }
         );
 
         // 2) reflect reversal in Payment (idempotent)
@@ -46,6 +57,13 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
           }
         );
 
+        await notifyTransferReversed({
+          refId: String(p.refId),
+          amount: Number((tr.amount || 0) / 100), // Stripe transfer.amount is cents
+          currency: String(tr.currency || "usd"),
+          transferId: tr.id,
+          reversalId: tr.reversals?.data?.[0]?.id,
+        });
         // 3) update paymentHistory entry if it exists; if not, push one
         const snapUpdate = await Affiliate.updateOne(
           { _id: p.affiliateId },
@@ -91,7 +109,10 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
       // ---------- SUCCESS PATH (NOT REVERSED) ----------
       // 1) mark related sales paid (idempotent)
       await AffiliateSale.updateMany(
-        { _id: { $in: p.saleIds }, commissionStatus: { $in: ["unpaid", "processing"] } },
+        {
+          _id: { $in: p.saleIds },
+          commissionStatus: { $in: ["unpaid", "processing"] },
+        },
         { $set: { commissionStatus: "paid", paidAt, paymentId: p._id } }
       );
 
@@ -120,13 +141,21 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
             // ensure other fields are in sync (in case they were undefined before)
             "paymentHistory.$[snap].saleAmount": p.saleAmount,
             "paymentHistory.$[snap].paidCommission": p.paidCommission,
-            "paymentHistory.$[snap].productName": p.productName ?? "Commission payout",
+            "paymentHistory.$[snap].productName":
+              p.productName ?? "Commission payout",
             "paymentHistory.$[snap].notes": p.notes,
             "paymentHistory.$[snap].method": p.method,
           },
         },
         { arrayFilters: [{ "snap.transactionId": txId }] }
       );
+
+      await notifyTransferPaid({
+        refId: String(p.refId), // already on Payment
+        amount: Number(p.paidCommission ?? p.saleAmount ?? 0),
+        currency: String(tr.currency || "usd"),
+        transferId: tr.id,
+      });
 
       // 4) if no snapshot existed (confirmed-only policy), push one now
       if (result.matchedCount === 0) {
@@ -142,8 +171,8 @@ export async function reconcileStripeTransfers(sinceHours = 48) {
                 saleAmount: p.saleAmount,
                 paidCommission: p.paidCommission,
                 productName: p.productName ?? "Commission payout",
-                date: paidAt ?? p.date,        // prefer the Stripe timestamp
-                method: p.method,              // "stripe_transfer"
+                date: paidAt ?? p.date, // prefer the Stripe timestamp
+                method: p.method, // "stripe_transfer"
                 transactionId: p.transactionId,
                 notes: p.notes,
                 currency: tr.currency,

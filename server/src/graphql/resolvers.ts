@@ -40,6 +40,7 @@ import {
   recordState,
 } from "../services/notifications/onboarding";
 import { TITLES } from "../constants/onboarding";
+import { notifyTransferInitiated } from "../services/notifications/payments";
 
 if (!SECRET) {
   throw new Error("JWT SECRET is not defined in environment variables");
@@ -1337,6 +1338,14 @@ const resolvers = {
         status: "processing", // helpful for the UI
         currency,
         transferId: transfer.id, // store explicitly if your Payment model has it
+      });
+
+      await notifyTransferInitiated({
+        refId,
+        amount,
+        currency,
+        transferId: transfer.id,
+        productName,
       });
 
       // 4) If you passed saleIds, mark their commissionStatus -> processing

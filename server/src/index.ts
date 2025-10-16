@@ -50,6 +50,9 @@ async function startServer() {
   // If you’re behind a proxy (Render, Cloudflare, Nginx), preserve client IPs, etc.
   app.set("trust proxy", true);
 
+  // 🔎 Build tag probe (temporary)
+  const BUILD_TAG = "server-build-" + new Date().toISOString();
+  app.get("/__whoami", (_req, res) => res.send(BUILD_TAG));
   // ───────────────────────────────────────────────────────────────────────────
   // 1) STRIPE WEBHOOK — MUST SEE RAW BODY
   //    Keep this BEFORE any JSON/body parser touches the request.

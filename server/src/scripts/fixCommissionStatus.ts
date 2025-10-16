@@ -1,6 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import AffiliateSale from "../models/AffiliateSale"; // adjust path if needed
+import AffiliateSale from "../models/AffiliateSale";
 
 async function run() {
   const uri = process.env.MONGODB_URI!;
