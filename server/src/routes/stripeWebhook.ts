@@ -18,11 +18,6 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 // app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook);
 
 export default async function stripeWebhook(req: Request, res: Response) {
-  if (req.query.__test) {
-  console.log("[DEV TEST] HARD BYPASS →", req.query.__test);
-  return res.status(200).send("HARD BYPASS HIT ✅");
-}
-
   console.log(
     "→ webhook TOP | __test =",
     req.query.__test,
