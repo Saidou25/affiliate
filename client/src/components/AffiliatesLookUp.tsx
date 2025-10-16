@@ -17,6 +17,7 @@ export default function AffiliatesLookUp() {
   const [affiliateData, setAffiliateData] = useState<Affiliate | null>(null);
   const [affiliateRefId, setAffiliateRefId] = useState("");
   const [submittedRefId, setSubmittedRefId] = useState("");
+  const [affiliateRole, setAffiliateRole] = useState("");
   const [show, setShow] = useState(false);
 
   const location = useLocation();
@@ -41,6 +42,7 @@ export default function AffiliatesLookUp() {
       });
       if (data) {
         setAffiliateData(data.getAffiliateByRefId);
+         setAffiliateRole(data.getAffiliateByRefId.role)
       }
     } catch (error) {
       console.log(error);
@@ -144,7 +146,7 @@ export default function AffiliatesLookUp() {
               <span>No activity so far.</span>
             </>
           ))}
-        {show && <DetailedReport refId={submittedRefId} />}
+        {show && <DetailedReport refId={submittedRefId} affiliateRole={affiliateRole} />}
       </div>
     </>
   );

@@ -6,20 +6,22 @@ import { useSalesTracker } from "../hooks/useSalesTracker";
 import { Affiliate, AffiliateSale } from "../types";
 import ReusableTable from "./ReusableTable";
 import DetailedReportSkeleton from "./DetailedReportSkeleton";
-import { AffiliateOutletContext } from "./AffiliateDashboard";
-import { useOutletContext } from "react-router-dom";
+// import { AffiliateOutletContext } from "./AffiliateDashboard";
+// import { useOutletContext } from "react-router-dom";
+import { FiBarChart2 } from "react-icons/fi";
 
 import "./DetailedReport.css";
-import { FiBarChart2 } from "react-icons/fi";
 
 interface MonthlySalesGroup {
   month: string;
   sales: AffiliateSale[];
 }
-// type Props = {
-//     me: Affiliate;
-//    onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
-// };
+type Props = {
+    // me: Affiliate;
+    refId: string;
+    affiliateRole: string;
+  //  onboardingStatus?: AffiliateOutletContext["onboardingStatus"];
+};
 
 // put this above your component
 const formatDate = (value: any): Date | null => {
@@ -37,13 +39,13 @@ const formatDate = (value: any): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 
-export default function DetailedReport() {
+export default function DetailedReport({ refId, affiliateRole }: Props) {
   const [sortedDates, setSortedDates] = useState<AffiliateSale[]>([]);
   const [monthlySales, setMonthlySales] = useState<MonthlySalesGroup[]>([]);
   const [showReport, setShowReport] = useState<number | null>(null);
   const [dataReady, setDataReady] = useState(false);
 
-  const { me, refId } = useOutletContext<AffiliateOutletContext>();
+  // const { me, refId } = useOutletContext<AffiliateOutletContext>();
 
   const {
     data: salesData,
@@ -145,7 +147,7 @@ export default function DetailedReport() {
 
   return (
     <div className="detailed-report-container">
-      {dataReady && me?.role === "affiliate" && showReport === null ? (
+      {dataReady && affiliateRole === "affiliate" && showReport === null ? (
         <h2>Monthly Reports</h2>
       ) : null}
       <br />
